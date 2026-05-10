@@ -5,7 +5,6 @@ import os
 import sys
 
 import pytest
-
 from lib.content import (
     compose_recall_query,
     format_memories,
@@ -34,6 +33,13 @@ class TestStripMemoryTags:
         raw = "before\n<hindsight_memories>secret</hindsight_memories>\nafter"
         result = strip_memory_tags(raw)
         assert "hindsight_memories" not in result
+        assert "before" in result
+        assert "after" in result
+
+    def test_strips_hindsight_lite_memories_block(self):
+        raw = "before\n<hindsight_lite_memories>secret</hindsight_lite_memories>\nafter"
+        result = strip_memory_tags(raw)
+        assert "hindsight_lite_memories" not in result
         assert "before" in result
         assert "after" in result
 
