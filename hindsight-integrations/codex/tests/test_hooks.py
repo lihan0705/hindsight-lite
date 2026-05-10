@@ -34,8 +34,7 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
         if k.startswith("HINDSIGHT_"):
             monkeypatch.delenv(k, raising=False)
 
-    # Set required API URL via env var
-    monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+    # Isolate local hindsight-lite memory files.
     monkeypatch.setenv("HINDSIGHT_LITE_HOME", str(tmp_path / ".hindsight-lite"))
 
     # Write user config (enables retain on every turn + any overrides)
@@ -70,6 +69,30 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
 
 def _retained_events(tmp_path, session_id="sess-abc123"):
     return LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex").read_session_events(session_id)
+
+
+# ---------------------------------------------------------------------------
+# session start hook
+# ---------------------------------------------------------------------------
+
+
+class TestSessionStartHook:
+    def test_initializes_local_bank(self, monkeypatch, tmp_path):
+        hook_input = make_hook_input(session_id="sess-start")
+
+        _run_hook("session_start", hook_input, monkeypatch, tmp_path)
+
+        bank_dir = tmp_path / ".hindsight-lite" / "banks" / "codex"
+        assert (bank_dir / "sessions").is_dir()
+        assert (bank_dir / "pages").is_dir()
+        assert (bank_dir / "reflections").is_dir()
+
+    def test_disabled_memory_skips_local_bank_init(self, monkeypatch, tmp_path):
+        hook_input = make_hook_input(session_id="sess-start")
+
+        _run_hook("session_start", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False, "autoRetain": False})
+
+        assert not (tmp_path / ".hindsight-lite").exists()
 
 
 # ---------------------------------------------------------------------------
