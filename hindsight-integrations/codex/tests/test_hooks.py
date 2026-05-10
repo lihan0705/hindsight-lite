@@ -68,6 +68,10 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
     return stdout_capture.getvalue()
 
 
+def _retained_events(tmp_path, session_id="sess-abc123"):
+    return LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex").read_session_events(session_id)
+
+
 # ---------------------------------------------------------------------------
 # recall hook
 # ---------------------------------------------------------------------------
@@ -161,34 +165,22 @@ class TestRecallHook:
 
 
 class TestRetainHook:
-    def test_posts_transcript_to_hindsight(self, monkeypatch, tmp_path):
+    def test_writes_transcript_to_local_store(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
 
-        captured = {}
-
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({"status": "accepted"})
-
         hook_input = make_hook_input(transcript_path=transcript)
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
 
-        assert "body" in captured, "retain API was not called"
-        assert "hello" in captured["body"]["items"][0]["content"]
+        events = _retained_events(tmp_path)
+        assert len(events) == 1
+        assert "hello" in events[0].content
 
     def test_no_retain_on_empty_transcript(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(transcript_path="/nonexistent/transcript.jsonl")
-        captured = {}
 
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url:
-                captured["called"] = True
-            return FakeHTTPResponse({})
-
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
-        assert "called" not in captured
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
+        assert _retained_events(tmp_path) == []
 
     def test_strips_memory_tags_before_retaining(self, monkeypatch, tmp_path):
         messages = [
@@ -196,69 +188,40 @@ class TestRetainHook:
             {"role": "assistant", "content": "sure!"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
-        captured = {}
-
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({})
 
         hook_input = make_hook_input(transcript_path=transcript)
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
 
-        if "body" in captured:
-            content = captured["body"]["items"][0]["content"]
-            assert "old memories" not in content
-            assert "actual question" in content
+        content = _retained_events(tmp_path)[0].content
+        assert "old memories" not in content
+        assert "actual question" in content
 
-    def test_retain_posts_async_true(self, monkeypatch, tmp_path):
+    def test_retain_records_message_count_metadata(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
-        captured = {}
-
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({})
 
         hook_input = make_hook_input(transcript_path=transcript)
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
 
-        if "body" in captured:
-            assert captured["body"].get("async") is True
+        assert _retained_events(tmp_path)[0].metadata["message_count"] == "2"
 
     def test_retain_includes_codex_context_label(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
-        captured = {}
-
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({})
 
         hook_input = make_hook_input(transcript_path=transcript)
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
 
-        if "body" in captured:
-            assert captured["body"]["items"][0]["context"] == "codex"
+        assert _retained_events(tmp_path)[0].source == "codex"
 
     def test_retain_skips_below_every_n_turns_threshold(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
-        captured = {}
-
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["called"] = True
-            return FakeHTTPResponse({})
 
         hook_input = make_hook_input(transcript_path=transcript)
         # retainEveryNTurns=3 — first call should be skipped
-        _run_hook("retain", hook_input, monkeypatch, tmp_path,
-                  urlopen_side_effect=capture,
-                  user_config={"retainEveryNTurns": 3})
-        assert "called" not in captured
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, user_config={"retainEveryNTurns": 3})
+        assert _retained_events(tmp_path) == []
 
     def test_retain_uses_session_id_as_document_id(self, monkeypatch, tmp_path):
         messages = [
@@ -266,45 +229,29 @@ class TestRetainHook:
         ]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-doc-test")
-        captured = {}
 
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({})
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
 
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+        assert _retained_events(tmp_path, session_id="sess-doc-test")[0].document_id == "sess-doc-test"
 
-        assert "body" in captured
-        assert captured["body"]["items"][0]["document_id"] == "sess-doc-test"
-
-    def test_graceful_on_retain_api_error(self, monkeypatch, tmp_path):
+    def test_retain_does_not_call_http(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "test"}, {"role": "assistant", "content": "response"}]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript)
 
         def raise_error(req, timeout=None):
-            if "/memories" in req.full_url:
-                raise OSError("connection refused")
-            return FakeHTTPResponse({})
+            raise OSError("HTTP should not be called")
 
-        # Should not raise
         _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=raise_error)
+        assert "test" in _retained_events(tmp_path)[0].content
 
     def test_disabled_auto_retain_does_not_call_api(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript)
-        captured = {}
 
-        def capture(req, timeout=None):
-            captured["called"] = True
-            return FakeHTTPResponse({})
-
-        _run_hook("retain", hook_input, monkeypatch, tmp_path,
-                  urlopen_side_effect=capture,
-                  user_config={"autoRetain": False})
-        assert "called" not in captured
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, user_config={"autoRetain": False})
+        assert _retained_events(tmp_path) == []
 
     def test_reads_codex_response_item_format(self, monkeypatch, tmp_path):
         """Retain should correctly parse the actual Codex on-disk transcript format."""
@@ -313,16 +260,9 @@ class TestRetainHook:
             {"role": "assistant", "content": "Great choice!"},
         ]
         transcript = make_transcript_file(tmp_path, messages, codex_format=True)
-        captured = {}
-
-        def capture(req, timeout=None):
-            if "/memories" in req.full_url and "/recall" not in req.full_url:
-                captured["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({})
 
         hook_input = make_hook_input(transcript_path=transcript)
-        _run_hook("retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
 
-        assert "body" in captured, "retain API was not called"
-        content = captured["body"]["items"][0]["content"]
+        content = _retained_events(tmp_path)[0].content
         assert "TypeScript" in content

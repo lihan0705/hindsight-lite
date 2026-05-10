@@ -8,10 +8,9 @@ Flow:
   1. Read hook input from stdin (session_id, transcript_path, cwd)
   2. Read conversation transcript from transcript_path
   3. Apply chunked retention logic (retainEveryNTurns + overlap window)
-  4. Resolve API URL (external, existing local, or auto-start daemon)
-  5. Derive bank ID and ensure mission
+  4. Derive bank ID and open local hindsight-lite store
   6. Format transcript (strip memory tags, filter roles)
-  7. POST to Hindsight retain API
+  7. Append session memory JSONL
 
 Exit codes:
   0 — always (graceful degradation on any error)
@@ -24,16 +23,17 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.bank import derive_bank_id
 from lib.config import debug_log, load_config
 from lib.content import (
     prepare_retention_transcript,
     read_transcript,
     slice_last_turns_by_user_boundary,
 )
-from lib.daemon import get_api_url
 from lib.state import increment_turn_count
+
+from hindsight_lite.models import SessionMemoryEvent
+from hindsight_lite.store import LocalMemoryStore
 
 
 def main():
@@ -101,26 +101,8 @@ def main():
         debug_log(config, "Empty transcript after formatting, skipping retain")
         return
 
-    # Resolve API URL
-    def _dbg(*a):
-        debug_log(config, *a)
-
-    try:
-        api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
-    except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
-        return
-
-    api_token = config.get("hindsightApiToken")
-    try:
-        client = HindsightClient(api_url, api_token)
-    except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
-        return
-
-    # Derive bank ID and ensure mission
     bank_id = derive_bank_id(hook_input, config)
-    ensure_bank_mission(client, bank_id, config, debug_fn=_dbg)
+    store = LocalMemoryStore(bank_id=bank_id)
 
     # Document ID: use session_id so the same session always upserts.
     # In chunked mode, append timestamp to create distinct documents per chunk.
@@ -152,24 +134,24 @@ def main():
     for k, v in config.get("retainMetadata", {}).items():
         metadata[k] = _resolve_template(str(v))
 
-    debug_log(
-        config, f"Retaining to bank '{bank_id}', doc '{document_id}', {message_count} messages, {len(transcript)} chars"
-    )
+    debug_log(config, f"Retaining to local bank '{bank_id}', doc '{document_id}', {message_count} messages")
     if tags:
         debug_log(config, f"Tags: {tags}")
 
-    # POST to Hindsight retain API
     try:
-        response = client.retain(
+        event = SessionMemoryEvent(
+            type="session_memory",
+            id=f"{document_id}-{int(time.time() * 1000)}",
             bank_id=bank_id,
+            timestamp=template_vars["timestamp"],
+            session_id=session_id,
+            source=config.get("retainContext", "codex"),
             content=transcript,
             document_id=document_id,
-            context=config.get("retainContext", "codex"),
             metadata=metadata,
-            tags=tags,
-            timeout=15,
+            tags=tags or [],
         )
-        debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
+        store.append_session_event(event)
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
 
