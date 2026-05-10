@@ -12,6 +12,7 @@ DEFAULTS = {
     # Recall
     "autoRecall": True,
     "recallBudget": "mid",
+    "recallMaxResults": 5,
     "recallMaxTokens": 1024,
     "recallTimeout": 10,
     "recallTypes": ["world", "experience"],

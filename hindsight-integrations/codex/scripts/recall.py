@@ -6,11 +6,11 @@ and injects them into the Codex context via hookSpecificOutput.additionalContext
 
 Flow:
   1. Read hook input from stdin (session_id, transcript_path, prompt/user_prompt)
-  2. Resolve API URL
-  3. Derive bank ID and ensure mission
+  2. Derive bank ID
+  3. Open local hindsight-lite store
   4. Compose multi-turn query if recallContextTurns > 1
   5. Truncate to recallMaxQueryChars
-  6. Call Hindsight recall API
+  6. Recall from local Markdown/JSONL memory
   7. Format memories and output hookSpecificOutput.additionalContext
 
 Exit codes:
@@ -25,18 +25,17 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.bank import derive_bank_id
 from lib.config import debug_log, load_config
 from lib.content import (
     compose_recall_query,
-    format_current_time,
-    format_memories,
     read_transcript,
     truncate_recall_query,
 )
-from lib.daemon import get_api_url
 from lib.state import write_state
+
+from hindsight_lite.recall import format_recall_for_codex, recall
+from hindsight_lite.store import LocalMemoryStore
 
 LAST_RECALL_STATE = "last_recall.json"
 
@@ -71,21 +70,8 @@ def main():
     def _dbg(*a):
         debug_log(config, *a)
 
-    try:
-        api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
-    except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
-        return
-
-    api_token = config.get("hindsightApiToken")
-    try:
-        client = HindsightClient(api_url, api_token)
-    except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
-        return
-
     bank_id = derive_bank_id(hook_input, config)
-    ensure_bank_mission(client, bank_id, config, debug_fn=_dbg)
+    store = LocalMemoryStore(bank_id=bank_id)
 
     # Multi-turn query composition
     recall_context_turns = config.get("recallContextTurns", 1)
@@ -106,40 +92,23 @@ def main():
 
     query = query.encode('utf-8', errors='ignore').decode('utf-8')
 
-    current_time = format_current_time()
     preamble = config.get("recallPromptPreamble", "")
-    recall_timeout = config.get("recallTimeout", 10)
+    max_results = config.get("recallMaxResults", 5)
 
-    debug_log(config, f"Recalling from bank '{bank_id}', query length: {len(query)}, timeout: {recall_timeout}")
+    debug_log(config, f"Recalling from local bank '{bank_id}', query length: {len(query)}")
     try:
-        response = client.recall(
-            bank_id=bank_id,
-            query=query,
-            max_tokens=config.get("recallMaxTokens", 1024),
-            budget=config.get("recallBudget", "mid"),
-            types=config.get("recallTypes"),
-            timeout=recall_timeout,
-        )
+        results = recall(store, query=query, max_results=max_results)
     except Exception as e:
         print(f"[Hindsight] Recall failed: {e}", file=sys.stderr)
         return
 
-    results = response.get("results", [])
     if not results:
         debug_log(config, "No memories found")
         return
 
     debug_log(config, f"Injecting {len(results)} memories")
 
-    memories_formatted = format_memories(results)
-
-    context_message = (
-        f"<hindsight_memories>\n"
-        f"{preamble}\n"
-        f"Current time - {current_time}\n\n"
-        f"{memories_formatted}\n"
-        f"</hindsight_memories>"
-    )
+    context_message = format_recall_for_codex(results, preamble=preamble)
 
     write_state(
         LAST_RECALL_STATE,

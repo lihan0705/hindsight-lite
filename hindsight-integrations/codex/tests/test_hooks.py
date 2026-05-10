@@ -15,9 +15,9 @@ import sys
 from unittest.mock import patch
 
 import pytest
-
 from conftest import FakeHTTPResponse, make_hook_input, make_memory, make_transcript_file, make_user_config
 
+from hindsight_lite.store import LocalMemoryStore
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -36,6 +36,7 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
 
     # Set required API URL via env var
     monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+    monkeypatch.setenv("HINDSIGHT_LITE_HOME", str(tmp_path / ".hindsight-lite"))
 
     # Write user config (enables retain on every turn + any overrides)
     cfg = {"retainEveryNTurns": 1, "autoRecall": True, "autoRetain": True}
@@ -74,17 +75,16 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
 
 class TestRecallHook:
     def test_outputs_additional_context_when_memories_found(self, monkeypatch, tmp_path):
-        memory = make_memory("Paris is the capital of France", "world")
-        response = FakeHTTPResponse({"results": [memory]})
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(page_id="france", title="France", content="Paris is the capital of France")
 
         hook_input = make_hook_input(prompt="What is the capital of France?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                           urlopen_side_effect=lambda *a, **kw: response)
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
 
         data = json.loads(output)
         context = data["hookSpecificOutput"]["additionalContext"]
         assert "Paris is the capital of France" in context
-        assert "<hindsight_memories>" in context
+        assert "<hindsight_lite_memories>" in context
 
     def test_no_output_when_no_memories(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="hello there world")
@@ -96,21 +96,17 @@ class TestRecallHook:
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
         assert output.strip() == ""
 
-    def test_graceful_on_api_error(self, monkeypatch, tmp_path):
-        def raise_error(*a, **kw):
-            raise OSError("connection refused")
-
+    def test_graceful_when_local_store_has_no_matches(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is my project about?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path, urlopen_side_effect=raise_error)
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
         assert output.strip() == ""
 
     def test_output_format_matches_codex_spec(self, monkeypatch, tmp_path):
-        memory = make_memory("User prefers Python")
-        response = FakeHTTPResponse({"results": [memory]})
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(page_id="python", title="Python", content="User prefers Python language choices")
 
         hook_input = make_hook_input(prompt="What language should I use?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                           urlopen_side_effect=lambda *a, **kw: response)
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
 
         data = json.loads(output)
         assert data["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
@@ -124,28 +120,20 @@ class TestRecallHook:
         ]
         transcript = make_transcript_file(tmp_path, messages)
 
-        captured_body = {}
-
-        def capture_and_respond(req, timeout=None):
-            if "/recall" in req.full_url:
-                captured_body["body"] = json.loads(req.data.decode())
-            return FakeHTTPResponse({"results": []})
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(page_id="python", title="Python", content="Python is the user's default scripting language.")
 
         hook_input = make_hook_input(prompt="What language should I use?", transcript_path=transcript)
-        _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                  urlopen_side_effect=capture_and_respond,
-                  user_config={"recallContextTurns": 2})
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path, user_config={"recallContextTurns": 2})
 
-        if "body" in captured_body:
-            assert "Python" in captured_body["body"].get("query", "")
+        data = json.loads(output)
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert "Python is the user's default scripting language." in context
 
-    def test_recall_timeout_is_configurable(self, monkeypatch, tmp_path):
-        memory = make_memory("User prefers Python")
-        captured = {}
-
-        def capture_timeout(req, timeout=None):
-            captured["timeout"] = timeout
-            return FakeHTTPResponse({"results": [memory]})
+    def test_recall_max_results_is_configurable(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(page_id="python", title="Python", content="User prefers Python language choices")
+        store.write_page(page_id="ruff", title="Ruff", content="User prefers Python language ruff checks")
 
         hook_input = make_hook_input(prompt="What language should I use?")
         output = _run_hook(
@@ -153,13 +141,12 @@ class TestRecallHook:
             hook_input,
             monkeypatch,
             tmp_path,
-            urlopen_side_effect=capture_timeout,
-            user_config={"recallTimeout": 42},
+            user_config={"recallMaxResults": 1},
         )
 
         data = json.loads(output)
-        assert data["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
-        assert captured["timeout"] == 42
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert context.count(" [page] ") == 1
 
     def test_disabled_auto_recall_produces_no_output(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is the capital of France?")
