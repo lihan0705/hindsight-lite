@@ -57,6 +57,12 @@ class LocalMemoryStore:
                     events.append(SessionMemoryEvent(**json.loads(raw_line)))
         return events
 
+    def list_session_events(self) -> list[SessionMemoryEvent]:
+        events: list[SessionMemoryEvent] = []
+        for session_path in sorted(self.paths.sessions_dir.glob("*.jsonl")):
+            events.extend(self.read_session_events(session_path.stem))
+        return events
+
     def write_page(
         self,
         page_id: str,
