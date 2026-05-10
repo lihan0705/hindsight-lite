@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from hindsight_lite.models import KnowledgePage, SessionMemoryEvent
+from hindsight_lite.models import KnowledgePage, ReflectionPacket, SessionMemoryEvent
 from hindsight_lite.paths import MemoryPaths, default_home, unsafe_page_id
 
 
@@ -94,6 +94,11 @@ class LocalMemoryStore:
         if not page_path.exists():
             raise PageNotFoundError(page_id)
         return self._read_page_path(page_path)
+
+    def write_reflection_packet(self, packet: ReflectionPacket) -> Path:
+        packet_path = self.paths.reflections_dir / f"{packet.id}.json"
+        packet_path.write_text(json.dumps(asdict(packet), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+        return packet_path
 
     def _page_path(self, page_id: str) -> Path:
         if unsafe_page_id(page_id):
