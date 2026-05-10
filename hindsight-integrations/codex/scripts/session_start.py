@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""SessionStart hook: health check and daemon pre-start.
+"""SessionStart hook: initialize local hindsight-lite memory.
 
-Fires once when a Codex session begins. Verifies the Hindsight server is
-reachable, and kicks off a background daemon pre-start if not — so it's
-ready by the first recall or retain hook.
+Fires once when a Codex session begins. Ensures the local bank directory exists
+so the first recall or retain hook can use Markdown/JSONL storage immediately.
 """
 
 import json
@@ -12,9 +11,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib.client import HindsightClient
+from lib.bank import derive_bank_id
 from lib.config import debug_log, load_config
-from lib.daemon import get_api_url, prestart_daemon_background
+
+from hindsight_lite.store import LocalMemoryStore
 
 
 def main():
@@ -32,17 +32,9 @@ def main():
 
     debug_log(config, f"SessionStart hook, session: {hook_input.get('session_id', 'unknown')}")
 
-    def _dbg(*a):
-        debug_log(config, *a)
-
-    try:
-        api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
-        HindsightClient(api_url, config.get("hindsightApiToken"))
-        debug_log(config, f"Hindsight server reachable at {api_url}")
-    except (RuntimeError, ValueError) as e:
-        debug_log(config, f"Hindsight not running, initiating background pre-start: {e}")
-        prestart_daemon_background(config, debug_fn=_dbg)
-        return
+    bank_id = derive_bank_id(hook_input, config)
+    LocalMemoryStore(bank_id=bank_id)
+    debug_log(config, f"Initialized local hindsight-lite bank: {bank_id}")
 
 
 if __name__ == "__main__":

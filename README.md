@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/status-design-orange?style=flat-square" alt="Status"></a>
+  <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/status-alpha-orange?style=flat-square" alt="Status"></a>
   <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/Codex_CLI-first-ff6b35?style=flat-square" alt="Codex CLI"></a>
   <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/Claude_Code-later-c97539?style=flat-square" alt="Claude Code"></a>
   <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/OpenCode-later-22c55e?style=flat-square" alt="OpenCode"></a>
@@ -68,11 +68,11 @@ The V1 scope is intentionally small.
 
 | Capability | Status | Mechanism |
 |---|---:|---|
-| `agent_knowledge_retain` | design | Codex `Stop` hook writes session JSONL |
-| `agent_knowledge_recall` | design | Codex `UserPromptSubmit` injects compact context |
-| `agent_knowledge_reflect` | design | local recall packet plus saved reflection request |
-| `agent_knowledge_list_pages` | design | lists local Markdown pages |
-| `agent_knowledge_get_page` | design | reads one local Markdown page |
+| `agent_knowledge_retain` | alpha | Codex `Stop` hook writes session JSONL |
+| `agent_knowledge_recall` | alpha | Codex `UserPromptSubmit` injects compact context |
+| `agent_knowledge_reflect` | alpha | local recall packet plus saved reflection request |
+| `agent_knowledge_list_pages` | alpha | lists local Markdown pages |
+| `agent_knowledge_get_page` | alpha | reads one local Markdown page |
 
 The existing Codex integration already has the right hook shape:
 
@@ -113,7 +113,7 @@ Bank layout:
       pages/
         <page_id>.md
       reflections/
-        <session_id>.jsonl
+        <reflection_id>.json
       index/
         recall-cache.json
       metadata.json
@@ -123,7 +123,7 @@ V1 memory types:
 
 - `sessions/*.jsonl` stores retained Codex conversation snapshots.
 - `pages/*.md` stores user-readable knowledge pages.
-- `reflections/*.jsonl` stores reflection requests for later analysis.
+- `reflections/*.json` stores reflection requests for later analysis.
 
 This keeps memory readable, diffable, scriptable, and easy to delete.
 
@@ -140,14 +140,14 @@ runs local text retrieval over sessions and pages, and emits:
 {
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
-    "additionalContext": "<hindsight_memories>...</hindsight_memories>"
+    "additionalContext": "<hindsight_lite_memories>...</hindsight_lite_memories>"
   }
 }
 ```
 
 Codex injects `additionalContext` into the current turn. Retain strips
-`<hindsight_memories>` blocks before writing session memory, which prevents
-memory feedback loops.
+`<hindsight_lite_memories>` and legacy `<hindsight_memories>` blocks before
+writing session memory, which prevents memory feedback loops.
 
 ---
 

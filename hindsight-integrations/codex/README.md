@@ -1,127 +1,81 @@
-# Hindsight for OpenAI Codex CLI
+# hindsight-lite for OpenAI Codex CLI
 
-Long-term memory for [OpenAI Codex CLI](https://github.com/openai/codex) — remembers your projects, preferences, and past sessions across every conversation.
+Local memory for Codex CLI using hooks plus editable files under
+`~/.hindsight-lite`. No Hindsight server, daemon, database, or cloud API is
+required.
 
-## How it works
-
-Three Codex hooks keep memory in sync automatically:
+## How It Works
 
 | Hook | Action |
-|------|--------|
-| `SessionStart` | Warms up the Hindsight server in the background |
-| `UserPromptSubmit` | Recalls relevant memories and injects them into context |
-| `Stop` | Retains the conversation to long-term memory |
+|---|---|
+| `SessionStart` | Initializes the local bank directory |
+| `UserPromptSubmit` | Recalls relevant local memory and injects compact context |
+| `Stop` | Retains the conversation to session JSONL |
+
+Memory layout:
+
+```text
+~/.hindsight-lite/
+  banks/
+    codex/
+      sessions/<session-id>.jsonl
+      pages/<page-id>.md
+      reflections/<reflection-id>.json
+      index/
+```
 
 ## Requirements
 
-- **OpenAI Codex CLI** v0.116.0 or later (hooks support)
-- **Python 3.9+** (for hook scripts)
-- **Hindsight**: [Hindsight Cloud](https://hindsight.vectorize.io) or local `hindsight-embed`
+- OpenAI Codex CLI with hook support
+- Python 3.11+
+- This repository available on the local machine
 
-## Installation
+## Commands
 
-```bash
-curl -fsSL https://hindsight.vectorize.io/get-codex | bash
-```
-
-The installer:
-1. Downloads scripts to `~/.hindsight/codex/scripts/`
-2. Writes `~/.codex/hooks.json` with absolute paths to the scripts
-3. Adds `codex_hooks = true` to `~/.codex/config.toml`
-
-### Uninstall
+Direct CLI checks:
 
 ```bash
-curl -fsSL https://hindsight.vectorize.io/get-codex | bash -s -- --uninstall
+python -m hindsight_lite knowledge list --bank codex
+python -m hindsight_lite knowledge write --bank codex --id project-rules --file AGENTS.md
+python -m hindsight_lite knowledge get --bank codex project-rules
+python -m hindsight_lite recall --bank codex "project rules"
+python -m hindsight_lite retain --bank codex --session-id test --content "Important session note"
+python -m hindsight_lite reflect --bank codex --session-id test "what should we remember?"
 ```
 
 ## Configuration
 
-The default config is written to `~/.hindsight/codex/settings.json` on first install.
-
-For personal overrides (stable across updates), create `~/.hindsight/codex.json`:
-
-```json
-{
-  "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-  "hindsightApiToken": "your-api-key",
-  "bankId": "my-codex-memory"
-}
-```
-
-### Hindsight Cloud
-
-```json
-{
-  "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-  "hindsightApiToken": "your-api-key"
-}
-```
-
-### Local daemon (hindsight-embed)
-
-Set an LLM API key and Hindsight will start the local server automatically:
-
-```bash
-export OPENAI_API_KEY=sk-your-key
-# or
-export ANTHROPIC_API_KEY=your-key
-```
-
-### Configuration options
+Defaults live in `settings.json`. User overrides can be written to
+`~/.hindsight/codex.json`.
 
 | Key | Default | Description |
-|-----|---------|-------------|
-| `hindsightApiUrl` | `""` | External API URL (empty = local daemon) |
-| `hindsightApiToken` | `null` | API token for Hindsight Cloud |
-| `bankId` | `"codex"` | Memory bank identifier |
-| `bankMission` | (set) | Guides what facts Hindsight retains |
-| `autoRecall` | `true` | Inject memories before each prompt |
+|---|---:|---|
+| `bankId` | `codex` | Memory bank identifier |
+| `autoRecall` | `true` | Inject memory before each prompt |
 | `autoRetain` | `true` | Store conversations after each turn |
-| `retainMode` | `"full-session"` | `"full-session"` or `"chunked"` |
-| `retainEveryNTurns` | `10` | Retain every N turns (1 = every turn) |
-| `recallBudget` | `"mid"` | Recall depth: `"low"`, `"mid"`, `"high"` |
-| `recallMaxTokens` | `1024` | Max tokens for injected memories |
-| `recallTimeout` | `10` | Timeout in seconds for recall API calls |
-| `dynamicBankId` | `false` | Separate bank per project/session |
+| `retainMode` | `full-session` | `full-session` or `chunked` |
+| `retainEveryNTurns` | `10` | Retain every N turns |
+| `recallMaxResults` | `5` | Maximum local recall results |
+| `recallContextTurns` | `1` | Prior transcript turns used for recall query |
+| `recallMaxQueryChars` | `800` | Maximum recall query length |
+| `dynamicBankId` | `false` | Separate banks by project/session/user fields |
 | `dynamicBankGranularity` | `["agent", "project"]` | Fields for dynamic bank ID |
 | `debug` | `false` | Log debug info to stderr |
 
-### Environment variable overrides
-
-All settings can also be set via environment variables:
+Environment overrides:
 
 ```bash
-export HINDSIGHT_API_URL=https://api.hindsight.vectorize.io
-export HINDSIGHT_API_TOKEN=your-api-key
-export HINDSIGHT_BANK_ID=my-project
-export HINDSIGHT_RECALL_TIMEOUT=30
+export HINDSIGHT_LITE_HOME=~/.hindsight-lite
+export HINDSIGHT_BANK_ID=codex
+export HINDSIGHT_RECALL_MAX_RESULTS=5
 export HINDSIGHT_DEBUG=true
 ```
 
-## How memory works
+## Recall And Retain
 
-**Recall** — before each prompt, Hindsight searches your memory bank for facts relevant to what you're about to ask. Found memories are injected as context so Codex has continuity across sessions.
+Recall reads local pages and session events, ranks them with lightweight lexical
+matching, and emits Codex `additionalContext` wrapped in
+`<hindsight_lite_memories>`.
 
-**Retain** — after each turn, Codex's conversation is stored to Hindsight. The memory engine extracts facts, relationships, and experiences — so you don't need to re-explain your stack, preferences, or past decisions.
-
-## Dynamic bank IDs
-
-To keep separate memory per project:
-
-```json
-{
-  "dynamicBankId": true,
-  "dynamicBankGranularity": ["agent", "project"]
-}
-```
-
-This creates banks like `codex::my-project` automatically, using the working directory name.
-
-## Troubleshooting
-
-**Memory not appearing**: Enable debug mode (`"debug": true`) and check stderr output.
-
-**Server not starting**: Set `hindsightApiUrl` to use an external server, or ensure `uvx` is on PATH for local daemon mode.
-
-**Hooks not firing**: Check that `~/.codex/config.toml` contains `codex_hooks = true` under `[features]`, and that your Codex CLI version supports hooks (v0.116.0+).
+Retain strips injected memory blocks before writing session JSONL, preventing
+memory feedback loops.

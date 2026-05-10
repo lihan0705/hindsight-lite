@@ -35,11 +35,12 @@ _MAX_TOOL_OUTPUT_CHARS = 2000
 
 
 def strip_memory_tags(content: str) -> str:
-    """Remove <hindsight_memories> and <relevant_memories> blocks.
+    """Remove injected memory blocks.
 
     Prevents retain feedback loop — these were injected during recall and
     should not be re-stored.
     """
+    content = re.sub(r"<hindsight_lite_memories>[\s\S]*?</hindsight_lite_memories>", "", content)
     content = re.sub(r"<hindsight_memories>[\s\S]*?</hindsight_memories>", "", content)
     content = re.sub(r"<relevant_memories>[\s\S]*?</relevant_memories>", "", content)
     return content

@@ -1,0 +1,49 @@
+from pathlib import Path
+
+from hindsight_lite.cli import main
+
+
+def test_cli_writes_lists_and_gets_knowledge_pages(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "AGENTS.md"
+    source.write_text("Keep changes subtractive.", encoding="utf-8")
+
+    assert main(["--home", str(tmp_path), "knowledge", "write", "--bank", "codex", "--id", "project-rules", "--file", str(source)]) == 0
+    assert main(["--home", str(tmp_path), "knowledge", "list", "--bank", "codex"]) == 0
+    list_output = capsys.readouterr().out
+    assert "project-rules" in list_output
+
+    assert main(["--home", str(tmp_path), "knowledge", "get", "--bank", "codex", "project-rules"]) == 0
+    get_output = capsys.readouterr().out
+    assert "Keep changes subtractive." in get_output
+
+
+def test_cli_retain_and_recall_session_memory(tmp_path: Path, capsys) -> None:
+    assert main(
+        [
+            "--home",
+            str(tmp_path),
+            "retain",
+            "--bank",
+            "codex",
+            "--session-id",
+            "session-1",
+            "--content",
+            "Codex should recall local memory without a server.",
+        ]
+    ) == 0
+
+    assert main(["--home", str(tmp_path), "recall", "--bank", "codex", "local memory server"]) == 0
+    output = capsys.readouterr().out
+    assert "<hindsight_lite_memories>" in output
+    assert "Codex should recall local memory without a server." in output
+
+
+def test_cli_reflect_outputs_packet_json(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "memory.md"
+    source.write_text("Reflection preserves state action observation outcome lesson.", encoding="utf-8")
+    assert main(["--home", str(tmp_path), "knowledge", "write", "--bank", "codex", "--id", "reflection", "--file", str(source)]) == 0
+
+    assert main(["--home", str(tmp_path), "reflect", "--bank", "codex", "--session-id", "session-1", "reflection lesson"]) == 0
+    output = capsys.readouterr().out
+    assert '"type": "reflection_request"' in output
+    assert '"id": "reflection"' in output

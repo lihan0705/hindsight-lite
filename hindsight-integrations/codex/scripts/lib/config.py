@@ -11,10 +11,7 @@ import sys
 DEFAULTS = {
     # Recall
     "autoRecall": True,
-    "recallBudget": "mid",
-    "recallMaxTokens": 1024,
-    "recallTimeout": 10,
-    "recallTypes": ["world", "experience"],
+    "recallMaxResults": 5,
     "recallContextTurns": 1,
     "recallMaxQueryChars": 800,
     "recallRoles": ["user", "assistant"],
@@ -32,13 +29,6 @@ DEFAULTS = {
     "retainContext": "codex",
     "retainTags": [],
     "retainMetadata": {},
-    # Connection
-    "hindsightApiUrl": None,
-    "hindsightApiToken": None,
-    "apiPort": 9077,
-    "daemonIdleTimeout": 0,
-    "embedVersion": "latest",
-    "embedPackagePath": None,
     # Bank
     "bankId": None,
     "bankIdPrefix": "",
@@ -47,36 +37,22 @@ DEFAULTS = {
     "bankMission": "",
     "retainMission": None,
     "agentName": "codex",
-    # LLM (for daemon mode)
-    "llmProvider": None,
-    "llmModel": None,
-    "llmApiKeyEnv": None,
     # Misc
     "debug": False,
 }
 
 # Map env var names to config keys and their types
 ENV_OVERRIDES = {
-    "HINDSIGHT_API_URL": ("hindsightApiUrl", str),
-    "HINDSIGHT_API_TOKEN": ("hindsightApiToken", str),
     "HINDSIGHT_BANK_ID": ("bankId", str),
     "HINDSIGHT_AGENT_NAME": ("agentName", str),
     "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
     "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
     "HINDSIGHT_RETAIN_MODE": ("retainMode", str),
-    "HINDSIGHT_RECALL_BUDGET": ("recallBudget", str),
-    "HINDSIGHT_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
-    "HINDSIGHT_RECALL_TIMEOUT": ("recallTimeout", int),
+    "HINDSIGHT_RECALL_MAX_RESULTS": ("recallMaxResults", int),
     "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
     "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
-    "HINDSIGHT_API_PORT": ("apiPort", int),
-    "HINDSIGHT_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
-    "HINDSIGHT_EMBED_VERSION": ("embedVersion", str),
-    "HINDSIGHT_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
     "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
     "HINDSIGHT_BANK_MISSION": ("bankMission", str),
-    "HINDSIGHT_LLM_PROVIDER": ("llmProvider", str),
-    "HINDSIGHT_LLM_MODEL": ("llmModel", str),
     "HINDSIGHT_DEBUG": ("debug", bool),
 }
 
