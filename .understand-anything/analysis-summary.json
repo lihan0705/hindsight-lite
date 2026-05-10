@@ -1,0 +1,41 @@
+{
+  "filesAnalyzed": 1960,
+  "fileCategories": {
+    "code": 1194,
+    "config": 168,
+    "docs": 526,
+    "script": 53,
+    "markup": 17,
+    "infra": 2
+  },
+  "totalNodes": 10388,
+  "totalEdges": 8537,
+  "totalLayers": 11,
+  "tourSteps": 12,
+  "nodeTypes": {
+    "file": 1244,
+    "function": 6786,
+    "config": 153,
+    "document": 526,
+    "class": 1529,
+    "service": 51,
+    "pipeline": 99
+  },
+  "edgeTypes": {
+    "contains": 8428,
+    "imports": 109
+  },
+  "layers": [
+    "Core",
+    "Test Layer",
+    "Utility Layer",
+    "UI Layer",
+    "Background Tasks",
+    "Data Layer",
+    "API Layer",
+    "External Services",
+    "Configuration Layer",
+    "Documentation",
+    "Infrastructure"
+  ]
+}

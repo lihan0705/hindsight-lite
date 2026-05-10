@@ -1,0 +1,49 @@
+# .understandignore - patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Lines below are suggestions - uncomment to activate.
+# Use ! prefix to force-include something excluded by defaults.
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+# --- From .gitignore (uncomment to exclude) ---
+
+# *.py[oc]
+# wheels/
+# *.egg-info
+# .mcp.json
+# .osgrep
+# .env
+# docker-compose.yml
+# docker-compose.override.yml
+# *.swp
+# *.swo
+# nltk_data/
+# .monitoring/
+# .pgbouncer/
+# **/longmemeval_s_cleaned.json
+# logs/
+# .DS_Store
+# hindsight-docs/static/llms-full.txt
+# hindsight-dev/benchmarks/locomo/results/
+# hindsight-dev/benchmarks/longmemeval/results/
+# hindsight-dev/benchmarks/consolidation/results/
+# hindsight-dev/benchmarks/perf/results/
+# benchmarks/results/
+# hindsight-cli/target
+# hindsight-clients/rust/target
+# .claude/*
+# !.claude/skills/
+# whats-next.md
+# TASK.md
+# blog-post*
+
+# --- Detected directories (uncomment to exclude) ---
+
+# scripts/
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# *.test.*
+# *.spec.*
+# *.snap
