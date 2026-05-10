@@ -1,315 +1,214 @@
-<div align="center">
+<h1 align="center">
+  hindsight-lite
+</h1>
 
-![Hindsight Banner](./hindsight-docs/static/img/hindsight-github-banner.png)
+<p align="center">
+  <strong>Local-first memory for AI coding agents.</strong>
+</p>
 
-[Documentation](https://hindsight.vectorize.io) • [Paper](https://arxiv.org/abs/2512.12818) • [Cookbook](https://hindsight.vectorize.io/cookbook) • [Hindsight Cloud](https://ui.hindsight.vectorize.io/signup)
+<p align="center">
+  <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/status-design-orange?style=flat-square" alt="Status"></a>
+  <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/Codex_CLI-first-ff6b35?style=flat-square" alt="Codex CLI"></a>
+  <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/Claude_Code-later-c97539?style=flat-square" alt="Claude Code"></a>
+  <a href="https://github.com/lihan0705/hindsight-lite"><img src="https://img.shields.io/badge/OpenCode-later-22c55e?style=flat-square" alt="OpenCode"></a>
+  <img src="https://img.shields.io/badge/memory-Markdown%2FJSONL-black?style=flat-square" alt="Markdown/JSONL">
+  <img src="https://img.shields.io/badge/no_server-no_daemon-lightgrey?style=flat-square" alt="No server">
+  <img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square" alt="License">
+</p>
 
-[![CI](https://github.com/vectorize-io/hindsight/actions/workflows/release.yml/badge.svg)](https://github.com/vectorize-io/hindsight/actions/workflows/release.yml)
-[![Slack Community](https://img.shields.io/badge/Slack-Join%20Community-4A154B?logo=slack)](https://join.slack.com/t/hindsight-space/shared_invite/zt-3nhbm4w29-LeSJ5Ixi6j8PdiYOCPlOgg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![gitcgr](https://gitcgr.com/badge/vectorize-io/hindsight.svg)](https://gitcgr.com/vectorize-io/hindsight)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/hindsight-api?label=PyPI)
-![NPM Downloads](https://img.shields.io/npm/dm/%40vectorize-io%2Fhindsight-client?logoColor=orange&label=NPM&color=blue&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40vectorize-io%2Fhindsight-client)
-<br/>
+<p align="center">
+  <code>#agent-memory</code>
+  <code>#codex</code>
+  <code>#local-first</code>
+  <code>#markdown-jsonl</code>
+  <code>#rl-ready</code>
+</p>
 
-<a href="https://trendshift.io/repositories/15603" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15603" alt="vectorize-io%2Fhindsight | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</div>
+> This project is a subtractive fork of
+> [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight).
+> The upstream README is preserved at
+> [docs/upstream/HINDSIGHT_README.md](docs/upstream/HINDSIGHT_README.md).
+
+hindsight-lite keeps the agent memory workflow and removes the heavy product
+surface: no server, no daemon, no database, no cloud dependency, and no control
+plane UI.
+
+The first target is Codex CLI. The V1 design stores memory locally as editable
+Markdown and JSONL files, then injects only compact, relevant memory through the
+existing Codex hook mechanism.
+
+```text
+Store locally. Recall narrowly. Reflect for future training data.
+```
 
 ---
 
-## What is Hindsight?
+## Why This Fork?
 
-Hindsight™ is an agent memory system built to create smarter agents that learn over time. Most agent memory systems focus on recalling conversation history. Hindsight is focused on making agents that learn, not just remember.
+Upstream Hindsight is a full memory platform with an API server, database,
+control plane, SDKs, Docker/Helm deployment, and many framework integrations.
 
+hindsight-lite is the subtractive version for coding agents:
 
-<video src="https://github.com/user-attachments/assets/923b798d-3581-4897-bb62-9cfa5a931682" controls></video>
+- local files instead of hosted infrastructure,
+- Codex hooks instead of a memory server,
+- Markdown pages and JSONL sessions instead of PostgreSQL,
+- explicit reflection packets instead of hidden model calls,
+- a small plugin surface before broader multi-agent support.
 
-It eliminates the shortcomings of alternative techniques such as RAG and knowledge graph and delivers state-of-the-art performance on long term memory tasks.
-
-## Memory Performance & Accuracy
-
-Hindsight is the most accurate agent memory system ever tested according to benchmark performance. It has achieved state-of-the-art performance on the LongMemEval benchmark, widely used to assess memory system performance across a variety of conversational AI scenarios. The current reported performance of Hindsight and other agent memory solutions as of January 2026 is shown here:
-
-![Overview](./hindsight-docs/static/img/hindsight-bench.jpg)
-
-The benchmark performance data for Hindsight has been independently reproduced by research collaborators at the Virginia Tech [Sanghani Center for Artificial Intelligence and Data Analytics](https://sanghani.cs.vt.edu/) and The Washington Post. Other scores are self-reported by software vendors.
-
-Hindsight is being used in production at Fortune 500 enterprises and by a growing number of AI startups. 
-
-## Adding Hindsight to Your AI Agents
-
-The easiest way to use Hindsight with an existing agent is with the LLM Wrapper. You can add memory to your agent with 2 lines of code. That will swap your current LLM client out with the Hindsight wrapper. After that, memories will be stored and retrieved automatically as you make LLM calls.
-
-If you need more control over how and when your agent stores and recalls memories, there's also a simple API you can integrate with using the SDKs or directly via HTTP.
-
-![Hindsight Banner](./hindsight-docs/static/img/migration-code.png)
+The goal is not to reproduce every upstream feature. The goal is to keep the
+parts that help an agent remember project work and remove the parts that make a
+local plugin hard to install, inspect, or reason about.
 
 ---
 
-> 🤖 **Using a coding agent?** Install the Hindsight documentation skill for instant access to docs while you code:
-> ```bash
-> npx skills add https://github.com/vectorize-io/hindsight --skill hindsight-docs
-> ```
-> Works with Claude Code, Cursor, and other AI coding assistants.
+## Codex-First V1
+
+The V1 scope is intentionally small.
+
+| Capability | Status | Mechanism |
+|---|---:|---|
+| `agent_knowledge_retain` | design | Codex `Stop` hook writes session JSONL |
+| `agent_knowledge_recall` | design | Codex `UserPromptSubmit` injects compact context |
+| `agent_knowledge_reflect` | design | local recall packet plus saved reflection request |
+| `agent_knowledge_list_pages` | design | lists local Markdown pages |
+| `agent_knowledge_get_page` | design | reads one local Markdown page |
+
+The existing Codex integration already has the right hook shape:
+
+```text
+SessionStart      -> session_start.py
+UserPromptSubmit  -> recall.py
+Stop              -> retain.py
+```
+
+hindsight-lite keeps that contract and replaces the backend:
+
+```text
+old:
+  Codex hook -> recall.py / retain.py -> daemon/API client -> Hindsight server
+
+new:
+  Codex hook -> recall.py / retain.py -> local Python core -> Markdown/JSONL
+```
 
 ---
 
+## Memory Files
 
-## Quick Start
+Default local memory root:
 
-### Docker (recommended)
-
-```bash
-export OPENAI_API_KEY=sk-xxx
-
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+```text
+~/.hindsight-lite/
 ```
 
->API: http://localhost:8888
->UI: http://localhost:9999
+Bank layout:
 
-You can modify the LLM provider by setting `HINDSIGHT_API_LLM_PROVIDER`. Valid options are `openai`, `anthropic`, `gemini`, `groq`, `ollama`, `lmstudio`, and `minimax`. The documentation provides more details on [supported models](https://hindsight.vectorize.io/developer/models).
-
-
-
-### Docker (external PostgreSQL)
-
-```bash
-export OPENAI_API_KEY=sk-xxx
-export HINDSIGHT_DB_PASSWORD=choose-a-password
-cd docker/docker-compose
-docker compose up 
+```text
+~/.hindsight-lite/
+  banks/
+    <bank_id>/
+      sessions/
+        <session_id>.jsonl
+      pages/
+        <page_id>.md
+      reflections/
+        <session_id>.jsonl
+      index/
+        recall-cache.json
+      metadata.json
 ```
 
-> Oracle AI Database is also supported for enterprise deployments with full feature parity. See the [storage documentation](https://hindsight.vectorize.io/developer/storage) for details.
+V1 memory types:
 
+- `sessions/*.jsonl` stores retained Codex conversation snapshots.
+- `pages/*.md` stores user-readable knowledge pages.
+- `reflections/*.jsonl` stores reflection requests for later analysis.
 
->API: http://localhost:8888
->UI: http://localhost:9999
+This keeps memory readable, diffable, scriptable, and easy to delete.
 
-### Client
+---
 
-```bash
-pip install hindsight-client -U
-# or
-npm install @vectorize-io/hindsight-client
-```
+## Recall Injection
 
-#### Python
+Codex recall remains automatic.
 
-```python
-from hindsight_client import Hindsight
+Before each user prompt, `recall.py` reads the hook input, derives the bank,
+runs local text retrieval over sessions and pages, and emits:
 
-client = Hindsight(base_url="http://localhost:8888")
-
-# Retain: Store information
-client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")
-
-# Recall: Search memories
-client.recall(bank_id="my-bank", query="What does Alice do?")
-
-# Reflect: Generate disposition-aware response
-client.reflect(bank_id="my-bank", query="Tell me about Alice")
-```
-
-#### Node.js / TypeScript
-
-```bash
-npm install @vectorize-io/hindsight-client
-```
-
-```javascript
-const { HindsightClient } = require('@vectorize-io/hindsight-client');
-
-const main = async () => {
-  const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
-
-  await client.retain('my-bank', 'Alice loves hiking in Yosemite');
-
-  const results = await client.recall('my-bank', 'What does Alice like?');
-  console.log(results);
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "UserPromptSubmit",
+    "additionalContext": "<hindsight_memories>...</hindsight_memories>"
+  }
 }
-
-main();
 ```
 
-
-### Python Embedded (no server required)
-
-```bash
-pip install hindsight-all -U
-```
-
-```python
-import os
-from hindsight import HindsightServer, HindsightClient
-
-with HindsightServer(
-    llm_provider="openai",
-    llm_model="gpt-5-mini", 
-    llm_api_key=os.environ["OPENAI_API_KEY"]
-) as server:
-    client = HindsightClient(base_url=server.url)
-    client.retain(bank_id="my-bank", content="Alice works at Google")
-    results = client.recall(bank_id="my-bank", query="Where does Alice work?")
-```
-
+Codex injects `additionalContext` into the current turn. Retain strips
+`<hindsight_memories>` blocks before writing session memory, which prevents
+memory feedback loops.
 
 ---
 
-## Use Cases
+## Reflection For Agentic RL Data
 
+`agent_knowledge_reflect` is a data boundary, not an LLM wrapper.
 
-Hindsight is built to support conversational AI agents as well as agents that are intended to perform tasks autonomously. The ideal use case for Hindsight are agents that require a blend of these features such as AI employees that need to handle open-ended tasks, change behavior based on user feedback, and learn to perform complex tasks to automate work at a level that approximates a human work. Hindsight can be used with simple AI workflows like those built with n8n and other similar tools, but may be overkill for such applications.
+It does not call a model. It performs local recall, builds a structured packet,
+and saves a `reflection_request` event:
 
-### Per-User Memories and Chat History
-
-One of the simpler use cases you can use Hindsight for is to personalize AI chatbots and other conversational agents by storing and recalling memories associated with individual users.
-
-The requirements for this use case usually look something like this:
-
-![Per-User Memories](./hindsight-docs/static/img/per-user-memory-requirements.png)
-
-<video src="https://github.com/user-attachments/assets/4805e8e1-e7d1-47c6-a4f8-2344a5ec8906" controls></video>
-
-Satisfying these requirements in Hindsight is straightforward. When new user inputs and tool calls are ingested into Hindsight using the retain operation, custom metadata can be used to enrich the new memories. Metadata provides a convenient way to isolate memories that need to be restricted to a given user. Once these are fed into the retain operation, any raw memories and mental models that get created can be filtered when retrieving relevant memories. 
-
-![Per-User Memories](./hindsight-docs/static/img/per-user-memory-howto.png)
-
----
-
-## Architecture & Operations
-
-![Overview](./hindsight-docs/static/img/hindsight-overview.webp)
-
-Most agent memory implementations rely on basic vector search or sometimes use a knowledge graph. Hindsight uses biomimetic data structures to organize agent memories in a way that is more like how human memory works:
-
-- **World:** Facts about the world ("The stove gets hot")
-- **Experiences:** Agent's own experiences ("I touched the stove and it really hurt")
-- **Mental Models:** Learned understanding of the agent's world formed by reflecting on raw memories and experiences.
-
-Memories in Hindsight are stored in banks (i.e. memory banks). When memories are added to Hindsight, they are pushed into either the world facts or experiences memory pathway. They are then represented as a combination of entities, relationships, and time series with sparse/dense vector representations to aid in later recall.
-
-Hindsight provides three simple methods to interact with the system:
-
-- **Retain:** Provide information to Hindsight that you want it to remember
-- **Recall:** Retrieve memories from Hindsight
-- **Reflect:** Reflect on memories and experiences to generate new observations and insights from existing memories.
-
-### Retain
-
-The `retain` operation is used to push new memories into Hindsight. It tells Hindsight to _retain_ the information you pass in as an input.
-
-```python
-from hindsight_client import Hindsight
-
-client = Hindsight(base_url="http://localhost:8888")
-
-# Simple
-client.retain(
-    bank_id="my-bank",
-    content="Alice works at Google as a software engineer"
-)
-
-# With context and timestamp
-client.retain(
-    bank_id="my-bank",
-    content="Alice got promoted to senior engineer",
-    context="career update",
-    timestamp="2025-06-15T10:00:00Z"
-)
+```json
+{
+  "type": "reflection_request",
+  "query": "What should we remember about this repo?",
+  "retrieved_context": [],
+  "task_context": {
+    "cwd": "/path/to/project",
+    "git_commit": "abcdef",
+    "recent_prompt": "..."
+  },
+  "reflection_prompt": "Use the retrieved evidence to produce a concise decision-oriented reflection..."
+}
 ```
 
-Behind the scenes, the retain operation uses an LLM to extract key facts, temporal data, entities, and relationships. It passes these through a normalization process to transform extracted data into canonical entities, time series, and search indexes along with metadata. These representations create the pathways for accurate memory retrieval in the recall and reflect operations. 
+That shape is meant to support future agentic RL datasets:
 
-![Retain Operation](hindsight-docs/static/img/retain-operation.webp)
-
-### Recall
-
-The recall operation is used to retrieve memories. These memories can come from any of the memory types (world, experiences, etc.)
-
-```python
-from hindsight_client import Hindsight
-
-client = Hindsight(base_url="http://localhost:8888")
-
-# Simple
-client.recall(bank_id="my-bank", query="What does Alice do?")
-
-# Temporal
-client.recall(bank_id="my-bank", query="What happened in June?")
+```text
+state/context -> retrieved memory -> reflection request -> later agent action
 ```
 
-Recall performs 4 retrieval strategies in parallel:
-- Semantic: Vector similarity
-- Keyword: BM25 exact matching
-- Graph: Entity/temporal/causal links
-- Temporal: Time range filtering
-
-![Retain Operation](hindsight-docs/static/img/recall-operation.webp)
-
-The individual results from the retrievals are merged, then ordered by relevance using reciprocal rank fusion and a cross-encoder reranking model.
-
-The final output is trimmed as needed to fit within the token limit.
-
-### Reflect
-
-The reflect operation is used to perform a more thorough analysis of existing memories. This allows the agent to form new connections between memories and build a more thorough understanding of its world.
-
-For example, the `reflect` operation can be used to support use cases such as:
-
-- An **AI Project Manager** reflecting on what risks need to be mitigated on a project.
-- A **Sales Agent** reflecting on why certain outreach messages have gotten responses while others haven't.
-- A **Support Agent** reflecting on opportunities where customers have questions not answered by current product documentation.
-
-The `reflect` operation can also be used to handle on-demand question answering or analysis which require more deep thinking.
-
-```python
-from hindsight_client import Hindsight
-
-client = Hindsight(base_url="http://localhost:8888")
-
-client.reflect(bank_id="my-bank", query="What should I know about Alice?")
-```
-
-![Retain Operation](hindsight-docs/static/img/reflect-operation.webp)
+V1 records reflection requests only. Reflection results can be added later once
+the training/evaluation schema is stable.
 
 ---
 
-## Resources
+## Current Design
 
-**Documentation:** 
-- [https://hindsight.vectorize.io](https://hindsight.vectorize.io)
+The active design spec is:
 
-**Clients:**
-- [Python](http://hindsight.vectorize.io/sdks/python)
-- [Node.js](http://hindsight.vectorize.io/sdks/nodejs)
-- [REST API](https://hindsight.vectorize.io/api-reference)
-- [CLI](https://hindsight.vectorize.io/sdks/cli)
+[docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md](docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md)
 
-**Community:**
-- [Slack](https://join.slack.com/t/hindsight-space/shared_invite/zt-3nhbm4w29-LeSJ5Ixi6j8PdiYOCPlOgg)
-- [GitHub Issues](https://github.com/vectorize-io/hindsight/issues)
+The implementation strategy and README rewrite rationale are recorded in:
+
+[docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md](docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md)
 
 ---
-## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=vectorize-io/hindsight&type=date&legend=top-left)](https://www.star-history.com/#vectorize-io/hindsight&type=date&legend=top-left)
+## Original Hindsight
+
+This repository started from upstream Hindsight:
+
+- Upstream repository:
+  [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight)
+- Preserved upstream README:
+  [docs/upstream/HINDSIGHT_README.md](docs/upstream/HINDSIGHT_README.md)
+
+The upstream project remains the reference for the original full-stack memory
+platform. hindsight-lite is the local plugin fork.
+
 ---
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE)
-
----
-
-Built by [Vectorize.io](https://vectorize.io)
-
-<img src="https://umami-pixel.chris-latimer.workers.dev/?id=a8b043e6-6964-454d-80df-69b69d3f0d50&host=github.com&url=/vectorize-io/hindsight" width="1" height="1" alt="" />
+MIT
