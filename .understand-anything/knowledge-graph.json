@@ -9,6 +9,7 @@
       "javascript",
       "json",
       "markdown",
+      "plaintext",
       "python",
       "rust",
       "shell",
@@ -22,8 +23,8 @@
       "rust"
     ],
     "description": "Subtractive fork of Hindsight, a monorepo for an agent memory system with API, UI, SDKs, integrations, documentation, and operational tooling.",
-    "analyzedAt": "2026-05-10T07:35:41.044Z",
-    "gitCommitHash": "6aab6c89dc672363346b14f9e2607e3b2358a7ef"
+    "analyzedAt": "2026-05-12T19:22:33.890Z",
+    "gitCommitHash": "e85a1e4a887ef8b19545010f09a4459b845dfeee"
   },
   "nodes": [
     {
@@ -6621,19 +6622,6 @@
       "complexity": "simple"
     },
     {
-      "id": "document:README.md",
-      "type": "document",
-      "name": "README.md",
-      "filePath": "README.md",
-      "summary": "docs file with 20 markdown sections.",
-      "tags": [
-        "docs",
-        "markdown",
-        "README.md"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "document:cookbook/README.md",
       "type": "document",
       "name": "README.md",
@@ -10903,19 +10891,6 @@
       "complexity": "moderate"
     },
     {
-      "id": "document:AGENTS.md",
-      "type": "document",
-      "name": "AGENTS.md",
-      "filePath": "AGENTS.md",
-      "summary": "docs file with 5 markdown sections.",
-      "tags": [
-        "docs",
-        "markdown",
-        "AGENTS.md"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "file:hindsight-integrations/smolagents/tests/test_tools.py",
       "type": "file",
       "name": "test_tools.py",
@@ -14105,131 +14080,6 @@
       "complexity": "moderate"
     },
     {
-      "id": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "type": "file",
-      "name": "daemon.py",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "summary": "code file defining 7 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_get_embed_command",
-      "type": "function",
-      "name": "_get_embed_command",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        26,
-        34
-      ],
-      "summary": "Function _get_embed_command in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_run_embed",
-      "type": "function",
-      "name": "_run_embed",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        37,
-        49
-      ],
-      "summary": "Function _run_embed in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_is_embed_available",
-      "type": "function",
-      "name": "_is_embed_available",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        52,
-        59
-      ],
-      "summary": "Function _is_embed_available in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_check_health",
-      "type": "function",
-      "name": "_check_health",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        62,
-        70
-      ],
-      "summary": "Function _check_health in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:get_api_url",
-      "type": "function",
-      "name": "get_api_url",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        73,
-        118
-      ],
-      "summary": "Function get_api_url in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_ensure_daemon_running",
-      "type": "function",
-      "name": "_ensure_daemon_running",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        121,
-        216
-      ],
-      "summary": "Function _ensure_daemon_running in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/daemon.py:prestart_daemon_background",
-      "type": "function",
-      "name": "prestart_daemon_background",
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "lineRange": [
-        219,
-        276
-      ],
-      "summary": "Function prestart_daemon_background in hindsight-integrations/codex/scripts/lib/daemon.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "file:hindsight-integrations/paperclip/src/worker.ts",
       "type": "file",
       "name": "worker.ts",
@@ -14271,291 +14121,6 @@
       "tags": [
         "function",
         "typescript"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "type": "file",
-      "name": "content.py",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "summary": "code file defining 17 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:strip_memory_tags",
-      "type": "function",
-      "name": "strip_memory_tags",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        37,
-        45
-      ],
-      "summary": "Function strip_memory_tags in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:is_synthetic_codex_user_message",
-      "type": "function",
-      "name": "is_synthetic_codex_user_message",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        48,
-        64
-      ],
-      "summary": "Function is_synthetic_codex_user_message in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:read_transcript",
-      "type": "function",
-      "name": "read_transcript",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        72,
-        108
-      ],
-      "summary": "Function read_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_text",
-      "type": "function",
-      "name": "_read_transcript_text",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        111,
-        151
-      ],
-      "summary": "Function _read_transcript_text in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_rich",
-      "type": "function",
-      "name": "_read_transcript_rich",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        154,
-        355
-      ],
-      "summary": "Function _read_transcript_rich in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_text_from_content_blocks",
-      "type": "function",
-      "name": "_extract_text_from_content_blocks",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        358,
-        366
-      ],
-      "summary": "Function _extract_text_from_content_blocks in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_function_output_text",
-      "type": "function",
-      "name": "_extract_function_output_text",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        369,
-        382
-      ],
-      "summary": "Function _extract_function_output_text in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_truncate",
-      "type": "function",
-      "name": "_truncate",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        385,
-        389
-      ],
-      "summary": "Function _truncate in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:compose_recall_query",
-      "type": "function",
-      "name": "compose_recall_query",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        397,
-        449
-      ],
-      "summary": "Function compose_recall_query in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:truncate_recall_query",
-      "type": "function",
-      "name": "truncate_recall_query",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        452,
-        496
-      ],
-      "summary": "Function truncate_recall_query in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:slice_last_turns_by_user_boundary",
-      "type": "function",
-      "name": "slice_last_turns_by_user_boundary",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        504,
-        522
-      ],
-      "summary": "Function slice_last_turns_by_user_boundary in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:format_memories",
-      "type": "function",
-      "name": "format_memories",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        530,
-        542
-      ],
-      "summary": "Function format_memories in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:format_current_time",
-      "type": "function",
-      "name": "format_current_time",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        545,
-        548
-      ],
-      "summary": "Function format_current_time in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:prepare_retention_transcript",
-      "type": "function",
-      "name": "prepare_retention_transcript",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        556,
-        597
-      ],
-      "summary": "Function prepare_retention_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_json_transcript",
-      "type": "function",
-      "name": "_prepare_json_transcript",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        600,
-        622
-      ],
-      "summary": "Function _prepare_json_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_text_transcript",
-      "type": "function",
-      "name": "_prepare_text_transcript",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        625,
-        651
-      ],
-      "summary": "Function _prepare_text_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_strip_memory_tags_from_blocks",
-      "type": "function",
-      "name": "_strip_memory_tags_from_blocks",
-      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "lineRange": [
-        654,
-        680
-      ],
-      "summary": "Function _strip_memory_tags_from_blocks in hindsight-integrations/codex/scripts/lib/content.py.",
-      "tags": [
-        "function",
-        "python"
       ],
       "complexity": "moderate"
     },
@@ -14718,67 +14283,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:hindsight-integrations/codex/scripts/lib/llm.py",
-      "type": "file",
-      "name": "llm.py",
-      "filePath": "hindsight-integrations/codex/scripts/lib/llm.py",
-      "summary": "code file defining 3 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/llm.py:_find_provider",
-      "type": "function",
-      "name": "_find_provider",
-      "filePath": "hindsight-integrations/codex/scripts/lib/llm.py",
-      "lineRange": [
-        32,
-        37
-      ],
-      "summary": "Function _find_provider in hindsight-integrations/codex/scripts/lib/llm.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/llm.py:detect_llm_config",
-      "type": "function",
-      "name": "detect_llm_config",
-      "filePath": "hindsight-integrations/codex/scripts/lib/llm.py",
-      "lineRange": [
-        40,
-        128
-      ],
-      "summary": "Function detect_llm_config in hindsight-integrations/codex/scripts/lib/llm.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/llm.py:get_llm_env_vars",
-      "type": "function",
-      "name": "get_llm_env_vars",
-      "filePath": "hindsight-integrations/codex/scripts/lib/llm.py",
-      "lineRange": [
-        131,
-        146
-      ],
-      "summary": "Function get_llm_env_vars in hindsight-integrations/codex/scripts/lib/llm.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "config:hindsight-integrations/paperclip/package.json",
       "type": "config",
       "name": "package.json",
@@ -14818,144 +14322,6 @@
       "complexity": "complex"
     },
     {
-      "id": "file:hindsight-integrations/codex/scripts/lib/client.py",
-      "type": "file",
-      "name": "client.py",
-      "filePath": "hindsight-integrations/codex/scripts/lib/client.py",
-      "summary": "code file defining 2 functions and 1 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/client.py:_plugin_version",
-      "type": "function",
-      "name": "_plugin_version",
-      "filePath": "hindsight-integrations/codex/scripts/lib/client.py",
-      "lineRange": [
-        19,
-        25
-      ],
-      "summary": "Function _plugin_version in hindsight-integrations/codex/scripts/lib/client.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/client.py:_validate_api_url",
-      "type": "function",
-      "name": "_validate_api_url",
-      "filePath": "hindsight-integrations/codex/scripts/lib/client.py",
-      "lineRange": [
-        34,
-        41
-      ],
-      "summary": "Function _validate_api_url in hindsight-integrations/codex/scripts/lib/client.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/scripts/lib/client.py:HindsightClient",
-      "type": "class",
-      "name": "HindsightClient",
-      "filePath": "hindsight-integrations/codex/scripts/lib/client.py",
-      "lineRange": [
-        44,
-        164
-      ],
-      "summary": "Class or type HindsightClient in hindsight-integrations/codex/scripts/lib/client.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/scripts/lib/config.py",
-      "type": "file",
-      "name": "config.py",
-      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
-      "summary": "code file defining 4 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:_cast_env",
-      "type": "function",
-      "name": "_cast_env",
-      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
-      "lineRange": [
-        84,
-        93
-      ],
-      "summary": "Function _cast_env in hindsight-integrations/codex/scripts/lib/config.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:_load_settings_file",
-      "type": "function",
-      "name": "_load_settings_file",
-      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
-      "lineRange": [
-        96,
-        105
-      ],
-      "summary": "Function _load_settings_file in hindsight-integrations/codex/scripts/lib/config.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:load_config",
-      "type": "function",
-      "name": "load_config",
-      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
-      "lineRange": [
-        108,
-        138
-      ],
-      "summary": "Function load_config in hindsight-integrations/codex/scripts/lib/config.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:debug_log",
-      "type": "function",
-      "name": "debug_log",
-      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
-      "lineRange": [
-        141,
-        144
-      ],
-      "summary": "Function debug_log in hindsight-integrations/codex/scripts/lib/config.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "document:hindsight-integrations/paperclip/README.md",
       "type": "document",
       "name": "README.md",
@@ -14967,93 +14333,6 @@
         "hindsight-integrations"
       ],
       "complexity": "simple"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/scripts/session_start.py",
-      "type": "file",
-      "name": "session_start.py",
-      "filePath": "hindsight-integrations/codex/scripts/session_start.py",
-      "summary": "code file defining 1 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/session_start.py:main",
-      "type": "function",
-      "name": "main",
-      "filePath": "hindsight-integrations/codex/scripts/session_start.py",
-      "lineRange": [
-        20,
-        45
-      ],
-      "summary": "Function main in hindsight-integrations/codex/scripts/session_start.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/scripts/recall.py",
-      "type": "file",
-      "name": "recall.py",
-      "filePath": "hindsight-integrations/codex/scripts/recall.py",
-      "summary": "code file defining 1 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/recall.py:main",
-      "type": "function",
-      "name": "main",
-      "filePath": "hindsight-integrations/codex/scripts/recall.py",
-      "lineRange": [
-        44,
-        161
-      ],
-      "summary": "Function main in hindsight-integrations/codex/scripts/recall.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/scripts/retain.py",
-      "type": "file",
-      "name": "retain.py",
-      "filePath": "hindsight-integrations/codex/scripts/retain.py",
-      "summary": "code file defining 1 functions and 0 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/scripts/retain.py:main",
-      "type": "function",
-      "name": "main",
-      "filePath": "hindsight-integrations/codex/scripts/retain.py",
-      "lineRange": [
-        39,
-        174
-      ],
-      "summary": "Function main in hindsight-integrations/codex/scripts/retain.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
     },
     {
       "id": "file:hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py",
@@ -18069,32 +17348,6 @@
       "complexity": "moderate"
     },
     {
-      "id": "config:hindsight-integrations/codex/settings.json",
-      "type": "config",
-      "name": "settings.json",
-      "filePath": "hindsight-integrations/codex/settings.json",
-      "summary": "config file with 36 markdown sections.",
-      "tags": [
-        "config",
-        "json",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:hindsight-integrations/codex/README.md",
-      "type": "document",
-      "name": "README.md",
-      "filePath": "hindsight-integrations/codex/README.md",
-      "summary": "docs file with 13 markdown sections.",
-      "tags": [
-        "docs",
-        "markdown",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "file:hindsight-integrations/paperclip/tests/plugin.spec.ts",
       "type": "file",
       "name": "plugin.spec.ts",
@@ -20556,317 +19809,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:hindsight-integrations/codex/tests/test_client.py",
-      "type": "file",
-      "name": "test_client.py",
-      "filePath": "hindsight-integrations/codex/tests/test_client.py",
-      "summary": "code file defining 0 functions and 1 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_client.py:TestUserAgentHeader",
-      "type": "class",
-      "name": "TestUserAgentHeader",
-      "filePath": "hindsight-integrations/codex/tests/test_client.py",
-      "lineRange": [
-        10,
-        42
-      ],
-      "summary": "Class or type TestUserAgentHeader in hindsight-integrations/codex/tests/test_client.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/tests/test_content.py",
-      "type": "file",
-      "name": "test_content.py",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "summary": "code file defining 2 functions and 11 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/test_content.py:_write_jsonl",
-      "type": "function",
-      "name": "_write_jsonl",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        21,
-        24
-      ],
-      "summary": "Function _write_jsonl in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/test_content.py:_msgs",
-      "type": "function",
-      "name": "_msgs",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        215,
-        216
-      ],
-      "summary": "Function _msgs in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestStripMemoryTags",
-      "type": "class",
-      "name": "TestStripMemoryTags",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        32,
-        52
-      ],
-      "summary": "Class or type TestStripMemoryTags in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestSyntheticCodexUserMessage",
-      "type": "class",
-      "name": "TestSyntheticCodexUserMessage",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        55,
-        62
-      ],
-      "summary": "Class or type TestSyntheticCodexUserMessage in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptFlat",
-      "type": "class",
-      "name": "TestReadTranscriptFlat",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        70,
-        84
-      ],
-      "summary": "Class or type TestReadTranscriptFlat in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptCodexFormat",
-      "type": "class",
-      "name": "TestReadTranscriptCodexFormat",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        87,
-        207
-      ],
-      "summary": "Class or type TestReadTranscriptCodexFormat in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestSliceLastTurnsByUserBoundary",
-      "type": "class",
-      "name": "TestSliceLastTurnsByUserBoundary",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        219,
-        250
-      ],
-      "summary": "Class or type TestSliceLastTurnsByUserBoundary in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestComposeRecallQuery",
-      "type": "class",
-      "name": "TestComposeRecallQuery",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        258,
-        290
-      ],
-      "summary": "Class or type TestComposeRecallQuery in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestTruncateRecallQuery",
-      "type": "class",
-      "name": "TestTruncateRecallQuery",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        298,
-        324
-      ],
-      "summary": "Class or type TestTruncateRecallQuery in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestFormatMemories",
-      "type": "class",
-      "name": "TestFormatMemories",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        332,
-        355
-      ],
-      "summary": "Class or type TestFormatMemories in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscript",
-      "type": "class",
-      "name": "TestPrepareRetentionTranscript",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        363,
-        404
-      ],
-      "summary": "Class or type TestPrepareRetentionTranscript in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptRich",
-      "type": "class",
-      "name": "TestReadTranscriptRich",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        412,
-        719
-      ],
-      "summary": "Class or type TestReadTranscriptRich in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscriptJson",
-      "type": "class",
-      "name": "TestPrepareRetentionTranscriptJson",
-      "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "lineRange": [
-        727,
-        788
-      ],
-      "summary": "Class or type TestPrepareRetentionTranscriptJson in hindsight-integrations/codex/tests/test_content.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/tests/test_hooks.py",
-      "type": "file",
-      "name": "test_hooks.py",
-      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
-      "summary": "code file defining 1 functions and 2 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/test_hooks.py:_run_hook",
-      "type": "function",
-      "name": "_run_hook",
-      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
-      "lineRange": [
-        27,
-        67
-      ],
-      "summary": "Function _run_hook in hindsight-integrations/codex/tests/test_hooks.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRecallHook",
-      "type": "class",
-      "name": "TestRecallHook",
-      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
-      "lineRange": [
-        75,
-        168
-      ],
-      "summary": "Class or type TestRecallHook in hindsight-integrations/codex/tests/test_hooks.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRetainHook",
-      "type": "class",
-      "name": "TestRetainHook",
-      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
-      "lineRange": [
-        176,
-        341
-      ],
-      "summary": "Class or type TestRetainHook in hindsight-integrations/codex/tests/test_hooks.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "file:hindsight-integrations/codex/tests/test_bank.py",
       "type": "file",
       "name": "test_bank.py",
@@ -20937,99 +19879,6 @@
         84
       ],
       "summary": "Class or type TestDeriveBankIdDynamic in hindsight-integrations/codex/tests/test_bank.py.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:hindsight-integrations/codex/tests/conftest.py",
-      "type": "file",
-      "name": "conftest.py",
-      "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "summary": "code file defining 4 functions and 1 classes/types.",
-      "tags": [
-        "code",
-        "python",
-        "hindsight-integrations"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_hook_input",
-      "type": "function",
-      "name": "make_hook_input",
-      "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "lineRange": [
-        18,
-        29
-      ],
-      "summary": "Function make_hook_input in hindsight-integrations/codex/tests/conftest.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_transcript_file",
-      "type": "function",
-      "name": "make_transcript_file",
-      "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "lineRange": [
-        32,
-        59
-      ],
-      "summary": "Function make_transcript_file in hindsight-integrations/codex/tests/conftest.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_memory",
-      "type": "function",
-      "name": "make_memory",
-      "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "lineRange": [
-        62,
-        63
-      ],
-      "summary": "Function make_memory in hindsight-integrations/codex/tests/conftest.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_user_config",
-      "type": "function",
-      "name": "make_user_config",
-      "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "lineRange": [
-        66,
-        73
-      ],
-      "summary": "Function make_user_config in hindsight-integrations/codex/tests/conftest.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:hindsight-integrations/codex/tests/conftest.py:FakeHTTPResponse",
-      "type": "class",
-      "name": "FakeHTTPResponse",
-      "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "lineRange": [
-        76,
-        90
-      ],
-      "summary": "Class or type FakeHTTPResponse in hindsight-integrations/codex/tests/conftest.py.",
       "tags": [
         "class",
         "python"
@@ -160312,6 +159161,2025 @@
         "typescript"
       ],
       "complexity": "moderate"
+    },
+    {
+      "id": "file:.gitignore",
+      "type": "file",
+      "name": ".gitignore",
+      "filePath": ".gitignore",
+      "summary": "code file defining 0 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "plaintext",
+        ".gitignore"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "Documentation file with 5 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "AGENTS.md"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Documentation file with 8 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "README.md"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/implementation/2026-05-10-codex-local-memory-plugin.md",
+      "type": "document",
+      "name": "2026-05-10-codex-local-memory-plugin.md",
+      "filePath": "docs/superpowers/implementation/2026-05-10-codex-local-memory-plugin.md",
+      "summary": "Documentation file with 3 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "docs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md",
+      "type": "document",
+      "name": "2026-05-10-readme-redesign-implementation.md",
+      "filePath": "docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md",
+      "summary": "Documentation file with 6 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "docs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-05-10-codex-local-memory-plugin.md",
+      "type": "document",
+      "name": "2026-05-10-codex-local-memory-plugin.md",
+      "filePath": "docs/superpowers/plans/2026-05-10-codex-local-memory-plugin.md",
+      "summary": "Documentation file with 11 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "docs"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md",
+      "type": "document",
+      "name": "2026-05-10-codex-local-memory-plugin-design.md",
+      "filePath": "docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md",
+      "summary": "Documentation file with 16 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "docs"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/upstream/HINDSIGHT_README.md",
+      "type": "document",
+      "name": "HINDSIGHT_README.md",
+      "filePath": "docs/upstream/HINDSIGHT_README.md",
+      "summary": "Documentation file with 20 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "docs"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:hindsight-integrations/codex/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "hindsight-integrations/codex/README.md",
+      "summary": "Documentation file with 6 detected sections.",
+      "tags": [
+        "docs",
+        "markdown",
+        "hindsight-integrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/scripts/lib/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
+      "summary": "code file defining 4 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:_cast_env",
+      "type": "function",
+      "name": "_cast_env",
+      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
+      "lineRange": [
+        60,
+        69
+      ],
+      "summary": "Function _cast_env in hindsight-integrations/codex/scripts/lib/config.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:_load_settings_file",
+      "type": "function",
+      "name": "_load_settings_file",
+      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
+      "lineRange": [
+        72,
+        81
+      ],
+      "summary": "Function _load_settings_file in hindsight-integrations/codex/scripts/lib/config.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:load_config",
+      "type": "function",
+      "name": "load_config",
+      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
+      "lineRange": [
+        84,
+        114
+      ],
+      "summary": "Function load_config in hindsight-integrations/codex/scripts/lib/config.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/config.py:debug_log",
+      "type": "function",
+      "name": "debug_log",
+      "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
+      "lineRange": [
+        117,
+        120
+      ],
+      "summary": "Function debug_log in hindsight-integrations/codex/scripts/lib/config.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "type": "file",
+      "name": "content.py",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "summary": "code file defining 17 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:strip_memory_tags",
+      "type": "function",
+      "name": "strip_memory_tags",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        37,
+        46
+      ],
+      "summary": "Function strip_memory_tags in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:is_synthetic_codex_user_message",
+      "type": "function",
+      "name": "is_synthetic_codex_user_message",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        49,
+        65
+      ],
+      "summary": "Function is_synthetic_codex_user_message in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:read_transcript",
+      "type": "function",
+      "name": "read_transcript",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        73,
+        109
+      ],
+      "summary": "Function read_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_text",
+      "type": "function",
+      "name": "_read_transcript_text",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        112,
+        152
+      ],
+      "summary": "Function _read_transcript_text in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_rich",
+      "type": "function",
+      "name": "_read_transcript_rich",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        155,
+        356
+      ],
+      "summary": "Function _read_transcript_rich in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_text_from_content_blocks",
+      "type": "function",
+      "name": "_extract_text_from_content_blocks",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        359,
+        367
+      ],
+      "summary": "Function _extract_text_from_content_blocks in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_function_output_text",
+      "type": "function",
+      "name": "_extract_function_output_text",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        370,
+        383
+      ],
+      "summary": "Function _extract_function_output_text in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_truncate",
+      "type": "function",
+      "name": "_truncate",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        386,
+        390
+      ],
+      "summary": "Function _truncate in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:compose_recall_query",
+      "type": "function",
+      "name": "compose_recall_query",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        398,
+        450
+      ],
+      "summary": "Function compose_recall_query in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:truncate_recall_query",
+      "type": "function",
+      "name": "truncate_recall_query",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        453,
+        497
+      ],
+      "summary": "Function truncate_recall_query in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:slice_last_turns_by_user_boundary",
+      "type": "function",
+      "name": "slice_last_turns_by_user_boundary",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        505,
+        523
+      ],
+      "summary": "Function slice_last_turns_by_user_boundary in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:format_memories",
+      "type": "function",
+      "name": "format_memories",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        531,
+        543
+      ],
+      "summary": "Function format_memories in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:format_current_time",
+      "type": "function",
+      "name": "format_current_time",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        546,
+        549
+      ],
+      "summary": "Function format_current_time in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:prepare_retention_transcript",
+      "type": "function",
+      "name": "prepare_retention_transcript",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        557,
+        598
+      ],
+      "summary": "Function prepare_retention_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_json_transcript",
+      "type": "function",
+      "name": "_prepare_json_transcript",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        601,
+        623
+      ],
+      "summary": "Function _prepare_json_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_text_transcript",
+      "type": "function",
+      "name": "_prepare_text_transcript",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        626,
+        652
+      ],
+      "summary": "Function _prepare_text_transcript in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/lib/content.py:_strip_memory_tags_from_blocks",
+      "type": "function",
+      "name": "_strip_memory_tags_from_blocks",
+      "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
+      "lineRange": [
+        655,
+        681
+      ],
+      "summary": "Function _strip_memory_tags_from_blocks in hindsight-integrations/codex/scripts/lib/content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/scripts/recall.py",
+      "type": "file",
+      "name": "recall.py",
+      "filePath": "hindsight-integrations/codex/scripts/recall.py",
+      "summary": "code file defining 1 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/recall.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "hindsight-integrations/codex/scripts/recall.py",
+      "lineRange": [
+        43,
+        130
+      ],
+      "summary": "Function main in hindsight-integrations/codex/scripts/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/scripts/retain.py",
+      "type": "file",
+      "name": "retain.py",
+      "filePath": "hindsight-integrations/codex/scripts/retain.py",
+      "summary": "code file defining 1 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/retain.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "hindsight-integrations/codex/scripts/retain.py",
+      "lineRange": [
+        39,
+        156
+      ],
+      "summary": "Function main in hindsight-integrations/codex/scripts/retain.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/scripts/session_start.py",
+      "type": "file",
+      "name": "session_start.py",
+      "filePath": "hindsight-integrations/codex/scripts/session_start.py",
+      "summary": "code file defining 1 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/scripts/session_start.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "hindsight-integrations/codex/scripts/session_start.py",
+      "lineRange": [
+        20,
+        37
+      ],
+      "summary": "Function main in hindsight-integrations/codex/scripts/session_start.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:hindsight-integrations/codex/settings.json",
+      "type": "config",
+      "name": "settings.json",
+      "filePath": "hindsight-integrations/codex/settings.json",
+      "summary": "Configuration file for hindsight-integrations.",
+      "tags": [
+        "config",
+        "json",
+        "hindsight-integrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/tests/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "hindsight-integrations/codex/tests/conftest.py",
+      "summary": "code file defining 4 functions and 1 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_hook_input",
+      "type": "function",
+      "name": "make_hook_input",
+      "filePath": "hindsight-integrations/codex/tests/conftest.py",
+      "lineRange": [
+        22,
+        33
+      ],
+      "summary": "Function make_hook_input in hindsight-integrations/codex/tests/conftest.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_transcript_file",
+      "type": "function",
+      "name": "make_transcript_file",
+      "filePath": "hindsight-integrations/codex/tests/conftest.py",
+      "lineRange": [
+        36,
+        63
+      ],
+      "summary": "Function make_transcript_file in hindsight-integrations/codex/tests/conftest.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_memory",
+      "type": "function",
+      "name": "make_memory",
+      "filePath": "hindsight-integrations/codex/tests/conftest.py",
+      "lineRange": [
+        66,
+        67
+      ],
+      "summary": "Function make_memory in hindsight-integrations/codex/tests/conftest.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/conftest.py:make_user_config",
+      "type": "function",
+      "name": "make_user_config",
+      "filePath": "hindsight-integrations/codex/tests/conftest.py",
+      "lineRange": [
+        70,
+        77
+      ],
+      "summary": "Function make_user_config in hindsight-integrations/codex/tests/conftest.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/conftest.py:FakeHTTPResponse",
+      "type": "class",
+      "name": "FakeHTTPResponse",
+      "filePath": "hindsight-integrations/codex/tests/conftest.py",
+      "lineRange": [
+        80,
+        94
+      ],
+      "summary": "Class or type FakeHTTPResponse in hindsight-integrations/codex/tests/conftest.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/tests/test_content.py",
+      "type": "file",
+      "name": "test_content.py",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "summary": "code file defining 2 functions and 11 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/test_content.py:_write_jsonl",
+      "type": "function",
+      "name": "_write_jsonl",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        20,
+        23
+      ],
+      "summary": "Function _write_jsonl in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/test_content.py:_msgs",
+      "type": "function",
+      "name": "_msgs",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        221,
+        222
+      ],
+      "summary": "Function _msgs in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestStripMemoryTags",
+      "type": "class",
+      "name": "TestStripMemoryTags",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        31,
+        58
+      ],
+      "summary": "Class or type TestStripMemoryTags in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestSyntheticCodexUserMessage",
+      "type": "class",
+      "name": "TestSyntheticCodexUserMessage",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        61,
+        68
+      ],
+      "summary": "Class or type TestSyntheticCodexUserMessage in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptFlat",
+      "type": "class",
+      "name": "TestReadTranscriptFlat",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        76,
+        90
+      ],
+      "summary": "Class or type TestReadTranscriptFlat in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptCodexFormat",
+      "type": "class",
+      "name": "TestReadTranscriptCodexFormat",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        93,
+        213
+      ],
+      "summary": "Class or type TestReadTranscriptCodexFormat in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestSliceLastTurnsByUserBoundary",
+      "type": "class",
+      "name": "TestSliceLastTurnsByUserBoundary",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        225,
+        256
+      ],
+      "summary": "Class or type TestSliceLastTurnsByUserBoundary in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestComposeRecallQuery",
+      "type": "class",
+      "name": "TestComposeRecallQuery",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        264,
+        296
+      ],
+      "summary": "Class or type TestComposeRecallQuery in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestTruncateRecallQuery",
+      "type": "class",
+      "name": "TestTruncateRecallQuery",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        304,
+        330
+      ],
+      "summary": "Class or type TestTruncateRecallQuery in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestFormatMemories",
+      "type": "class",
+      "name": "TestFormatMemories",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        338,
+        361
+      ],
+      "summary": "Class or type TestFormatMemories in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscript",
+      "type": "class",
+      "name": "TestPrepareRetentionTranscript",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        369,
+        410
+      ],
+      "summary": "Class or type TestPrepareRetentionTranscript in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptRich",
+      "type": "class",
+      "name": "TestReadTranscriptRich",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        418,
+        725
+      ],
+      "summary": "Class or type TestReadTranscriptRich in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscriptJson",
+      "type": "class",
+      "name": "TestPrepareRetentionTranscriptJson",
+      "filePath": "hindsight-integrations/codex/tests/test_content.py",
+      "lineRange": [
+        733,
+        794
+      ],
+      "summary": "Class or type TestPrepareRetentionTranscriptJson in hindsight-integrations/codex/tests/test_content.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight-integrations/codex/tests/test_hooks.py",
+      "type": "file",
+      "name": "test_hooks.py",
+      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
+      "summary": "code file defining 2 functions and 3 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight-integrations"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/test_hooks.py:_run_hook",
+      "type": "function",
+      "name": "_run_hook",
+      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
+      "lineRange": [
+        27,
+        67
+      ],
+      "summary": "Function _run_hook in hindsight-integrations/codex/tests/test_hooks.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight-integrations/codex/tests/test_hooks.py:_retained_events",
+      "type": "function",
+      "name": "_retained_events",
+      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
+      "lineRange": [
+        70,
+        71
+      ],
+      "summary": "Function _retained_events in hindsight-integrations/codex/tests/test_hooks.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_hooks.py:TestSessionStartHook",
+      "type": "class",
+      "name": "TestSessionStartHook",
+      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
+      "lineRange": [
+        79,
+        95
+      ],
+      "summary": "Class or type TestSessionStartHook in hindsight-integrations/codex/tests/test_hooks.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRecallHook",
+      "type": "class",
+      "name": "TestRecallHook",
+      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
+      "lineRange": [
+        103,
+        182
+      ],
+      "summary": "Class or type TestRecallHook in hindsight-integrations/codex/tests/test_hooks.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRetainHook",
+      "type": "class",
+      "name": "TestRetainHook",
+      "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
+      "lineRange": [
+        190,
+        291
+      ],
+      "summary": "Class or type TestRetainHook in hindsight-integrations/codex/tests/test_hooks.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:hindsight_lite/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "hindsight_lite/__init__.py",
+      "summary": "code file defining 0 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/__main__.py",
+      "type": "file",
+      "name": "__main__.py",
+      "filePath": "hindsight_lite/__main__.py",
+      "summary": "code file defining 0 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/cli.py",
+      "type": "file",
+      "name": "cli.py",
+      "filePath": "hindsight_lite/cli.py",
+      "summary": "code file defining 11 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        17,
+        20
+      ],
+      "summary": "Function main in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_build_parser",
+      "type": "function",
+      "name": "_build_parser",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        23,
+        66
+      ],
+      "summary": "Function _build_parser in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_add_bank_arg",
+      "type": "function",
+      "name": "_add_bank_arg",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        69,
+        70
+      ],
+      "summary": "Function _add_bank_arg in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_store",
+      "type": "function",
+      "name": "_store",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        73,
+        74
+      ],
+      "summary": "Function _store in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_cmd_retain",
+      "type": "function",
+      "name": "_cmd_retain",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        77,
+        91
+      ],
+      "summary": "Function _cmd_retain in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_cmd_recall",
+      "type": "function",
+      "name": "_cmd_recall",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        94,
+        102
+      ],
+      "summary": "Function _cmd_recall in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_cmd_reflect",
+      "type": "function",
+      "name": "_cmd_reflect",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        105,
+        113
+      ],
+      "summary": "Function _cmd_reflect in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_cmd_knowledge_list",
+      "type": "function",
+      "name": "_cmd_knowledge_list",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        116,
+        119
+      ],
+      "summary": "Function _cmd_knowledge_list in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_cmd_knowledge_get",
+      "type": "function",
+      "name": "_cmd_knowledge_get",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        122,
+        125
+      ],
+      "summary": "Function _cmd_knowledge_get in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_cmd_knowledge_write",
+      "type": "function",
+      "name": "_cmd_knowledge_write",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        128,
+        133
+      ],
+      "summary": "Function _cmd_knowledge_write in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/cli.py:_utc_now",
+      "type": "function",
+      "name": "_utc_now",
+      "filePath": "hindsight_lite/cli.py",
+      "lineRange": [
+        136,
+        137
+      ],
+      "summary": "Function _utc_now in hindsight_lite/cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/models.py",
+      "type": "file",
+      "name": "models.py",
+      "filePath": "hindsight_lite/models.py",
+      "summary": "code file defining 0 functions and 4 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/models.py:SessionMemoryEvent",
+      "type": "class",
+      "name": "SessionMemoryEvent",
+      "filePath": "hindsight_lite/models.py",
+      "lineRange": [
+        8,
+        18
+      ],
+      "summary": "Class or type SessionMemoryEvent in hindsight_lite/models.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/models.py:KnowledgePage",
+      "type": "class",
+      "name": "KnowledgePage",
+      "filePath": "hindsight_lite/models.py",
+      "lineRange": [
+        22,
+        29
+      ],
+      "summary": "Class or type KnowledgePage in hindsight_lite/models.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/models.py:RecallResult",
+      "type": "class",
+      "name": "RecallResult",
+      "filePath": "hindsight_lite/models.py",
+      "lineRange": [
+        33,
+        41
+      ],
+      "summary": "Class or type RecallResult in hindsight_lite/models.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/models.py:ReflectionPacket",
+      "type": "class",
+      "name": "ReflectionPacket",
+      "filePath": "hindsight_lite/models.py",
+      "lineRange": [
+        45,
+        54
+      ],
+      "summary": "Class or type ReflectionPacket in hindsight_lite/models.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/paths.py",
+      "type": "file",
+      "name": "paths.py",
+      "filePath": "hindsight_lite/paths.py",
+      "summary": "code file defining 3 functions and 1 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/paths.py:default_home",
+      "type": "function",
+      "name": "default_home",
+      "filePath": "hindsight_lite/paths.py",
+      "lineRange": [
+        11,
+        15
+      ],
+      "summary": "Function default_home in hindsight_lite/paths.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/paths.py:safe_bank_dir_name",
+      "type": "function",
+      "name": "safe_bank_dir_name",
+      "filePath": "hindsight_lite/paths.py",
+      "lineRange": [
+        18,
+        19
+      ],
+      "summary": "Function safe_bank_dir_name in hindsight_lite/paths.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/paths.py:unsafe_page_id",
+      "type": "function",
+      "name": "unsafe_page_id",
+      "filePath": "hindsight_lite/paths.py",
+      "lineRange": [
+        22,
+        23
+      ],
+      "summary": "Function unsafe_page_id in hindsight_lite/paths.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/paths.py:MemoryPaths",
+      "type": "class",
+      "name": "MemoryPaths",
+      "filePath": "hindsight_lite/paths.py",
+      "lineRange": [
+        27,
+        59
+      ],
+      "summary": "Class or type MemoryPaths in hindsight_lite/paths.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/recall.py",
+      "type": "file",
+      "name": "recall.py",
+      "filePath": "hindsight_lite/recall.py",
+      "summary": "code file defining 10 functions and 1 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:recall",
+      "type": "function",
+      "name": "recall",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        24,
+        31
+      ],
+      "summary": "Function recall in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:format_recall_for_codex",
+      "type": "function",
+      "name": "format_recall_for_codex",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        34,
+        43
+      ],
+      "summary": "Function format_recall_for_codex in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:format_current_time",
+      "type": "function",
+      "name": "format_current_time",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        46,
+        48
+      ],
+      "summary": "Function format_current_time in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_iter_candidates",
+      "type": "function",
+      "name": "_iter_candidates",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        51,
+        54
+      ],
+      "summary": "Function _iter_candidates in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_page_candidate",
+      "type": "function",
+      "name": "_page_candidate",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        57,
+        66
+      ],
+      "summary": "Function _page_candidate in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_event_candidate",
+      "type": "function",
+      "name": "_event_candidate",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        69,
+        78
+      ],
+      "summary": "Function _event_candidate in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_score_candidate",
+      "type": "function",
+      "name": "_score_candidate",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        81,
+        94
+      ],
+      "summary": "Function _score_candidate in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_format_result",
+      "type": "function",
+      "name": "_format_result",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        97,
+        99
+      ],
+      "summary": "Function _format_result in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_tokenize",
+      "type": "function",
+      "name": "_tokenize",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        102,
+        103
+      ],
+      "summary": "Function _tokenize in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/recall.py:_excerpt",
+      "type": "function",
+      "name": "_excerpt",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        106,
+        110
+      ],
+      "summary": "Function _excerpt in hindsight_lite/recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/recall.py:SearchCandidate",
+      "type": "class",
+      "name": "SearchCandidate",
+      "filePath": "hindsight_lite/recall.py",
+      "lineRange": [
+        14,
+        21
+      ],
+      "summary": "Class or type SearchCandidate in hindsight_lite/recall.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/reflection.py",
+      "type": "file",
+      "name": "reflection.py",
+      "filePath": "hindsight_lite/reflection.py",
+      "summary": "code file defining 2 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/reflection.py:create_reflection_packet",
+      "type": "function",
+      "name": "create_reflection_packet",
+      "filePath": "hindsight_lite/reflection.py",
+      "lineRange": [
+        11,
+        32
+      ],
+      "summary": "Function create_reflection_packet in hindsight_lite/reflection.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/reflection.py:_build_reflection_prompt",
+      "type": "function",
+      "name": "_build_reflection_prompt",
+      "filePath": "hindsight_lite/reflection.py",
+      "lineRange": [
+        35,
+        48
+      ],
+      "summary": "Function _build_reflection_prompt in hindsight_lite/reflection.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:hindsight_lite/store.py",
+      "type": "file",
+      "name": "store.py",
+      "filePath": "hindsight_lite/store.py",
+      "summary": "code file defining 3 functions and 5 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "hindsight_lite"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:hindsight_lite/store.py:_coerce_str_list",
+      "type": "function",
+      "name": "_coerce_str_list",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        160,
+        163
+      ],
+      "summary": "Function _coerce_str_list in hindsight_lite/store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/store.py:_coerce_str_map",
+      "type": "function",
+      "name": "_coerce_str_map",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        166,
+        169
+      ],
+      "summary": "Function _coerce_str_map in hindsight_lite/store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:hindsight_lite/store.py:_with_frontmatter_value",
+      "type": "function",
+      "name": "_with_frontmatter_value",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        172,
+        195
+      ],
+      "summary": "Function _with_frontmatter_value in hindsight_lite/store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/store.py:UnsafePageIdError",
+      "type": "class",
+      "name": "UnsafePageIdError",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        12,
+        13
+      ],
+      "summary": "Class or type UnsafePageIdError in hindsight_lite/store.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/store.py:PageNotFoundError",
+      "type": "class",
+      "name": "PageNotFoundError",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        16,
+        17
+      ],
+      "summary": "Class or type PageNotFoundError in hindsight_lite/store.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/store.py:PageFrontmatter",
+      "type": "class",
+      "name": "PageFrontmatter",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        21,
+        26
+      ],
+      "summary": "Class or type PageFrontmatter in hindsight_lite/store.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/store.py:PageDocument",
+      "type": "class",
+      "name": "PageDocument",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        30,
+        32
+      ],
+      "summary": "Class or type PageDocument in hindsight_lite/store.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:hindsight_lite/store.py:LocalMemoryStore",
+      "type": "class",
+      "name": "LocalMemoryStore",
+      "filePath": "hindsight_lite/store.py",
+      "lineRange": [
+        35,
+        157
+      ],
+      "summary": "Class or type LocalMemoryStore in hindsight_lite/store.py.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/hindsight_lite/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "tests/hindsight_lite/conftest.py",
+      "summary": "code file defining 0 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "tests"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/hindsight_lite/test_cli.py",
+      "type": "file",
+      "name": "test_cli.py",
+      "filePath": "tests/hindsight_lite/test_cli.py",
+      "summary": "code file defining 3 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "tests"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_cli.py:test_cli_writes_lists_and_gets_knowledge_pages",
+      "type": "function",
+      "name": "test_cli_writes_lists_and_gets_knowledge_pages",
+      "filePath": "tests/hindsight_lite/test_cli.py",
+      "lineRange": [
+        6,
+        17
+      ],
+      "summary": "Function test_cli_writes_lists_and_gets_knowledge_pages in tests/hindsight_lite/test_cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_cli.py:test_cli_retain_and_recall_session_memory",
+      "type": "function",
+      "name": "test_cli_retain_and_recall_session_memory",
+      "filePath": "tests/hindsight_lite/test_cli.py",
+      "lineRange": [
+        20,
+        38
+      ],
+      "summary": "Function test_cli_retain_and_recall_session_memory in tests/hindsight_lite/test_cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_cli.py:test_cli_reflect_outputs_packet_json",
+      "type": "function",
+      "name": "test_cli_reflect_outputs_packet_json",
+      "filePath": "tests/hindsight_lite/test_cli.py",
+      "lineRange": [
+        41,
+        49
+      ],
+      "summary": "Function test_cli_reflect_outputs_packet_json in tests/hindsight_lite/test_cli.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/hindsight_lite/test_recall.py",
+      "type": "file",
+      "name": "test_recall.py",
+      "filePath": "tests/hindsight_lite/test_recall.py",
+      "summary": "code file defining 3 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "tests"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_recall.py:test_recall_ranks_pages_and_session_events",
+      "type": "function",
+      "name": "test_recall_ranks_pages_and_session_events",
+      "filePath": "tests/hindsight_lite/test_recall.py",
+      "lineRange": [
+        8,
+        34
+      ],
+      "summary": "Function test_recall_ranks_pages_and_session_events in tests/hindsight_lite/test_recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_recall.py:test_recall_respects_max_results_and_ignores_zero_scores",
+      "type": "function",
+      "name": "test_recall_respects_max_results_and_ignores_zero_scores",
+      "filePath": "tests/hindsight_lite/test_recall.py",
+      "lineRange": [
+        37,
+        44
+      ],
+      "summary": "Function test_recall_respects_max_results_and_ignores_zero_scores in tests/hindsight_lite/test_recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_recall.py:test_format_recall_for_codex_keeps_context_compact",
+      "type": "function",
+      "name": "test_format_recall_for_codex_keeps_context_compact",
+      "filePath": "tests/hindsight_lite/test_recall.py",
+      "lineRange": [
+        47,
+        66
+      ],
+      "summary": "Function test_format_recall_for_codex_keeps_context_compact in tests/hindsight_lite/test_recall.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/hindsight_lite/test_reflection.py",
+      "type": "file",
+      "name": "test_reflection.py",
+      "filePath": "tests/hindsight_lite/test_reflection.py",
+      "summary": "code file defining 1 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "tests"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_reflection.py:test_create_reflection_packet_retrieves_context_and_writes_json",
+      "type": "function",
+      "name": "test_create_reflection_packet_retrieves_context_and_writes_json",
+      "filePath": "tests/hindsight_lite/test_reflection.py",
+      "lineRange": [
+        8,
+        32
+      ],
+      "summary": "Function test_create_reflection_packet_retrieves_context_and_writes_json in tests/hindsight_lite/test_reflection.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/hindsight_lite/test_store.py",
+      "type": "file",
+      "name": "test_store.py",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "summary": "code file defining 7 functions and 0 classes/types.",
+      "tags": [
+        "code",
+        "python",
+        "tests"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_memory_paths_create_bank_dirs",
+      "type": "function",
+      "name": "test_memory_paths_create_bank_dirs",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        10,
+        19
+      ],
+      "summary": "Function test_memory_paths_create_bank_dirs in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_unsafe_page_id_rejects_traversal",
+      "type": "function",
+      "name": "test_unsafe_page_id_rejects_traversal",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        23,
+        24
+      ],
+      "summary": "Function test_unsafe_page_id_rejects_traversal in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_unsafe_page_id_allows_slug",
+      "type": "function",
+      "name": "test_unsafe_page_id_allows_slug",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        27,
+        28
+      ],
+      "summary": "Function test_unsafe_page_id_allows_slug in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_store_appends_and_reads_session_events",
+      "type": "function",
+      "name": "test_store_appends_and_reads_session_events",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        31,
+        50
+      ],
+      "summary": "Function test_store_appends_and_reads_session_events in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_store_writes_lists_and_gets_markdown_pages",
+      "type": "function",
+      "name": "test_store_writes_lists_and_gets_markdown_pages",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        53,
+        74
+      ],
+      "summary": "Function test_store_writes_lists_and_gets_markdown_pages in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_store_rejects_unsafe_page_ids",
+      "type": "function",
+      "name": "test_store_rejects_unsafe_page_ids",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        77,
+        84
+      ],
+      "summary": "Function test_store_rejects_unsafe_page_ids in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/hindsight_lite/test_store.py:test_store_raises_for_missing_page",
+      "type": "function",
+      "name": "test_store_raises_for_missing_page",
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "lineRange": [
+        87,
+        91
+      ],
+      "summary": "Function test_store_raises_for_missing_page in tests/hindsight_lite/test_store.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -165013,55 +165881,6 @@
       "weight": 1
     },
     {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_get_embed_command",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_run_embed",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_is_embed_available",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_check_health",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:get_api_url",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:_ensure_daemon_running",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/daemon.py:prestart_daemon_background",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
       "source": "file:hindsight-integrations/paperclip/src/worker.ts",
       "target": "function:hindsight-integrations/paperclip/src/worker.ts:getConfig",
       "type": "contains",
@@ -165071,125 +165890,6 @@
     {
       "source": "file:hindsight-integrations/paperclip/src/worker.ts",
       "target": "function:hindsight-integrations/paperclip/src/worker.ts:resolveApiKey",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:strip_memory_tags",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:is_synthetic_codex_user_message",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:read_transcript",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_text",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_rich",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_text_from_content_blocks",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_function_output_text",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_truncate",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:compose_recall_query",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:truncate_recall_query",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:slice_last_turns_by_user_boundary",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:format_memories",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:format_current_time",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:prepare_retention_transcript",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_json_transcript",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_text_transcript",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_strip_memory_tags_from_blocks",
       "type": "contains",
       "direction": "forward",
       "weight": 1
@@ -165225,97 +165925,6 @@
     {
       "source": "file:hindsight-integrations/paperclip/src/bank.ts",
       "target": "function:hindsight-integrations/paperclip/src/bank.ts:deriveBankId",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/llm.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/llm.py:_find_provider",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/llm.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/llm.py:detect_llm_config",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/llm.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/llm.py:get_llm_env_vars",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/client.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/client.py:_plugin_version",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/client.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/client.py:_validate_api_url",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/client.py",
-      "target": "class:hindsight-integrations/codex/scripts/lib/client.py:HindsightClient",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:_cast_env",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:_load_settings_file",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:load_config",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
-      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:debug_log",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/session_start.py",
-      "target": "function:hindsight-integrations/codex/scripts/session_start.py:main",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/recall.py",
-      "target": "function:hindsight-integrations/codex/scripts/recall.py:main",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/scripts/retain.py",
-      "target": "function:hindsight-integrations/codex/scripts/retain.py:main",
       "type": "contains",
       "direction": "forward",
       "weight": 1
@@ -167204,125 +167813,6 @@
       "weight": 1
     },
     {
-      "source": "file:hindsight-integrations/codex/tests/test_client.py",
-      "target": "class:hindsight-integrations/codex/tests/test_client.py:TestUserAgentHeader",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "function:hindsight-integrations/codex/tests/test_content.py:_write_jsonl",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "function:hindsight-integrations/codex/tests/test_content.py:_msgs",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestStripMemoryTags",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestSyntheticCodexUserMessage",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptFlat",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptCodexFormat",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestSliceLastTurnsByUserBoundary",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestComposeRecallQuery",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestTruncateRecallQuery",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestFormatMemories",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscript",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptRich",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_content.py",
-      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscriptJson",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
-      "target": "function:hindsight-integrations/codex/tests/test_hooks.py:_run_hook",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
-      "target": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRecallHook",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
-      "target": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRetainHook",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
       "source": "file:hindsight-integrations/codex/tests/test_bank.py",
       "target": "function:hindsight-integrations/codex/tests/test_bank.py:_cfg",
       "type": "contains",
@@ -167346,41 +167836,6 @@
     {
       "source": "file:hindsight-integrations/codex/tests/test_bank.py",
       "target": "class:hindsight-integrations/codex/tests/test_bank.py:TestDeriveBankIdDynamic",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/conftest.py",
-      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_hook_input",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/conftest.py",
-      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_transcript_file",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/conftest.py",
-      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_memory",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/conftest.py",
-      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_user_config",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:hindsight-integrations/codex/tests/conftest.py",
-      "target": "class:hindsight-integrations/codex/tests/conftest.py:FakeHTTPResponse",
       "type": "contains",
       "direction": "forward",
       "weight": 1
@@ -220073,6 +220528,713 @@
       "type": "imports",
       "direction": "forward",
       "weight": 0.7
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:_cast_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:_load_settings_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:load_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/config.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/config.py:debug_log",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:strip_memory_tags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:is_synthetic_codex_user_message",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:read_transcript",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_rich",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_text_from_content_blocks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_function_output_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_truncate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:compose_recall_query",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:truncate_recall_query",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:slice_last_turns_by_user_boundary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:format_memories",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:format_current_time",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:prepare_retention_transcript",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_json_transcript",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_text_transcript",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/lib/content.py",
+      "target": "function:hindsight-integrations/codex/scripts/lib/content.py:_strip_memory_tags_from_blocks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/recall.py",
+      "target": "function:hindsight-integrations/codex/scripts/recall.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/retain.py",
+      "target": "function:hindsight-integrations/codex/scripts/retain.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/scripts/session_start.py",
+      "target": "function:hindsight-integrations/codex/scripts/session_start.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/conftest.py",
+      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_hook_input",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/conftest.py",
+      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_transcript_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/conftest.py",
+      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_memory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/conftest.py",
+      "target": "function:hindsight-integrations/codex/tests/conftest.py:make_user_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/conftest.py",
+      "target": "class:hindsight-integrations/codex/tests/conftest.py:FakeHTTPResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "function:hindsight-integrations/codex/tests/test_content.py:_write_jsonl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "function:hindsight-integrations/codex/tests/test_content.py:_msgs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestStripMemoryTags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestSyntheticCodexUserMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptFlat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptCodexFormat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestSliceLastTurnsByUserBoundary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestComposeRecallQuery",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestTruncateRecallQuery",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestFormatMemories",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscript",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptRich",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_content.py",
+      "target": "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscriptJson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
+      "target": "function:hindsight-integrations/codex/tests/test_hooks.py:_run_hook",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
+      "target": "function:hindsight-integrations/codex/tests/test_hooks.py:_retained_events",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
+      "target": "class:hindsight-integrations/codex/tests/test_hooks.py:TestSessionStartHook",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
+      "target": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRecallHook",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight-integrations/codex/tests/test_hooks.py",
+      "target": "class:hindsight-integrations/codex/tests/test_hooks.py:TestRetainHook",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_build_parser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_add_bank_arg",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_store",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_cmd_retain",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_cmd_recall",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_cmd_reflect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_cmd_knowledge_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_cmd_knowledge_get",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_cmd_knowledge_write",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/cli.py",
+      "target": "function:hindsight_lite/cli.py:_utc_now",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/models.py",
+      "target": "class:hindsight_lite/models.py:SessionMemoryEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/models.py",
+      "target": "class:hindsight_lite/models.py:KnowledgePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/models.py",
+      "target": "class:hindsight_lite/models.py:RecallResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/models.py",
+      "target": "class:hindsight_lite/models.py:ReflectionPacket",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/paths.py",
+      "target": "function:hindsight_lite/paths.py:default_home",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/paths.py",
+      "target": "function:hindsight_lite/paths.py:safe_bank_dir_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/paths.py",
+      "target": "function:hindsight_lite/paths.py:unsafe_page_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/paths.py",
+      "target": "class:hindsight_lite/paths.py:MemoryPaths",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:recall",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:format_recall_for_codex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:format_current_time",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_iter_candidates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_page_candidate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_event_candidate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_score_candidate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_format_result",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_tokenize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "function:hindsight_lite/recall.py:_excerpt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/recall.py",
+      "target": "class:hindsight_lite/recall.py:SearchCandidate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/reflection.py",
+      "target": "function:hindsight_lite/reflection.py:create_reflection_packet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/reflection.py",
+      "target": "function:hindsight_lite/reflection.py:_build_reflection_prompt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "function:hindsight_lite/store.py:_coerce_str_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "function:hindsight_lite/store.py:_coerce_str_map",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "function:hindsight_lite/store.py:_with_frontmatter_value",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "class:hindsight_lite/store.py:UnsafePageIdError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "class:hindsight_lite/store.py:PageNotFoundError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "class:hindsight_lite/store.py:PageFrontmatter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "class:hindsight_lite/store.py:PageDocument",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:hindsight_lite/store.py",
+      "target": "class:hindsight_lite/store.py:LocalMemoryStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_cli.py",
+      "target": "function:tests/hindsight_lite/test_cli.py:test_cli_writes_lists_and_gets_knowledge_pages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_cli.py",
+      "target": "function:tests/hindsight_lite/test_cli.py:test_cli_retain_and_recall_session_memory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_cli.py",
+      "target": "function:tests/hindsight_lite/test_cli.py:test_cli_reflect_outputs_packet_json",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_recall.py",
+      "target": "function:tests/hindsight_lite/test_recall.py:test_recall_ranks_pages_and_session_events",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_recall.py",
+      "target": "function:tests/hindsight_lite/test_recall.py:test_recall_respects_max_results_and_ignores_zero_scores",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_recall.py",
+      "target": "function:tests/hindsight_lite/test_recall.py:test_format_recall_for_codex_keeps_context_compact",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_reflection.py",
+      "target": "function:tests/hindsight_lite/test_reflection.py:test_create_reflection_packet_retrieves_context_and_writes_json",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_memory_paths_create_bank_dirs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_unsafe_page_id_rejects_traversal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_unsafe_page_id_allows_slug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_store_appends_and_reads_session_events",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_store_writes_lists_and_gets_markdown_pages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_store_rejects_unsafe_page_ids",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/hindsight_lite/test_store.py",
+      "target": "function:tests/hindsight_lite/test_store.py:test_store_raises_for_missing_page",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
     }
   ],
   "layers": [
@@ -220216,9 +221378,6 @@
         "file:hindsight-integrations/paperclip/src/client.ts",
         "file:hindsight-integrations/paperclip/src/bank.ts",
         "file:hindsight-integrations/paperclip/esbuild.config.mjs",
-        "file:hindsight-integrations/codex/scripts/session_start.py",
-        "file:hindsight-integrations/codex/scripts/recall.py",
-        "file:hindsight-integrations/codex/scripts/retain.py",
         "file:hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py",
         "file:hindsight-api-slim/hindsight_api/engine/retain/orchestrator.py",
         "file:hindsight-api-slim/hindsight_api/engine/retain/link_utils.py",
@@ -220733,7 +221892,21 @@
         "file:hindsight-dev/benchmarks/consolidation/__init__.py",
         "file:hindsight-clients/python/hindsight_client_api/__init__.py",
         "file:hindsight-clients/python/hindsight_client_api/rest.py",
-        "file:hindsight-clients/python/hindsight_client_api/configuration.py"
+        "file:hindsight-clients/python/hindsight_client_api/configuration.py",
+        "file:.gitignore",
+        "file:hindsight-integrations/codex/scripts/lib/config.py",
+        "file:hindsight-integrations/codex/scripts/lib/content.py",
+        "file:hindsight-integrations/codex/scripts/recall.py",
+        "file:hindsight-integrations/codex/scripts/retain.py",
+        "file:hindsight-integrations/codex/scripts/session_start.py",
+        "file:hindsight_lite/__init__.py",
+        "file:hindsight_lite/__main__.py",
+        "file:hindsight_lite/cli.py",
+        "file:hindsight_lite/models.py",
+        "file:hindsight_lite/paths.py",
+        "file:hindsight_lite/recall.py",
+        "file:hindsight_lite/reflection.py",
+        "file:hindsight_lite/store.py"
       ]
     },
     {
@@ -220789,11 +221962,7 @@
         "file:hindsight-integrations/paperclip/tests/plugin.spec.ts",
         "file:hindsight-integrations/openclaw/tests/integration.test.ts",
         "file:hindsight-integrations/openclaw/tests/hooks.integration.test.ts",
-        "file:hindsight-integrations/codex/tests/test_client.py",
-        "file:hindsight-integrations/codex/tests/test_content.py",
-        "file:hindsight-integrations/codex/tests/test_hooks.py",
         "file:hindsight-integrations/codex/tests/test_bank.py",
-        "file:hindsight-integrations/codex/tests/conftest.py",
         "file:hindsight-integrations/crewai/tests/test_tools.py",
         "file:hindsight-integrations/crewai/tests/test_config.py",
         "file:hindsight-integrations/crewai/tests/test_storage.py",
@@ -221002,7 +222171,15 @@
         "file:hindsight-clients/go/test/api_directives_test.go",
         "file:hindsight-clients/go/test/api_entities_test.go",
         "file:hindsight-clients/go/test/api_banks_test.go",
-        "file:hindsight-clients/go/test/api_operations_test.go"
+        "file:hindsight-clients/go/test/api_operations_test.go",
+        "file:hindsight-integrations/codex/tests/conftest.py",
+        "file:hindsight-integrations/codex/tests/test_content.py",
+        "file:hindsight-integrations/codex/tests/test_hooks.py",
+        "file:tests/hindsight_lite/conftest.py",
+        "file:tests/hindsight_lite/test_cli.py",
+        "file:tests/hindsight_lite/test_recall.py",
+        "file:tests/hindsight_lite/test_reflection.py",
+        "file:tests/hindsight_lite/test_store.py"
       ]
     },
     {
@@ -221019,13 +222196,8 @@
         "file:hindsight-integrations/claude-code/scripts/lib/client.py",
         "file:hindsight-integrations/claude-code/scripts/lib/config.py",
         "file:hindsight-integrations/codex/scripts/lib/state.py",
-        "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-        "file:hindsight-integrations/codex/scripts/lib/content.py",
         "file:hindsight-integrations/codex/scripts/lib/bank.py",
-        "file:hindsight-integrations/codex/scripts/lib/llm.py",
         "file:hindsight-integrations/codex/scripts/lib/__init__.py",
-        "file:hindsight-integrations/codex/scripts/lib/client.py",
-        "file:hindsight-integrations/codex/scripts/lib/config.py",
         "file:hindsight-control-plane/src/lib/relative-time.ts",
         "file:hindsight-control-plane/src/lib/api.ts",
         "file:hindsight-control-plane/src/lib/bank-url.ts",
@@ -221437,7 +222609,6 @@
         "config:hindsight-integrations/openclaw/package.json",
         "config:hindsight-integrations/openclaw/package-lock.json",
         "config:hindsight-integrations/openclaw/openclaw.plugin.json",
-        "config:hindsight-integrations/codex/settings.json",
         "config:hindsight-integrations/codex/hooks/hooks.json",
         "config:hindsight-all-npm/tsconfig.json",
         "config:hindsight-all-npm/package.json",
@@ -221533,7 +222704,8 @@
         "config:hindsight-docs/static/img/hindsight-overview.webp",
         "config:hindsight-docs/static/img/retain-operation.webp",
         "config:hindsight-docs/static/img/reflect-operation.webp",
-        "config:hindsight-docs/guides/authors.yml"
+        "config:hindsight-docs/guides/authors.yml",
+        "config:hindsight-integrations/codex/settings.json"
       ]
     },
     {
@@ -221556,7 +222728,6 @@
         "document:hindsight-integrations/ag2/README.md",
         "document:hindsight-integrations/pipecat/README.md",
         "document:hindsight-integrations/n8n/README.md",
-        "document:README.md",
         "document:cookbook/README.md",
         "document:hindsight-integrations/claude-code/skills/create-agent/SKILL.md",
         "document:hindsight-integrations/claude-code/skills/setup.md",
@@ -221567,7 +222738,6 @@
         "document:hindsight-integrations/smolagents/README.md",
         "document:hindsight-integrations/claude-code/CHANGELOG.md",
         "document:hindsight-integrations/claude-code/requirements.txt",
-        "document:AGENTS.md",
         "document:hindsight-integrations/paperclip/README.md",
         "document:hindsight-docs/src/pages/cookbook/applications/crewai-memory.md",
         "document:hindsight-docs/src/pages/cookbook/applications/chat-sdk-multi-platform.md",
@@ -221586,7 +222756,6 @@
         "document:hindsight-docs/src/pages/cookbook/applications/taste-ai.md",
         "document:hindsight-integrations/agentcore/README.md",
         "document:hindsight-integrations/openclaw/README.md",
-        "document:hindsight-integrations/codex/README.md",
         "document:hindsight-all-npm/README.md",
         "document:SECURITY.md",
         "document:CLAUDE.md",
@@ -222066,7 +223235,15 @@
         "document:hindsight-docs/guides/2026-04-28-guide-run-hindsight-cli-on-linux-arm64.md",
         "document:hindsight-docs/guides/2026-04-23-guide-how-agent-memory-reduces-repetition-and-rework.md",
         "document:hindsight-docs/guides/2026-04-15-guide-openclaw-per-user-memory-across-channels-setup.md",
-        "document:hindsight-docs/guides/2026-04-16-guide-contextforge-memory-with-hindsight.md"
+        "document:hindsight-docs/guides/2026-04-16-guide-contextforge-memory-with-hindsight.md",
+        "document:AGENTS.md",
+        "document:README.md",
+        "document:docs/superpowers/implementation/2026-05-10-codex-local-memory-plugin.md",
+        "document:docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md",
+        "document:docs/superpowers/plans/2026-05-10-codex-local-memory-plugin.md",
+        "document:docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md",
+        "document:docs/upstream/HINDSIGHT_README.md",
+        "document:hindsight-integrations/codex/README.md"
       ]
     },
     {
@@ -222368,9 +223545,6 @@
         "file:hindsight-integrations/paperclip/src/client.ts",
         "file:hindsight-integrations/paperclip/src/bank.ts",
         "file:hindsight-integrations/paperclip/esbuild.config.mjs",
-        "file:hindsight-integrations/codex/scripts/session_start.py",
-        "file:hindsight-integrations/codex/scripts/recall.py",
-        "file:hindsight-integrations/codex/scripts/retain.py",
         "file:hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py",
         "file:hindsight-api-slim/hindsight_api/engine/retain/orchestrator.py",
         "file:hindsight-api-slim/hindsight_api/engine/retain/link_utils.py",
@@ -222946,7 +224120,6 @@
         "config:hindsight-integrations/paperclip/package-lock.json",
         "config:hindsight-integrations/openclaw/package-lock.json",
         "config:hindsight-integrations/openclaw/openclaw.plugin.json",
-        "config:hindsight-integrations/codex/settings.json",
         "config:hindsight-integrations/codex/hooks/hooks.json",
         "config:hindsight-all-npm/tsconfig.json",
         "config:hindsight-all-npm/package.json",
@@ -223068,7 +224241,6 @@
         "document:hindsight-integrations/ag2/README.md",
         "document:hindsight-integrations/pipecat/README.md",
         "document:hindsight-integrations/n8n/README.md",
-        "document:README.md",
         "document:cookbook/README.md",
         "document:hindsight-integrations/claude-code/skills/create-agent/SKILL.md",
         "document:hindsight-integrations/claude-code/skills/setup.md",
@@ -223079,7 +224251,6 @@
         "document:hindsight-integrations/smolagents/README.md",
         "document:hindsight-integrations/claude-code/CHANGELOG.md",
         "document:hindsight-integrations/claude-code/requirements.txt",
-        "document:AGENTS.md",
         "document:hindsight-integrations/paperclip/README.md",
         "document:hindsight-docs/src/pages/cookbook/applications/crewai-memory.md",
         "document:hindsight-docs/src/pages/cookbook/applications/chat-sdk-multi-platform.md",
@@ -223098,7 +224269,6 @@
         "document:hindsight-docs/src/pages/cookbook/applications/taste-ai.md",
         "document:hindsight-integrations/agentcore/README.md",
         "document:hindsight-integrations/openclaw/README.md",
-        "document:hindsight-integrations/codex/README.md",
         "document:hindsight-all-npm/README.md",
         "document:SECURITY.md",
         "document:CLAUDE.md",
@@ -223634,11 +224804,7 @@
         "file:hindsight-integrations/paperclip/tests/plugin.spec.ts",
         "file:hindsight-integrations/openclaw/tests/integration.test.ts",
         "file:hindsight-integrations/openclaw/tests/hooks.integration.test.ts",
-        "file:hindsight-integrations/codex/tests/test_client.py",
-        "file:hindsight-integrations/codex/tests/test_content.py",
-        "file:hindsight-integrations/codex/tests/test_hooks.py",
         "file:hindsight-integrations/codex/tests/test_bank.py",
-        "file:hindsight-integrations/codex/tests/conftest.py",
         "file:hindsight-integrations/crewai/tests/test_tools.py",
         "file:hindsight-integrations/crewai/tests/test_config.py",
         "file:hindsight-integrations/crewai/tests/test_storage.py",
@@ -223864,13 +225030,8 @@
         "file:hindsight-integrations/claude-code/scripts/lib/client.py",
         "file:hindsight-integrations/claude-code/scripts/lib/config.py",
         "file:hindsight-integrations/codex/scripts/lib/state.py",
-        "file:hindsight-integrations/codex/scripts/lib/daemon.py",
-        "file:hindsight-integrations/codex/scripts/lib/content.py",
         "file:hindsight-integrations/codex/scripts/lib/bank.py",
-        "file:hindsight-integrations/codex/scripts/lib/llm.py",
         "file:hindsight-integrations/codex/scripts/lib/__init__.py",
-        "file:hindsight-integrations/codex/scripts/lib/client.py",
-        "file:hindsight-integrations/codex/scripts/lib/config.py",
         "file:hindsight-control-plane/src/lib/relative-time.ts",
         "file:hindsight-control-plane/src/lib/api.ts",
         "file:hindsight-control-plane/src/lib/bank-url.ts",
@@ -225053,50 +226214,13 @@
         "function:hindsight-integrations/codex/scripts/lib/state.py:write_state",
         "function:hindsight-integrations/codex/scripts/lib/state.py:get_turn_count",
         "function:hindsight-integrations/codex/scripts/lib/state.py:increment_turn_count",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:_get_embed_command",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:_run_embed",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:_is_embed_available",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:_check_health",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:get_api_url",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:_ensure_daemon_running",
-        "function:hindsight-integrations/codex/scripts/lib/daemon.py:prestart_daemon_background",
         "function:hindsight-integrations/paperclip/src/worker.ts:getConfig",
         "function:hindsight-integrations/paperclip/src/worker.ts:resolveApiKey",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:strip_memory_tags",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:is_synthetic_codex_user_message",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:read_transcript",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_text",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_read_transcript_rich",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_text_from_content_blocks",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_extract_function_output_text",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_truncate",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:compose_recall_query",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:truncate_recall_query",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:slice_last_turns_by_user_boundary",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:format_memories",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:format_current_time",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:prepare_retention_transcript",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_json_transcript",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_prepare_text_transcript",
-        "function:hindsight-integrations/codex/scripts/lib/content.py:_strip_memory_tags_from_blocks",
         "function:hindsight-integrations/codex/scripts/lib/bank.py:derive_bank_id",
         "function:hindsight-integrations/codex/scripts/lib/bank.py:ensure_bank_mission",
         "function:hindsight-integrations/paperclip/src/client.ts:formatMemories",
         "class:hindsight-integrations/paperclip/src/client.ts:HindsightClient",
         "function:hindsight-integrations/paperclip/src/bank.ts:deriveBankId",
-        "function:hindsight-integrations/codex/scripts/lib/llm.py:_find_provider",
-        "function:hindsight-integrations/codex/scripts/lib/llm.py:detect_llm_config",
-        "function:hindsight-integrations/codex/scripts/lib/llm.py:get_llm_env_vars",
-        "function:hindsight-integrations/codex/scripts/lib/client.py:_plugin_version",
-        "function:hindsight-integrations/codex/scripts/lib/client.py:_validate_api_url",
-        "class:hindsight-integrations/codex/scripts/lib/client.py:HindsightClient",
-        "function:hindsight-integrations/codex/scripts/lib/config.py:_cast_env",
-        "function:hindsight-integrations/codex/scripts/lib/config.py:_load_settings_file",
-        "function:hindsight-integrations/codex/scripts/lib/config.py:load_config",
-        "function:hindsight-integrations/codex/scripts/lib/config.py:debug_log",
-        "function:hindsight-integrations/codex/scripts/session_start.py:main",
-        "function:hindsight-integrations/codex/scripts/recall.py:main",
-        "function:hindsight-integrations/codex/scripts/retain.py:main",
         "function:hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py:_extract_map_entities",
         "function:hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py:_infer_temporal_date",
         "function:hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py:_sanitize_text",
@@ -225366,32 +226490,10 @@
         "class:hindsight-api-slim/hindsight_api/worker/poller.py:ClaimedTask",
         "class:hindsight-api-slim/hindsight_api/worker/poller.py:SlotAvailability",
         "class:hindsight-api-slim/hindsight_api/worker/poller.py:WorkerPoller",
-        "class:hindsight-integrations/codex/tests/test_client.py:TestUserAgentHeader",
-        "function:hindsight-integrations/codex/tests/test_content.py:_write_jsonl",
-        "function:hindsight-integrations/codex/tests/test_content.py:_msgs",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestStripMemoryTags",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestSyntheticCodexUserMessage",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptFlat",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptCodexFormat",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestSliceLastTurnsByUserBoundary",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestComposeRecallQuery",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestTruncateRecallQuery",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestFormatMemories",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscript",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestReadTranscriptRich",
-        "class:hindsight-integrations/codex/tests/test_content.py:TestPrepareRetentionTranscriptJson",
-        "function:hindsight-integrations/codex/tests/test_hooks.py:_run_hook",
-        "class:hindsight-integrations/codex/tests/test_hooks.py:TestRecallHook",
-        "class:hindsight-integrations/codex/tests/test_hooks.py:TestRetainHook",
         "function:hindsight-integrations/codex/tests/test_bank.py:_cfg",
         "function:hindsight-integrations/codex/tests/test_bank.py:_hook",
         "class:hindsight-integrations/codex/tests/test_bank.py:TestDeriveBankIdStatic",
         "class:hindsight-integrations/codex/tests/test_bank.py:TestDeriveBankIdDynamic",
-        "function:hindsight-integrations/codex/tests/conftest.py:make_hook_input",
-        "function:hindsight-integrations/codex/tests/conftest.py:make_transcript_file",
-        "function:hindsight-integrations/codex/tests/conftest.py:make_memory",
-        "function:hindsight-integrations/codex/tests/conftest.py:make_user_config",
-        "class:hindsight-integrations/codex/tests/conftest.py:FakeHTTPResponse",
         "class:hindsight-api-slim/hindsight_api/engine/db/base.py:DatabaseConnection",
         "class:hindsight-api-slim/hindsight_api/engine/db/base.py:DatabaseBackend",
         "function:hindsight-api-slim/hindsight_api/engine/db/oracle.py:_convert_arg",

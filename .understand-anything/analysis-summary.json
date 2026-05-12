@@ -1,28 +1,28 @@
 {
-  "filesAnalyzed": 1960,
+  "filesAnalyzed": 2088,
   "fileCategories": {
-    "code": 1194,
+    "code": 1204,
     "config": 168,
-    "docs": 526,
+    "docs": 531,
     "script": 53,
     "markup": 17,
     "infra": 2
   },
-  "totalNodes": 10388,
-  "totalEdges": 8537,
+  "totalNodes": 10445,
+  "totalEdges": 8579,
   "totalLayers": 11,
   "tourSteps": 12,
   "nodeTypes": {
-    "file": 1244,
-    "function": 6786,
+    "file": 1254,
+    "function": 6818,
     "config": 153,
-    "document": 526,
-    "class": 1529,
+    "document": 531,
+    "class": 1539,
     "service": 51,
     "pipeline": 99
   },
   "edgeTypes": {
-    "contains": 8428,
+    "contains": 8470,
     "imports": 109
   },
   "layers": [

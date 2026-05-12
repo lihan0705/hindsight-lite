@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "6aab6c89dc672363346b14f9e2607e3b2358a7ef",
-  "generatedAt": "2026-05-10T07:35:42.263Z",
+  "gitCommitHash": "e85a1e4a887ef8b19545010f09a4459b845dfeee",
+  "generatedAt": "2026-05-12T19:22:33.890Z",
   "files": {
     "hindsight-integrations/opencode/src/hooks.ts": {
       "filePath": "hindsight-integrations/opencode/src/hooks.ts",
@@ -14649,152 +14649,6 @@
       "totalLines": 114,
       "hasStructuralAnalysis": true
     },
-    "hindsight-integrations/codex/scripts/lib/daemon.py": {
-      "filePath": "hindsight-integrations/codex/scripts/lib/daemon.py",
-      "contentHash": "e1c867688238f93fed7f29ed1e286b184ea809b1b916e0af58684e39e3b7b318",
-      "functions": [
-        {
-          "name": "_get_embed_command",
-          "params": [
-            "config"
-          ],
-          "returnType": "list",
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "_run_embed",
-          "params": [
-            "config",
-            "args",
-            "env",
-            "timeout"
-          ],
-          "returnType": "subprocess.CompletedProcess",
-          "exported": true,
-          "lineCount": 13
-        },
-        {
-          "name": "_is_embed_available",
-          "params": [
-            "config"
-          ],
-          "returnType": "bool",
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "_check_health",
-          "params": [
-            "base_url",
-            "timeout"
-          ],
-          "returnType": "bool",
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "get_api_url",
-          "params": [
-            "config",
-            "debug_fn",
-            "allow_daemon_start"
-          ],
-          "returnType": "str",
-          "exported": true,
-          "lineCount": 46
-        },
-        {
-          "name": "_ensure_daemon_running",
-          "params": [
-            "config",
-            "port",
-            "debug_fn"
-          ],
-          "exported": true,
-          "lineCount": 96
-        },
-        {
-          "name": "prestart_daemon_background",
-          "params": [
-            "config",
-            "debug_fn"
-          ],
-          "exported": true,
-          "lineCount": 58
-        }
-      ],
-      "classes": [],
-      "imports": [
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "platform",
-          "specifiers": [
-            "platform"
-          ]
-        },
-        {
-          "source": "subprocess",
-          "specifiers": [
-            "subprocess"
-          ]
-        },
-        {
-          "source": "time",
-          "specifiers": [
-            "time"
-          ]
-        },
-        {
-          "source": "urllib.error",
-          "specifiers": [
-            "urllib.error"
-          ]
-        },
-        {
-          "source": "urllib.request",
-          "specifiers": [
-            "urllib.request"
-          ]
-        },
-        {
-          "source": ".client",
-          "specifiers": [
-            "USER_AGENT"
-          ]
-        },
-        {
-          "source": ".llm",
-          "specifiers": [
-            "detect_llm_config",
-            "get_llm_env_vars"
-          ]
-        },
-        {
-          "source": ".state",
-          "specifiers": [
-            "read_state",
-            "write_state"
-          ]
-        }
-      ],
-      "exports": [
-        "_get_embed_command",
-        "_run_embed",
-        "_is_embed_available",
-        "_check_health",
-        "get_api_url",
-        "_ensure_daemon_running",
-        "prestart_daemon_background"
-      ],
-      "totalLines": 277,
-      "hasStructuralAnalysis": true
-    },
     "hindsight-integrations/paperclip/src/worker.ts": {
       "filePath": "hindsight-integrations/paperclip/src/worker.ts",
       "contentHash": "0e3ddde2a732b6cbf35f77e2d4b932e857197ffaca498dab4f3207c76ae3d647",
@@ -14854,23 +14708,21 @@
     },
     "hindsight-integrations/codex/scripts/lib/content.py": {
       "filePath": "hindsight-integrations/codex/scripts/lib/content.py",
-      "contentHash": "0784612da72268528f4467bde2de746706d389cc44b6ae99d7adda448b18d0b6",
+      "contentHash": "37094cb21dbc18727bdff8badee44a2a96bd55ad8df367300635cd8c5dafcb7b",
       "functions": [
         {
           "name": "strip_memory_tags",
           "params": [
             "content"
           ],
-          "returnType": "str",
           "exported": true,
-          "lineCount": 9
+          "lineCount": 10
         },
         {
           "name": "is_synthetic_codex_user_message",
           "params": [
             "content"
           ],
-          "returnType": "bool",
           "exported": true,
           "lineCount": 17
         },
@@ -14880,7 +14732,6 @@
             "transcript_path",
             "include_tool_calls"
           ],
-          "returnType": "list",
           "exported": true,
           "lineCount": 37
         },
@@ -14889,7 +14740,6 @@
           "params": [
             "transcript_path"
           ],
-          "returnType": "list",
           "exported": true,
           "lineCount": 41
         },
@@ -14898,7 +14748,6 @@
           "params": [
             "transcript_path"
           ],
-          "returnType": "list",
           "exported": true,
           "lineCount": 202
         },
@@ -14907,7 +14756,6 @@
           "params": [
             "content_blocks"
           ],
-          "returnType": "str",
           "exported": true,
           "lineCount": 9
         },
@@ -14916,7 +14764,6 @@
           "params": [
             "output"
           ],
-          "returnType": "str",
           "exported": true,
           "lineCount": 14
         },
@@ -14925,7 +14772,6 @@
           "params": [
             "text"
           ],
-          "returnType": "str",
           "exported": true,
           "lineCount": 5
         },
@@ -14937,7 +14783,6 @@
             "recall_context_turns",
             "recall_roles"
           ],
-          "returnType": "str",
           "exported": true,
           "lineCount": 53
         },
@@ -14948,7 +14793,6 @@
             "latest_query",
             "max_chars"
           ],
-          "returnType": "str",
           "exported": true,
           "lineCount": 45
         },
@@ -14958,7 +14802,6 @@
             "messages",
             "turns"
           ],
-          "returnType": "list",
           "exported": true,
           "lineCount": 19
         },
@@ -14967,14 +14810,12 @@
           "params": [
             "results"
           ],
-          "returnType": "str",
           "exported": true,
           "lineCount": 13
         },
         {
           "name": "format_current_time",
           "params": [],
-          "returnType": "str",
           "exported": true,
           "lineCount": 4
         },
@@ -14986,7 +14827,6 @@
             "retain_full_window",
             "include_tool_calls"
           ],
-          "returnType": "tuple",
           "exported": true,
           "lineCount": 42
         },
@@ -14996,7 +14836,6 @@
             "messages",
             "allowed_roles"
           ],
-          "returnType": "tuple",
           "exported": true,
           "lineCount": 23
         },
@@ -15006,7 +14845,6 @@
             "messages",
             "allowed_roles"
           ],
-          "returnType": "tuple",
           "exported": true,
           "lineCount": 27
         },
@@ -15015,39 +14853,12 @@
           "params": [
             "content"
           ],
-          "returnType": "list",
           "exported": true,
           "lineCount": 27
         }
       ],
       "classes": [],
-      "imports": [
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "re",
-          "specifiers": [
-            "re"
-          ]
-        },
-        {
-          "source": "datetime",
-          "specifiers": [
-            "datetime",
-            "timezone"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "strip_memory_tags",
         "is_synthetic_codex_user_message",
@@ -15223,54 +15034,6 @@
       "totalLines": 26,
       "hasStructuralAnalysis": true
     },
-    "hindsight-integrations/codex/scripts/lib/llm.py": {
-      "filePath": "hindsight-integrations/codex/scripts/lib/llm.py",
-      "contentHash": "0525c1ff526a7a45d41ac9e22c98185e08b4e8256745fc1f9ebcf888fcaa0f55",
-      "functions": [
-        {
-          "name": "_find_provider",
-          "params": [
-            "name"
-          ],
-          "exported": true,
-          "lineCount": 6
-        },
-        {
-          "name": "detect_llm_config",
-          "params": [
-            "config"
-          ],
-          "returnType": "dict",
-          "exported": true,
-          "lineCount": 89
-        },
-        {
-          "name": "get_llm_env_vars",
-          "params": [
-            "llm_config"
-          ],
-          "returnType": "dict",
-          "exported": true,
-          "lineCount": 16
-        }
-      ],
-      "classes": [],
-      "imports": [
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        }
-      ],
-      "exports": [
-        "_find_provider",
-        "detect_llm_config",
-        "get_llm_env_vars"
-      ],
-      "totalLines": 147,
-      "hasStructuralAnalysis": true
-    },
     "hindsight-integrations/codex/scripts/lib/__init__.py": {
       "filePath": "hindsight-integrations/codex/scripts/lib/__init__.py",
       "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -15281,93 +15044,9 @@
       "totalLines": 1,
       "hasStructuralAnalysis": true
     },
-    "hindsight-integrations/codex/scripts/lib/client.py": {
-      "filePath": "hindsight-integrations/codex/scripts/lib/client.py",
-      "contentHash": "e2eaadf41ace7b5255ef597c70d0c5cf0b4faa9cd423dd491a3bbf2121d7c5c2",
-      "functions": [
-        {
-          "name": "_plugin_version",
-          "params": [],
-          "returnType": "str",
-          "exported": true,
-          "lineCount": 7
-        },
-        {
-          "name": "_validate_api_url",
-          "params": [
-            "url"
-          ],
-          "returnType": "str",
-          "exported": true,
-          "lineCount": 8
-        }
-      ],
-      "classes": [
-        {
-          "name": "HindsightClient",
-          "methods": [
-            "__init__",
-            "_headers",
-            "_request",
-            "health_check",
-            "recall",
-            "retain",
-            "set_bank_mission"
-          ],
-          "properties": [],
-          "exported": true,
-          "lineCount": 121
-        }
-      ],
-      "imports": [
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "urllib.error",
-          "specifiers": [
-            "urllib.error"
-          ]
-        },
-        {
-          "source": "urllib.parse",
-          "specifiers": [
-            "urllib.parse"
-          ]
-        },
-        {
-          "source": "urllib.request",
-          "specifiers": [
-            "urllib.request"
-          ]
-        },
-        {
-          "source": "pathlib",
-          "specifiers": [
-            "Path"
-          ]
-        },
-        {
-          "source": "typing",
-          "specifiers": [
-            "Optional"
-          ]
-        }
-      ],
-      "exports": [
-        "_plugin_version",
-        "_validate_api_url",
-        "HindsightClient"
-      ],
-      "totalLines": 165,
-      "hasStructuralAnalysis": true
-    },
     "hindsight-integrations/codex/scripts/lib/config.py": {
       "filePath": "hindsight-integrations/codex/scripts/lib/config.py",
-      "contentHash": "de5cb163cf7d2f8348867b8bd8a53afef1735bca311a71551e83418fc0d5705d",
+      "contentHash": "00d1b0c181131091d1f1e0d448c8e8882ba35d0f7aa48adf869558d502e35a8f",
       "functions": [
         {
           "name": "_cast_env",
@@ -15384,14 +15063,12 @@
             "path",
             "config"
           ],
-          "returnType": "None",
           "exported": true,
           "lineCount": 10
         },
         {
           "name": "load_config",
           "params": [],
-          "returnType": "dict",
           "exported": true,
           "lineCount": 31
         },
@@ -15406,96 +15083,57 @@
         }
       ],
       "classes": [],
-      "imports": [
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "_cast_env",
         "_load_settings_file",
         "load_config",
         "debug_log"
       ],
-      "totalLines": 145,
+      "totalLines": 120,
       "hasStructuralAnalysis": true
     },
     "hindsight-integrations/codex/scripts/session_start.py": {
       "filePath": "hindsight-integrations/codex/scripts/session_start.py",
-      "contentHash": "4c1f6998169faf1f34e82c1fc5a894f6f7561f0c6a970922d590cc97d9788a7b",
+      "contentHash": "9b9ff56bd885a3ddec7d2a21ca26397515119022d1d217a44572aa5cc90d05ce",
       "functions": [
         {
           "name": "main",
           "params": [],
           "exported": true,
-          "lineCount": 26
+          "lineCount": 18
         }
       ],
       "classes": [],
-      "imports": [
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        },
-        {
-          "source": "lib.client",
-          "specifiers": [
-            "HindsightClient"
-          ]
-        },
-        {
-          "source": "lib.config",
-          "specifiers": [
-            "debug_log",
-            "load_config"
-          ]
-        },
-        {
-          "source": "lib.daemon",
-          "specifiers": [
-            "get_api_url",
-            "prestart_daemon_background"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "main"
       ],
-      "totalLines": 54,
+      "totalLines": 45,
       "hasStructuralAnalysis": true
     },
     "hindsight-integrations/codex/scripts/recall.py": {
       "filePath": "hindsight-integrations/codex/scripts/recall.py",
-      "contentHash": "2c62c9f0adf93d1c5bc456f7db0d7562baf387ed36e2c790b575da91040617c1",
+      "contentHash": "0e554dc124e693bb7d1c1e47fca6efac8d2eede59bc1e834daa359c9965346a0",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 88
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "main"
+      ],
+      "totalLines": 143,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight-integrations/codex/scripts/retain.py": {
+      "filePath": "hindsight-integrations/codex/scripts/retain.py",
+      "contentHash": "458465d20c691c50472414d6f9086e887aaa9203a835f8d34b9b5e5b9ac0861a",
       "functions": [
         {
           "name": "main",
@@ -15505,168 +15143,11 @@
         }
       ],
       "classes": [],
-      "imports": [
-        {
-          "source": "io",
-          "specifiers": [
-            "io"
-          ]
-        },
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        },
-        {
-          "source": "time",
-          "specifiers": [
-            "time"
-          ]
-        },
-        {
-          "source": "lib.bank",
-          "specifiers": [
-            "derive_bank_id",
-            "ensure_bank_mission"
-          ]
-        },
-        {
-          "source": "lib.client",
-          "specifiers": [
-            "HindsightClient"
-          ]
-        },
-        {
-          "source": "lib.config",
-          "specifiers": [
-            "debug_log",
-            "load_config"
-          ]
-        },
-        {
-          "source": "lib.content",
-          "specifiers": [
-            "compose_recall_query",
-            "format_current_time",
-            "format_memories",
-            "read_transcript",
-            "truncate_recall_query"
-          ]
-        },
-        {
-          "source": "lib.daemon",
-          "specifiers": [
-            "get_api_url"
-          ]
-        },
-        {
-          "source": "lib.state",
-          "specifiers": [
-            "write_state"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "main"
       ],
-      "totalLines": 175,
-      "hasStructuralAnalysis": true
-    },
-    "hindsight-integrations/codex/scripts/retain.py": {
-      "filePath": "hindsight-integrations/codex/scripts/retain.py",
-      "contentHash": "94e4fb599b989b592fdee728d800abc6d34da3c997fd5f33454f6ab7a97eb530",
-      "functions": [
-        {
-          "name": "main",
-          "params": [],
-          "exported": true,
-          "lineCount": 136
-        }
-      ],
-      "classes": [],
-      "imports": [
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        },
-        {
-          "source": "time",
-          "specifiers": [
-            "time"
-          ]
-        },
-        {
-          "source": "lib.bank",
-          "specifiers": [
-            "derive_bank_id",
-            "ensure_bank_mission"
-          ]
-        },
-        {
-          "source": "lib.client",
-          "specifiers": [
-            "HindsightClient"
-          ]
-        },
-        {
-          "source": "lib.config",
-          "specifiers": [
-            "debug_log",
-            "load_config"
-          ]
-        },
-        {
-          "source": "lib.content",
-          "specifiers": [
-            "prepare_retention_transcript",
-            "read_transcript",
-            "slice_last_turns_by_user_boundary"
-          ]
-        },
-        {
-          "source": "lib.daemon",
-          "specifiers": [
-            "get_api_url"
-          ]
-        },
-        {
-          "source": "lib.state",
-          "specifiers": [
-            "increment_turn_count"
-          ]
-        }
-      ],
-      "exports": [
-        "main"
-      ],
-      "totalLines": 188,
+      "totalLines": 169,
       "hasStructuralAnalysis": true
     },
     "hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py": {
@@ -21559,52 +21040,9 @@
       "totalLines": 115,
       "hasStructuralAnalysis": true
     },
-    "hindsight-integrations/codex/tests/test_client.py": {
-      "filePath": "hindsight-integrations/codex/tests/test_client.py",
-      "contentHash": "c28fe7704ea1863f2630e4ceb963737cf88936c750de83f4c6c6db4c7d7b16bb",
-      "functions": [],
-      "classes": [
-        {
-          "name": "TestUserAgentHeader",
-          "methods": [
-            "test_recall_sends_user_agent",
-            "test_health_check_sends_user_agent"
-          ],
-          "properties": [],
-          "exported": true,
-          "lineCount": 33
-        }
-      ],
-      "imports": [
-        {
-          "source": "unittest.mock",
-          "specifiers": [
-            "patch"
-          ]
-        },
-        {
-          "source": "conftest",
-          "specifiers": [
-            "FakeHTTPResponse"
-          ]
-        },
-        {
-          "source": "lib.client",
-          "specifiers": [
-            "USER_AGENT",
-            "HindsightClient"
-          ]
-        }
-      ],
-      "exports": [
-        "TestUserAgentHeader"
-      ],
-      "totalLines": 43,
-      "hasStructuralAnalysis": true
-    },
     "hindsight-integrations/codex/tests/test_content.py": {
       "filePath": "hindsight-integrations/codex/tests/test_content.py",
-      "contentHash": "35332be725e01002dc1e24df5d582f8a464c3d621d8506e085b034f827093381",
+      "contentHash": "eec02a93407ae3c69073be46c9213b5c61e0a78cc9c3bd22b98ff8274597b630",
       "functions": [
         {
           "name": "_write_jsonl",
@@ -21629,13 +21067,14 @@
           "name": "TestStripMemoryTags",
           "methods": [
             "test_strips_hindsight_memories_block",
+            "test_strips_hindsight_lite_memories_block",
             "test_strips_relevant_memories_block",
             "test_passthrough_clean_text",
             "test_strips_multiline_block"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 21
+          "lineCount": 28
         },
         {
           "name": "TestSyntheticCodexUserMessage",
@@ -21772,45 +21211,7 @@
           "lineCount": 62
         }
       ],
-      "imports": [
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        },
-        {
-          "source": "pytest",
-          "specifiers": [
-            "pytest"
-          ]
-        },
-        {
-          "source": "lib.content",
-          "specifiers": [
-            "compose_recall_query",
-            "format_memories",
-            "is_synthetic_codex_user_message",
-            "prepare_retention_transcript",
-            "read_transcript",
-            "slice_last_turns_by_user_boundary",
-            "strip_memory_tags",
-            "truncate_recall_query"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "_write_jsonl",
         "TestStripMemoryTags",
@@ -21826,12 +21227,12 @@
         "TestReadTranscriptRich",
         "TestPrepareRetentionTranscriptJson"
       ],
-      "totalLines": 789,
+      "totalLines": 794,
       "hasStructuralAnalysis": true
     },
     "hindsight-integrations/codex/tests/test_hooks.py": {
       "filePath": "hindsight-integrations/codex/tests/test_hooks.py",
-      "contentHash": "3161553192c0f6c223f3230c263cd4bda06f14be8a94a5ac0a211d7404aef7c3",
+      "contentHash": "f3eb6f1770bc73529e18cbfddb84a533b96b2a2cfdcef75f683feea0d90088ab",
       "functions": [
         {
           "name": "_run_hook",
@@ -21845,104 +21246,72 @@
           ],
           "exported": true,
           "lineCount": 41
+        },
+        {
+          "name": "_retained_events",
+          "params": [
+            "tmp_path",
+            "session_id"
+          ],
+          "exported": true,
+          "lineCount": 2
         }
       ],
       "classes": [
+        {
+          "name": "TestSessionStartHook",
+          "methods": [
+            "test_initializes_local_bank",
+            "test_disabled_memory_skips_local_bank_init"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 17
+        },
         {
           "name": "TestRecallHook",
           "methods": [
             "test_outputs_additional_context_when_memories_found",
             "test_no_output_when_no_memories",
             "test_no_output_for_short_prompt",
-            "test_graceful_on_api_error",
+            "test_graceful_when_local_store_has_no_matches",
             "test_output_format_matches_codex_spec",
             "test_multi_turn_context_from_transcript",
-            "test_recall_timeout_is_configurable",
+            "test_recall_max_results_is_configurable",
             "test_disabled_auto_recall_produces_no_output"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 94
+          "lineCount": 80
         },
         {
           "name": "TestRetainHook",
           "methods": [
-            "test_posts_transcript_to_hindsight",
+            "test_writes_transcript_to_local_store",
             "test_no_retain_on_empty_transcript",
             "test_strips_memory_tags_before_retaining",
-            "test_retain_posts_async_true",
+            "test_retain_records_message_count_metadata",
             "test_retain_includes_codex_context_label",
             "test_retain_skips_below_every_n_turns_threshold",
             "test_retain_uses_session_id_as_document_id",
-            "test_graceful_on_retain_api_error",
+            "test_retain_does_not_call_http",
             "test_disabled_auto_retain_does_not_call_api",
             "test_reads_codex_response_item_format"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 166
+          "lineCount": 102
         }
       ],
-      "imports": [
-        {
-          "source": "importlib",
-          "specifiers": [
-            "importlib"
-          ]
-        },
-        {
-          "source": "io",
-          "specifiers": [
-            "io"
-          ]
-        },
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        },
-        {
-          "source": "unittest.mock",
-          "specifiers": [
-            "patch"
-          ]
-        },
-        {
-          "source": "pytest",
-          "specifiers": [
-            "pytest"
-          ]
-        },
-        {
-          "source": "conftest",
-          "specifiers": [
-            "FakeHTTPResponse",
-            "make_hook_input",
-            "make_memory",
-            "make_transcript_file",
-            "make_user_config"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "_run_hook",
+        "_retained_events",
+        "TestSessionStartHook",
         "TestRecallHook",
         "TestRetainHook"
       ],
-      "totalLines": 342,
+      "totalLines": 291,
       "hasStructuralAnalysis": true
     },
     "hindsight-integrations/codex/tests/test_bank.py": {
@@ -22016,7 +21385,7 @@
     },
     "hindsight-integrations/codex/tests/conftest.py": {
       "filePath": "hindsight-integrations/codex/tests/conftest.py",
-      "contentHash": "761e43f86ab1d5e8a891deb34f43d0fb0bbc7dc1465ab4b0095218890d13cf97",
+      "contentHash": "bb9021129909912825582513feaac2046210e32438bec7616f28f267410cff15",
       "functions": [
         {
           "name": "make_hook_input",
@@ -22073,38 +21442,7 @@
           "lineCount": 15
         }
       ],
-      "imports": [
-        {
-          "source": "io",
-          "specifiers": [
-            "io"
-          ]
-        },
-        {
-          "source": "json",
-          "specifiers": [
-            "json"
-          ]
-        },
-        {
-          "source": "os",
-          "specifiers": [
-            "os"
-          ]
-        },
-        {
-          "source": "sys",
-          "specifiers": [
-            "sys"
-          ]
-        },
-        {
-          "source": "pytest",
-          "specifiers": [
-            "pytest"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [
         "make_hook_input",
         "make_transcript_file",
@@ -22112,7 +21450,7 @@
         "make_user_config",
         "FakeHTTPResponse"
       ],
-      "totalLines": 91,
+      "totalLines": 94,
       "hasStructuralAnalysis": true
     },
     "hindsight-api-slim/hindsight_api/engine/db/base.py": {
@@ -146073,6 +145411,818 @@
         "POST"
       ],
       "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    ".gitignore": {
+      "filePath": ".gitignore",
+      "contentHash": "33d5566c078a1fd69fb8c26fdb540fd9546e30e4f7bdd3e9c52310e2ca23e869",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "AGENTS.md": {
+      "filePath": "AGENTS.md",
+      "contentHash": "4cc53f1746924a1c415e0bc6d319449237f19828fd47b621aadae806e3849f03",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "123ffde03b0208bbe5b744ec0e8ba21406bd23d227084f3a6642b17e9fe15104",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 214,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/implementation/2026-05-10-codex-local-memory-plugin.md": {
+      "filePath": "docs/superpowers/implementation/2026-05-10-codex-local-memory-plugin.md",
+      "contentHash": "e172928ea1f40174decdf9a7eb8f4812acfdc7d443b7e038eff00f49a9b84646",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md": {
+      "filePath": "docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md",
+      "contentHash": "75194b79a6a94576d5d38a8a9cccabd4c99b40e7e19d3d183bfc7870aacf2569",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/plans/2026-05-10-codex-local-memory-plugin.md": {
+      "filePath": "docs/superpowers/plans/2026-05-10-codex-local-memory-plugin.md",
+      "contentHash": "f9274eefc52f96178a7848640ed7530d957320f100bf927b2d8143bb159c0398",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1249,
+      "hasStructuralAnalysis": true
+    },
+    "docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md": {
+      "filePath": "docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md",
+      "contentHash": "3773ee9bce599cc1b0dd6e4699efc8dc0843d838550d3b644f4a343155645364",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 448,
+      "hasStructuralAnalysis": true
+    },
+    "docs/upstream/HINDSIGHT_README.md": {
+      "filePath": "docs/upstream/HINDSIGHT_README.md",
+      "contentHash": "01eccd7bd3ef35331fbbb9031e6c59761b88021df6946e3a4e833106fab235f2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 315,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight-integrations/codex/README.md": {
+      "filePath": "hindsight-integrations/codex/README.md",
+      "contentHash": "705eec9a99b693acc5e1e4509683e650194e659ba703544a3e732edcbdfaa1e7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 81,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight-integrations/codex/settings.json": {
+      "filePath": "hindsight-integrations/codex/settings.json",
+      "contentHash": "59d78fc07291baba746ddd162d52801355bf4a64d9342a22b85aa46bd7648ebc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight_lite/__init__.py": {
+      "filePath": "hindsight_lite/__init__.py",
+      "contentHash": "9559c2fe460a9922d39dfdfacce0f561eb620dcbcc987687a37e1bf0951bfc18",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "hindsight_lite/__main__.py": {
+      "filePath": "hindsight_lite/__main__.py",
+      "contentHash": "e4d186919bafd5208e152f24f0a33864e315941f763ed2c8a8450f5613777c1f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "hindsight_lite/cli.py": {
+      "filePath": "hindsight_lite/cli.py",
+      "contentHash": "ac352ca9cbe72c7f9739bc7627201425b52948e83290b1f5d12dd53e75cd6b69",
+      "functions": [
+        {
+          "name": "main",
+          "params": [
+            "argv"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_build_parser",
+          "params": [],
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "_add_bank_arg",
+          "params": [
+            "parser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_store",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_cmd_retain",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_cmd_recall",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_cmd_reflect",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_cmd_knowledge_list",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_cmd_knowledge_get",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_cmd_knowledge_write",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_utc_now",
+          "params": [],
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "main",
+        "_build_parser",
+        "_add_bank_arg",
+        "_store",
+        "_cmd_retain",
+        "_cmd_recall",
+        "_cmd_reflect",
+        "_cmd_knowledge_list",
+        "_cmd_knowledge_get",
+        "_cmd_knowledge_write",
+        "_utc_now"
+      ],
+      "totalLines": 141,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight_lite/models.py": {
+      "filePath": "hindsight_lite/models.py",
+      "contentHash": "44978cf3847fa45a09affa0cdec8c85c62b6ad252d257155a22ba76abc4e85b9",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SessionMemoryEvent",
+          "methods": [],
+          "properties": [
+            "type",
+            "id",
+            "timestamp",
+            "bank_id",
+            "session_id",
+            "source",
+            "document_id",
+            "content",
+            "tags",
+            "metadata"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "KnowledgePage",
+          "methods": [],
+          "properties": [
+            "id",
+            "title",
+            "content",
+            "path",
+            "updated_at",
+            "tags",
+            "metadata"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "RecallResult",
+          "methods": [],
+          "properties": [
+            "id",
+            "source",
+            "path",
+            "score",
+            "title",
+            "excerpt",
+            "timestamp",
+            "metadata"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "ReflectionPacket",
+          "methods": [],
+          "properties": [
+            "type",
+            "id",
+            "timestamp",
+            "bank_id",
+            "session_id",
+            "query",
+            "retrieved_context",
+            "task_context",
+            "reflection_prompt"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SessionMemoryEvent",
+        "KnowledgePage",
+        "RecallResult",
+        "ReflectionPacket"
+      ],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight_lite/paths.py": {
+      "filePath": "hindsight_lite/paths.py",
+      "contentHash": "6b60d9b074c8d55c9656e2a0f46ea65b0fd3234e1c11bbbc8f1790162d3ff6f9",
+      "functions": [
+        {
+          "name": "default_home",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "safe_bank_dir_name",
+          "params": [
+            "bank_id"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "unsafe_page_id",
+          "params": [
+            "page_id"
+          ],
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "MemoryPaths",
+          "methods": [
+            "bank_dir",
+            "sessions_dir",
+            "pages_dir",
+            "reflections_dir",
+            "index_dir",
+            "metadata_path",
+            "ensure_bank_dirs"
+          ],
+          "properties": [
+            "home",
+            "bank_id"
+          ],
+          "exported": true,
+          "lineCount": 33
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "default_home",
+        "safe_bank_dir_name",
+        "unsafe_page_id",
+        "MemoryPaths"
+      ],
+      "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight_lite/recall.py": {
+      "filePath": "hindsight_lite/recall.py",
+      "contentHash": "708d086f837afc977b8d971ea22a79f6937a9f6b47fa1c34541edfe5634d7bef",
+      "functions": [
+        {
+          "name": "recall",
+          "params": [
+            "store",
+            "query",
+            "max_results"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "format_recall_for_codex",
+          "params": [
+            "results",
+            "preamble",
+            "current_time"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "format_current_time",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_iter_candidates",
+          "params": [
+            "store"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_page_candidate",
+          "params": [
+            "page"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_event_candidate",
+          "params": [
+            "event"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_score_candidate",
+          "params": [
+            "candidate",
+            "query_terms"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "_format_result",
+          "params": [
+            "result"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_tokenize",
+          "params": [
+            "text"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_excerpt",
+          "params": [
+            "text",
+            "max_chars"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [
+        {
+          "name": "SearchCandidate",
+          "methods": [],
+          "properties": [
+            "id",
+            "source",
+            "path",
+            "title",
+            "text",
+            "timestamp",
+            "metadata"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SearchCandidate",
+        "recall",
+        "format_recall_for_codex",
+        "format_current_time",
+        "_iter_candidates",
+        "_page_candidate",
+        "_event_candidate",
+        "_score_candidate",
+        "_format_result",
+        "_tokenize",
+        "_excerpt"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight_lite/reflection.py": {
+      "filePath": "hindsight_lite/reflection.py",
+      "contentHash": "8cb308004e0b660cd2729c01941073eba0f263616b15022252e14d3d15b4615d",
+      "functions": [
+        {
+          "name": "create_reflection_packet",
+          "params": [
+            "store",
+            "session_id",
+            "query",
+            "task_context",
+            "max_results"
+          ],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "_build_reflection_prompt",
+          "params": [
+            "query"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "create_reflection_packet",
+        "_build_reflection_prompt"
+      ],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "hindsight_lite/store.py": {
+      "filePath": "hindsight_lite/store.py",
+      "contentHash": "dffac0e5f70c66a8f8aff2d4c03047c75e85ad4607d6e2a31d9a6417516ac381",
+      "functions": [
+        {
+          "name": "_coerce_str_list",
+          "params": [
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_coerce_str_map",
+          "params": [
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_with_frontmatter_value",
+          "params": [
+            "frontmatter",
+            "key",
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [
+        {
+          "name": "UnsafePageIdError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "PageNotFoundError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "PageFrontmatter",
+          "methods": [],
+          "properties": [
+            "id",
+            "title",
+            "updated_at",
+            "tags",
+            "metadata"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "PageDocument",
+          "methods": [],
+          "properties": [
+            "frontmatter",
+            "body"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "LocalMemoryStore",
+          "methods": [
+            "__init__",
+            "append_session_event",
+            "read_session_events",
+            "list_session_events",
+            "write_page",
+            "list_pages",
+            "get_page",
+            "write_reflection_packet",
+            "_page_path",
+            "_read_page_path",
+            "_render_page",
+            "_parse_page"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 123
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "UnsafePageIdError",
+        "PageNotFoundError",
+        "PageFrontmatter",
+        "PageDocument",
+        "LocalMemoryStore",
+        "_coerce_str_list",
+        "_coerce_str_map",
+        "_with_frontmatter_value"
+      ],
+      "totalLines": 195,
+      "hasStructuralAnalysis": true
+    },
+    "tests/hindsight_lite/conftest.py": {
+      "filePath": "tests/hindsight_lite/conftest.py",
+      "contentHash": "171f754db47d7bca021fb33351e081c03a5bcc7751aca5415cf726c53b43c481",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "tests/hindsight_lite/test_cli.py": {
+      "filePath": "tests/hindsight_lite/test_cli.py",
+      "contentHash": "ab4944b290baf699ce2d00723622e8a46ca071e07a59e7a171042d6e0a33ad60",
+      "functions": [
+        {
+          "name": "test_cli_writes_lists_and_gets_knowledge_pages",
+          "params": [
+            "tmp_path",
+            "capsys"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_cli_retain_and_recall_session_memory",
+          "params": [
+            "tmp_path",
+            "capsys"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_cli_reflect_outputs_packet_json",
+          "params": [
+            "tmp_path",
+            "capsys"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "test_cli_writes_lists_and_gets_knowledge_pages",
+        "test_cli_retain_and_recall_session_memory",
+        "test_cli_reflect_outputs_packet_json"
+      ],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "tests/hindsight_lite/test_recall.py": {
+      "filePath": "tests/hindsight_lite/test_recall.py",
+      "contentHash": "ac5b9604141c434fa71cfb98ee82457c339e1eab86be6fc807f06fa69a4e0625",
+      "functions": [
+        {
+          "name": "test_recall_ranks_pages_and_session_events",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "test_recall_respects_max_results_and_ignores_zero_scores",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_format_recall_for_codex_keeps_context_compact",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "test_recall_ranks_pages_and_session_events",
+        "test_recall_respects_max_results_and_ignores_zero_scores",
+        "test_format_recall_for_codex_keeps_context_compact"
+      ],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "tests/hindsight_lite/test_reflection.py": {
+      "filePath": "tests/hindsight_lite/test_reflection.py",
+      "contentHash": "e6d404498901e6ab2d01e07b26868531ffa91703904ac7feb77cd41daf34d17a",
+      "functions": [
+        {
+          "name": "test_create_reflection_packet_retrieves_context_and_writes_json",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "test_create_reflection_packet_retrieves_context_and_writes_json"
+      ],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "tests/hindsight_lite/test_store.py": {
+      "filePath": "tests/hindsight_lite/test_store.py",
+      "contentHash": "5427bb0d70fedb5d43694fefd4e915c5d983397d5bbfb3721ea824ff7ea1f16c",
+      "functions": [
+        {
+          "name": "test_memory_paths_create_bank_dirs",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_unsafe_page_id_rejects_traversal",
+          "params": [
+            "page_id"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_unsafe_page_id_allows_slug",
+          "params": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_store_appends_and_reads_session_events",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "test_store_writes_lists_and_gets_markdown_pages",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "test_store_rejects_unsafe_page_ids",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_store_raises_for_missing_page",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "test_memory_paths_create_bank_dirs",
+        "test_unsafe_page_id_rejects_traversal",
+        "test_unsafe_page_id_allows_slug",
+        "test_store_appends_and_reads_session_events",
+        "test_store_writes_lists_and_gets_markdown_pages",
+        "test_store_rejects_unsafe_page_ids",
+        "test_store_raises_for_missing_page"
+      ],
+      "totalLines": 91,
       "hasStructuralAnalysis": true
     }
   }
