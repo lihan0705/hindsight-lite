@@ -22,6 +22,7 @@ docker-compose.override.yml
 .idea/
 .vscode/
 .worktrees/
+tmp/
 *.swp
 *.swo
 

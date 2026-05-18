@@ -71,15 +71,17 @@ The V1 scope is intentionally small.
 | `agent_knowledge_retain` | alpha | Codex `Stop` hook writes session JSONL |
 | `agent_knowledge_recall` | alpha | Codex `UserPromptSubmit` injects compact context |
 | `agent_knowledge_reflect` | alpha | local recall packet plus saved reflection request |
+| file context recall | alpha | Codex `PreToolUse` injects compact context before file reads |
 | `agent_knowledge_list_pages` | alpha | lists local Markdown pages |
 | `agent_knowledge_get_page` | alpha | reads one local Markdown page |
 
 The existing Codex integration already has the right hook shape:
 
 ```text
-SessionStart      -> session_start.py
-UserPromptSubmit  -> recall.py
-Stop              -> retain.py
+SessionStart      -> codex_hook.py -> session_start.py
+UserPromptSubmit  -> codex_hook.py -> recall.py
+PreToolUse        -> codex_hook.py -> file_context.py
+Stop              -> codex_hook.py -> retain.py
 ```
 
 hindsight-lite keeps that contract and replaces the backend:
@@ -89,7 +91,7 @@ old:
   Codex hook -> recall.py / retain.py -> daemon/API client -> Hindsight server
 
 new:
-  Codex hook -> recall.py / retain.py -> local Python core -> Markdown/JSONL
+  Codex hook -> codex_hook.py -> local Python core -> Markdown/JSONL
 ```
 
 ---
@@ -148,6 +150,12 @@ runs local text retrieval over sessions and pages, and emits:
 Codex injects `additionalContext` into the current turn. Retain strips
 `<hindsight_lite_memories>` and legacy `<hindsight_memories>` blocks before
 writing session memory, which prevents memory feedback loops.
+
+File context recall is also automatic. Before file-reading tools run,
+`file_context.py` extracts the target path, recalls compact local memory for
+that path, and emits a small `<hindsight_lite_file_context>` block. This follows
+the same conservative rule as prompt recall: inject only excerpts and IDs, not
+full historical transcripts.
 
 ---
 

@@ -20,6 +20,12 @@ DEFAULTS = {
         "conflicting). Only use memories that are directly useful to continue "
         "this conversation; ignore the rest:"
     ),
+    # File context
+    "autoFileContext": True,
+    "fileContextMaxResults": 3,
+    "fileContextPromptPreamble": (
+        "Relevant hindsight-lite memory for the file about to be read. Use only if it changes the next action:"
+    ),
     # Retain
     "autoRetain": True,
     "retainMode": "full-session",
@@ -51,6 +57,8 @@ ENV_OVERRIDES = {
     "HINDSIGHT_RECALL_MAX_RESULTS": ("recallMaxResults", int),
     "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
     "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
+    "HINDSIGHT_AUTO_FILE_CONTEXT": ("autoFileContext", bool),
+    "HINDSIGHT_FILE_CONTEXT_MAX_RESULTS": ("fileContextMaxResults", int),
     "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
     "HINDSIGHT_BANK_MISSION": ("bankMission", str),
     "HINDSIGHT_DEBUG": ("debug", bool),

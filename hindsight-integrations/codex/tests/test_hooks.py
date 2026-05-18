@@ -183,6 +183,74 @@ class TestRecallHook:
 
 
 # ---------------------------------------------------------------------------
+# file context hook
+# ---------------------------------------------------------------------------
+
+
+class TestFileContextHook:
+    def test_injects_compact_context_for_read_file(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(
+            page_id="cli-routing",
+            title="CLI Routing",
+            content="hindsight_lite/cli.py keeps user-facing memory commands in one argparse surface.",
+        )
+        hook_input = make_hook_input()
+        hook_input.update(
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "Read",
+                "tool_input": {"file_path": "hindsight_lite/cli.py"},
+            }
+        )
+
+        output = _run_hook("file_context", hook_input, monkeypatch, tmp_path)
+
+        data = json.loads(output)
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert data["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
+        assert data["hookSpecificOutput"]["permissionDecision"] == "allow"
+        assert "<hindsight_lite_file_context>" in context
+        assert "hindsight_lite/cli.py keeps user-facing memory commands" in context
+
+    def test_file_context_skips_when_disabled(self, monkeypatch, tmp_path):
+        hook_input = make_hook_input()
+        hook_input.update(
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "Read",
+                "tool_input": {"file_path": "hindsight_lite/cli.py"},
+            }
+        )
+
+        output = _run_hook("file_context", hook_input, monkeypatch, tmp_path, user_config={"autoFileContext": False})
+
+        assert output.strip() == ""
+
+    def test_dispatcher_routes_pre_tool_use_to_file_context(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(
+            page_id="store-routing",
+            title="Store Routing",
+            content="hindsight_lite/store.py owns Markdown page reads and JSONL session writes.",
+        )
+        hook_input = make_hook_input()
+        hook_input.update(
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "Read",
+                "tool_input": {"file_path": "hindsight_lite/store.py"},
+            }
+        )
+
+        output = _run_hook("codex_hook", hook_input, monkeypatch, tmp_path)
+
+        data = json.loads(output)
+        assert data["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
+        assert "hindsight_lite/store.py owns Markdown page reads" in data["hookSpecificOutput"]["additionalContext"]
+
+
+# ---------------------------------------------------------------------------
 # retain hook
 # ---------------------------------------------------------------------------
 

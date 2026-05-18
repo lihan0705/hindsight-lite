@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"__SCRIPTS_DIR__/session_start.py\"",
+            "command": "python3 \"__SCRIPTS_DIR__/codex_hook.py\" SessionStart",
             "timeout": 5
           }
         ]
@@ -16,8 +16,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"__SCRIPTS_DIR__/recall.py\"",
+            "command": "python3 \"__SCRIPTS_DIR__/codex_hook.py\" UserPromptSubmit",
             "timeout": 12
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Read$|^Bash$|^mcp__.+__(read|view|cat)(_file|_files)?$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"__SCRIPTS_DIR__/codex_hook.py\" PreToolUse",
+            "timeout": 8
           }
         ]
       }
@@ -27,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"__SCRIPTS_DIR__/retain.py\"",
+            "command": "python3 \"__SCRIPTS_DIR__/codex_hook.py\" Stop",
             "timeout": 30
           }
         ]

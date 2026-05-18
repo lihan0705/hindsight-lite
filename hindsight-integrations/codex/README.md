@@ -10,6 +10,7 @@ required.
 |---|---|
 | `SessionStart` | Initializes the local bank directory |
 | `UserPromptSubmit` | Recalls relevant local memory and injects compact context |
+| `PreToolUse` | Injects compact file-specific memory before file reads |
 | `Stop` | Retains the conversation to session JSONL |
 
 Memory layout:
@@ -52,10 +53,12 @@ Defaults live in `settings.json`. User overrides can be written to
 |---|---:|---|
 | `bankId` | `codex` | Memory bank identifier |
 | `autoRecall` | `true` | Inject memory before each prompt |
+| `autoFileContext` | `true` | Inject compact memory before file-reading tools |
 | `autoRetain` | `true` | Store conversations after each turn |
 | `retainMode` | `full-session` | `full-session` or `chunked` |
 | `retainEveryNTurns` | `10` | Retain every N turns |
 | `recallMaxResults` | `5` | Maximum local recall results |
+| `fileContextMaxResults` | `3` | Maximum file-context recall results |
 | `recallContextTurns` | `1` | Prior transcript turns used for recall query |
 | `recallMaxQueryChars` | `800` | Maximum recall query length |
 | `dynamicBankId` | `false` | Separate banks by project/session/user fields |
@@ -68,6 +71,7 @@ Environment overrides:
 export HINDSIGHT_LITE_HOME=~/.hindsight-lite
 export HINDSIGHT_BANK_ID=codex
 export HINDSIGHT_RECALL_MAX_RESULTS=5
+export HINDSIGHT_FILE_CONTEXT_MAX_RESULTS=3
 export HINDSIGHT_DEBUG=true
 ```
 
@@ -79,3 +83,7 @@ matching, and emits Codex `additionalContext` wrapped in
 
 Retain strips injected memory blocks before writing session JSONL, preventing
 memory feedback loops.
+
+`codex_hook.py` is the installed hook dispatcher. It keeps the hook surface
+small while routing `SessionStart`, `UserPromptSubmit`, `PreToolUse`, and
+`Stop` to the local Python handlers.
