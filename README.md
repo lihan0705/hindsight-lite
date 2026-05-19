@@ -191,15 +191,15 @@ the training/evaluation schema is stable.
 
 ---
 
-## Current Design
+## Contributing
 
-The active design spec is:
+This fork uses a subtraction-first workflow. Before opening a merge request or
+pull request, read the agent-friendly contribution guide:
 
-[docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md](docs/superpowers/specs/2026-05-10-codex-local-memory-plugin-design.md)
+[docs/agent-contribution-guide.md](docs/agent-contribution-guide.md)
 
-The implementation strategy and README rewrite rationale are recorded in:
-
-[docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md](docs/superpowers/notes/2026-05-10-readme-redesign-implementation.md)
+It covers branch checkout, commits, verification, MR/PR preparation, and the
+rules agents should follow when editing this repository.
 
 ---
 
