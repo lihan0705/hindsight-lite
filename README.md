@@ -41,6 +41,10 @@ existing Codex hook mechanism.
 Store locally. Recall narrowly. Reflect for future training data.
 ```
 
+## Memory Architecture
+
+![Hindsight-lite memory architecture](docs/assets/hindsight-lite-memory-architecture.png)
+
 ---
 
 ## Why This Fork?
