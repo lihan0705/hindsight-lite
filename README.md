@@ -98,6 +98,9 @@ new:
   Codex hook -> codex_hook.py -> local Python core -> Markdown/JSONL
 ```
 
+For installation and smoke-test commands, see the
+[Codex quickstart](hindsight-integrations/codex/README.md#quickstart).
+
 ---
 
 ## Memory Files

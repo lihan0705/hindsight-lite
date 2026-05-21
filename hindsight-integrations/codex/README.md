@@ -31,17 +31,76 @@ Memory layout:
 - Python 3.11+
 - This repository available on the local machine
 
+## Quickstart
+
+Run these commands from the repository root. They keep memory in a temporary
+directory so you can verify the local runtime without touching existing
+`~/.hindsight-lite` data:
+
+```bash
+export HINDSIGHT_LITE_HOME="$(mktemp -d)"
+python3 -m hindsight_lite knowledge write --bank codex --id project-rules --file AGENTS.md
+python3 -m hindsight_lite retain --bank codex --session-id smoke --content "Codex should remember this repo is local-first."
+python3 -m hindsight_lite recall --bank codex "local-first project rules"
+```
+
+The recall command should print a `<hindsight_lite_memories>` block containing
+the retained note or the `project-rules` page.
+
+To smoke-test the Codex hook adapter directly, keep `PYTHONPATH` pointed at the
+repository root and send a minimal `UserPromptSubmit` payload. The temporary
+`HOME` keeps the hook state files under the same disposable directory:
+
+```bash
+export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
+printf '{"prompt":"local-first project rules","session_id":"smoke","cwd":"%s"}' "$PWD" \
+  | HOME="$HINDSIGHT_LITE_HOME" python3 hindsight-integrations/codex/scripts/codex_hook.py UserPromptSubmit
+```
+
+When memories match, the hook prints Codex `hookSpecificOutput` JSON with
+`additionalContext`. No output means recall found no matching local memory.
+
+## Install Hooks
+
+Codex needs the hook commands from `hooks/hooks.json`, with the
+`__SCRIPTS_DIR__` placeholder replaced by this checkout's absolute scripts path.
+Generate the concrete hooks JSON from the repository root:
+
+```bash
+scripts_dir="$PWD/hindsight-integrations/codex/scripts"
+sed "s#__SCRIPTS_DIR__#$scripts_dir#g" \
+  hindsight-integrations/codex/hooks/hooks.json
+```
+
+Merge the generated `hooks` object into the Codex CLI hook configuration used by
+your Codex installation. Start Codex from a shell that can import this checkout:
+
+```bash
+export PYTHONPATH="/path/to/hindsight-lite${PYTHONPATH:+:$PYTHONPATH}"
+export HINDSIGHT_LITE_HOME="$HOME/.hindsight-lite"
+codex
+```
+
+After a Codex session ends, check that retain wrote local session memory:
+
+```bash
+find "$HINDSIGHT_LITE_HOME/banks/codex/sessions" -name '*.jsonl'
+```
+
+The hooks also keep small operational state files under
+`~/.hindsight/codex/state`. Memory data stays under `HINDSIGHT_LITE_HOME`.
+
 ## Commands
 
 Direct CLI checks:
 
 ```bash
-python -m hindsight_lite knowledge list --bank codex
-python -m hindsight_lite knowledge write --bank codex --id project-rules --file AGENTS.md
-python -m hindsight_lite knowledge get --bank codex project-rules
-python -m hindsight_lite recall --bank codex "project rules"
-python -m hindsight_lite retain --bank codex --session-id test --content "Important session note"
-python -m hindsight_lite reflect --bank codex --session-id test "what should we remember?"
+python3 -m hindsight_lite knowledge list --bank codex
+python3 -m hindsight_lite knowledge write --bank codex --id project-rules --file AGENTS.md
+python3 -m hindsight_lite knowledge get --bank codex project-rules
+python3 -m hindsight_lite recall --bank codex "project rules"
+python3 -m hindsight_lite retain --bank codex --session-id test --content "Important session note"
+python3 -m hindsight_lite reflect --bank codex --session-id test "what should we remember?"
 ```
 
 ## Configuration
