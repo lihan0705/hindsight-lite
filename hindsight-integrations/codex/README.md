@@ -40,8 +40,8 @@ directory so you can verify the local runtime without touching existing
 ```bash
 export HINDSIGHT_LITE_HOME="$(mktemp -d)"
 python3 -m hindsight_lite knowledge write --bank codex --id project-rules --file AGENTS.md
-python3 -m hindsight_lite retain --bank codex --session-id smoke --content "Codex should remember this repo is local-first."
-python3 -m hindsight_lite recall --bank codex "local-first project rules"
+python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id smoke --content "Codex should remember this repo is local-first."
+python3 -m hindsight_lite agent_knowledge_recall --bank codex "local-first project rules"
 ```
 
 The recall command should print a `<hindsight_lite_memories>` block containing
@@ -95,13 +95,16 @@ The hooks also keep small operational state files under
 Direct CLI checks:
 
 ```bash
-python3 -m hindsight_lite knowledge list --bank codex
+python3 -m hindsight_lite agent_knowledge_list_pages --bank codex
 python3 -m hindsight_lite knowledge write --bank codex --id project-rules --file AGENTS.md
-python3 -m hindsight_lite knowledge get --bank codex project-rules
-python3 -m hindsight_lite recall --bank codex "project rules"
-python3 -m hindsight_lite retain --bank codex --session-id test --content "Important session note"
-python3 -m hindsight_lite reflect --bank codex --session-id test "what should we remember?"
+python3 -m hindsight_lite agent_knowledge_get_page --bank codex project-rules
+python3 -m hindsight_lite agent_knowledge_recall --bank codex "project rules"
+python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test --content "Important session note"
+python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
 ```
+
+Short commands such as `recall`, `retain`, `reflect`, and `knowledge list/get`
+remain available for local debugging.
 
 ## Configuration
 

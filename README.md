@@ -79,6 +79,10 @@ The V1 scope is intentionally small.
 | `agent_knowledge_list_pages` | alpha | lists local Markdown pages |
 | `agent_knowledge_get_page` | alpha | reads one local Markdown page |
 
+The `python3 -m hindsight_lite` CLI exposes these `agent_knowledge_*` command
+names for parity with the documented V1 surface. Short local-debug commands are
+also available.
+
 The existing Codex integration already has the right hook shape:
 
 ```text
