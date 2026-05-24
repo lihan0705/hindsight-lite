@@ -31,11 +31,23 @@ def _build_parser() -> argparse.ArgumentParser:
     retain_parser.add_argument("--content", required=True)
     retain_parser.set_defaults(handler=_cmd_retain)
 
+    agent_retain_parser = subparsers.add_parser("agent_knowledge_retain", help="Append session memory.")
+    _add_bank_arg(agent_retain_parser)
+    agent_retain_parser.add_argument("--session-id", required=True)
+    agent_retain_parser.add_argument("--content", required=True)
+    agent_retain_parser.set_defaults(handler=_cmd_retain)
+
     recall_parser = subparsers.add_parser("recall", help="Recall local memory.")
     _add_bank_arg(recall_parser)
     recall_parser.add_argument("--max-results", type=int, default=5)
     recall_parser.add_argument("query")
     recall_parser.set_defaults(handler=_cmd_recall)
+
+    agent_recall_parser = subparsers.add_parser("agent_knowledge_recall", help="Recall local memory.")
+    _add_bank_arg(agent_recall_parser)
+    agent_recall_parser.add_argument("--max-results", type=int, default=5)
+    agent_recall_parser.add_argument("query")
+    agent_recall_parser.set_defaults(handler=_cmd_recall)
 
     reflect_parser = subparsers.add_parser("reflect", help="Write a reflection request packet.")
     _add_bank_arg(reflect_parser)
@@ -44,6 +56,13 @@ def _build_parser() -> argparse.ArgumentParser:
     reflect_parser.add_argument("query")
     reflect_parser.set_defaults(handler=_cmd_reflect)
 
+    agent_reflect_parser = subparsers.add_parser("agent_knowledge_reflect", help="Write a reflection request packet.")
+    _add_bank_arg(agent_reflect_parser)
+    agent_reflect_parser.add_argument("--session-id", required=True)
+    agent_reflect_parser.add_argument("--max-results", type=int, default=5)
+    agent_reflect_parser.add_argument("query")
+    agent_reflect_parser.set_defaults(handler=_cmd_reflect)
+
     knowledge_parser = subparsers.add_parser("knowledge", help="Manage Markdown knowledge pages.")
     knowledge_subparsers = knowledge_parser.add_subparsers(required=True)
 
@@ -51,10 +70,19 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_bank_arg(list_parser)
     list_parser.set_defaults(handler=_cmd_knowledge_list)
 
+    agent_list_pages_parser = subparsers.add_parser("agent_knowledge_list_pages", help="List pages.")
+    _add_bank_arg(agent_list_pages_parser)
+    agent_list_pages_parser.set_defaults(handler=_cmd_knowledge_list)
+
     get_parser = knowledge_subparsers.add_parser("get", help="Get one page.")
     _add_bank_arg(get_parser)
     get_parser.add_argument("page_id")
     get_parser.set_defaults(handler=_cmd_knowledge_get)
+
+    agent_get_page_parser = subparsers.add_parser("agent_knowledge_get_page", help="Get one page.")
+    _add_bank_arg(agent_get_page_parser)
+    agent_get_page_parser.add_argument("page_id")
+    agent_get_page_parser.set_defaults(handler=_cmd_knowledge_get)
 
     write_parser = knowledge_subparsers.add_parser("write", help="Write one page from a Markdown file.")
     _add_bank_arg(write_parser)
