@@ -101,10 +101,22 @@ python3 -m hindsight_lite agent_knowledge_get_page --bank codex project-rules
 python3 -m hindsight_lite agent_knowledge_recall --bank codex "project rules"
 python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test --content "Important session note"
 python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
+python3 -m hindsight_lite agent_knowledge_import_codex_memory --bank codex --dry-run
 ```
 
 Short commands such as `recall`, `retain`, `reflect`, and `knowledge list/get`
 remain available for local debugging.
+
+To bridge Codex-owned memory files into hindsight-lite, import them as editable
+Markdown pages:
+
+```bash
+python3 -m hindsight_lite codex-memory import --bank codex
+```
+
+The importer reads `~/.codex/memories` by default, preserves source provenance
+in page metadata, and never writes back to Codex-owned files. Pass
+`--source-dir /path/to/memories` when testing with exported or fixture data.
 
 ## Configuration
 

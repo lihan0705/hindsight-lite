@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
+from hindsight_lite.codex_memory import import_codex_memories
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.reflection import create_reflection_packet
@@ -91,6 +92,24 @@ def _build_parser() -> argparse.ArgumentParser:
     write_parser.add_argument("--file", required=True, type=Path)
     write_parser.set_defaults(handler=_cmd_knowledge_write)
 
+    codex_memory_parser = subparsers.add_parser("codex-memory", help="Import OpenAI Codex memory files.")
+    codex_memory_subparsers = codex_memory_parser.add_subparsers(required=True)
+
+    codex_memory_import_parser = codex_memory_subparsers.add_parser("import", help="Import Codex memory files as pages.")
+    _add_bank_arg(codex_memory_import_parser)
+    codex_memory_import_parser.add_argument("--source-dir", type=Path, default=None)
+    codex_memory_import_parser.add_argument("--dry-run", action="store_true")
+    codex_memory_import_parser.set_defaults(handler=_cmd_codex_memory_import)
+
+    agent_import_codex_memory_parser = subparsers.add_parser(
+        "agent_knowledge_import_codex_memory",
+        help="Import OpenAI Codex memory files as pages.",
+    )
+    _add_bank_arg(agent_import_codex_memory_parser)
+    agent_import_codex_memory_parser.add_argument("--source-dir", type=Path, default=None)
+    agent_import_codex_memory_parser.add_argument("--dry-run", action="store_true")
+    agent_import_codex_memory_parser.set_defaults(handler=_cmd_codex_memory_import)
+
     return parser
 
 
@@ -158,6 +177,15 @@ def _cmd_knowledge_write(args: argparse.Namespace) -> int:
     title = args.title or args.page_id
     page = _store(args).write_page(page_id=args.page_id, title=title, content=content)
     print(page.path)
+    return 0
+
+
+def _cmd_codex_memory_import(args: argparse.Namespace) -> int:
+    result = import_codex_memories(store=_store(args), source_dir=args.source_dir, dry_run=args.dry_run)
+    for page_id in result.imported_pages:
+        print(page_id)
+    for skipped_file in result.skipped_files:
+        print(f"skipped\t{skipped_file}", file=sys.stderr)
     return 0
 
 
