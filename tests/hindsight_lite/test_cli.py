@@ -136,3 +136,31 @@ def test_cli_imports_codex_memory_files(tmp_path: Path, capsys) -> None:
     assert main(["--home", str(tmp_path / "hindsight"), "agent_knowledge_list_pages", "--bank", "codex"]) == 0
     list_output = capsys.readouterr().out
     assert "Preference" in list_output
+
+
+def test_cli_generates_memory_ui(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "memory.md"
+    source.write_text("Memory tree UI should make pages inspectable.", encoding="utf-8")
+    assert (
+        main(
+            [
+                "--home",
+                str(tmp_path),
+                "knowledge",
+                "write",
+                "--bank",
+                "codex",
+                "--id",
+                "ui",
+                "--file",
+                str(source),
+            ]
+        )
+        == 0
+    )
+
+    assert main(["--home", str(tmp_path), "memory-ui", "--bank", "codex"]) == 0
+    output = capsys.readouterr().out
+    output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
+    assert str(output_path) in output
+    assert "Memory tree UI should make pages inspectable." in output_path.read_text(encoding="utf-8")

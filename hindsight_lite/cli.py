@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from hindsight_lite.codex_memory import import_codex_memories
+from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.reflection import create_reflection_packet
@@ -110,6 +111,11 @@ def _build_parser() -> argparse.ArgumentParser:
     agent_import_codex_memory_parser.add_argument("--dry-run", action="store_true")
     agent_import_codex_memory_parser.set_defaults(handler=_cmd_codex_memory_import)
 
+    memory_ui_parser = subparsers.add_parser("memory-ui", help="Generate a static local memory tree UI.")
+    _add_bank_arg(memory_ui_parser)
+    memory_ui_parser.add_argument("--output", type=Path, default=None)
+    memory_ui_parser.set_defaults(handler=_cmd_memory_ui)
+
     return parser
 
 
@@ -186,6 +192,12 @@ def _cmd_codex_memory_import(args: argparse.Namespace) -> int:
         print(page_id)
     for skipped_file in result.skipped_files:
         print(f"skipped\t{skipped_file}", file=sys.stderr)
+    return 0
+
+
+def _cmd_memory_ui(args: argparse.Namespace) -> int:
+    output_path = write_memory_ui(store=_store(args), output_path=args.output)
+    print(output_path)
     return 0
 
 
