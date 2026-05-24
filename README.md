@@ -78,6 +78,7 @@ The V1 scope is intentionally small.
 | file context recall | alpha | Codex `PreToolUse` injects compact context before file reads |
 | `agent_knowledge_list_pages` | alpha | lists local Markdown pages |
 | `agent_knowledge_get_page` | alpha | reads one local Markdown page |
+| `agent_knowledge_import_codex_memory` | alpha | imports Codex memory files as local pages |
 
 The `python3 -m hindsight_lite` CLI exposes these `agent_knowledge_*` command
 names for parity with the documented V1 surface. Short local-debug commands are
@@ -139,6 +140,16 @@ V1 memory types:
 - `reflections/*.json` stores reflection requests for later analysis.
 
 This keeps memory readable, diffable, scriptable, and easy to delete.
+
+Existing Codex memory files can be imported into `pages/*.md` without changing
+the Codex-owned source files:
+
+```bash
+python3 -m hindsight_lite codex-memory import --bank codex
+```
+
+By default this reads `~/.codex/memories`. Use `--source-dir` to point at a
+different Codex memory export or fixture directory.
 
 ---
 

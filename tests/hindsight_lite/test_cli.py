@@ -108,3 +108,31 @@ def test_cli_agent_knowledge_aliases_match_v1_surface(tmp_path: Path, capsys) ->
     ) == 0
     reflect_output = capsys.readouterr().out
     assert '"type": "reflection_request"' in reflect_output
+
+
+def test_cli_imports_codex_memory_files(tmp_path: Path, capsys) -> None:
+    source_dir = tmp_path / "codex" / "memories"
+    source_dir.mkdir(parents=True)
+    (source_dir / "preference.md").write_text("# Preference\nKeep imported memory inspectable.", encoding="utf-8")
+
+    assert (
+        main(
+            [
+                "--home",
+                str(tmp_path / "hindsight"),
+                "codex-memory",
+                "import",
+                "--bank",
+                "codex",
+                "--source-dir",
+                str(source_dir),
+            ]
+        )
+        == 0
+    )
+    import_output = capsys.readouterr().out
+    assert "codex-memory-preference" in import_output
+
+    assert main(["--home", str(tmp_path / "hindsight"), "agent_knowledge_list_pages", "--bank", "codex"]) == 0
+    list_output = capsys.readouterr().out
+    assert "Preference" in list_output
