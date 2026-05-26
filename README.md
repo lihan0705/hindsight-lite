@@ -161,6 +161,8 @@ The command writes `memory-tree.html` inside the selected bank directory. It is
 a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
 files without starting a server.
 
+![Memory tree UI preview](docs/assets/memory-tree-ui-preview.png)
+
 ---
 
 ## Recall Injection
