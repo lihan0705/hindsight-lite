@@ -13,6 +13,7 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     html = render_memory_ui(store)
 
     assert "<!doctype html>" in html
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr));" in html
     assert "project-rules" in html
     assert "session-1.jsonl" in html
     assert "reflect-1.json" in html

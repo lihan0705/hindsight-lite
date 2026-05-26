@@ -197,7 +197,7 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     .summary {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
       margin: 18px 0 22px;
     }
@@ -206,9 +206,15 @@ _HTML_TEMPLATE = """<!doctype html>
       background: var(--panel);
       padding: 10px;
       border-radius: 8px;
+      min-width: 0;
     }
     .metric strong { display: block; font-size: 18px; }
-    .metric span { color: var(--muted); font-size: 12px; }
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
     .section {
       margin-top: 16px;
     }
@@ -321,7 +327,6 @@ _HTML_TEMPLATE = """<!doctype html>
       .app { grid-template-columns: 1fr; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       main { padding: 14px; }
-      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .viewer { min-height: 70vh; }
     }
   </style>
