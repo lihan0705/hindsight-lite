@@ -151,6 +151,18 @@ python3 -m hindsight_lite codex-memory import --bank codex
 By default this reads `~/.codex/memories`. Use `--source-dir` to point at a
 different Codex memory export or fixture directory.
 
+Generate a local memory tree inspector:
+
+```bash
+python3 -m hindsight_lite memory-ui --bank codex
+```
+
+The command writes `memory-tree.html` inside the selected bank directory. It is
+a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
+files without starting a server.
+
+![Memory tree UI preview](docs/assets/memory-tree-ui-preview.png)
+
 ---
 
 ## Recall Injection
