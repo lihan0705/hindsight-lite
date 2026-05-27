@@ -13,7 +13,7 @@ print_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 print_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-VALID_INTEGRATIONS=("ai-sdk" "chat" "openclaw" "nemoclaw" "claude-code" "codex" "hermes" "paperclip" "opencode" "cloudflare-oauth-proxy" "n8n" "dify")
+VALID_INTEGRATIONS=("codex")
 
 usage() {
     print_error "Usage: $0 <integration> <version>"
@@ -23,8 +23,7 @@ usage() {
     echo ""
     echo "Examples:"
     echo "  $0 codex 0.2.0"
-    echo "  $0 ai-sdk patch"
-    echo "  $0 opencode minor"
+    echo "  $0 codex patch"
     exit 1
 }
 
@@ -54,10 +53,6 @@ get_current_version() {
     local dir="hindsight-integrations/$INTEGRATION"
     if [ -f "$dir/pyproject.toml" ]; then
         grep '^version = ' "$dir/pyproject.toml" | sed 's/version = "\(.*\)"/\1/'
-    elif [ -f "$dir/package.json" ]; then
-        grep '"version"' "$dir/package.json" | head -1 | sed 's/.*"version": "\(.*\)".*/\1/'
-    elif [ -f "$dir/.claude-plugin/plugin.json" ]; then
-        grep '"version"' "$dir/.claude-plugin/plugin.json" | head -1 | sed 's/.*"version": "\(.*\)".*/\1/'
     elif [ -f "$dir/settings.json" ] && grep -q '"version"' "$dir/settings.json"; then
         grep '"version"' "$dir/settings.json" | head -1 | sed 's/.*"version": "\(.*\)".*/\1/'
     else
@@ -147,20 +142,12 @@ if [ -f "$INTEGRATION_DIR/pyproject.toml" ]; then
     print_info "Updating version in $INTEGRATION_DIR/pyproject.toml"
     sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" "$INTEGRATION_DIR/pyproject.toml"
     rm "$INTEGRATION_DIR/pyproject.toml.bak"
-elif [ -f "$INTEGRATION_DIR/package.json" ]; then
-    print_info "Updating version in $INTEGRATION_DIR/package.json"
-    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" "$INTEGRATION_DIR/package.json"
-    rm "$INTEGRATION_DIR/package.json.bak"
-elif [ -f "$INTEGRATION_DIR/.claude-plugin/plugin.json" ]; then
-    print_info "Updating version in $INTEGRATION_DIR/.claude-plugin/plugin.json"
-    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" "$INTEGRATION_DIR/.claude-plugin/plugin.json"
-    rm "$INTEGRATION_DIR/.claude-plugin/plugin.json.bak"
 elif [ -f "$INTEGRATION_DIR/settings.json" ] && grep -q '"version"' "$INTEGRATION_DIR/settings.json"; then
     print_info "Updating version in $INTEGRATION_DIR/settings.json"
     sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" "$INTEGRATION_DIR/settings.json"
     rm "$INTEGRATION_DIR/settings.json.bak"
 else
-    print_error "No pyproject.toml, package.json, plugin.json, or versioned settings.json found in $INTEGRATION_DIR"
+    print_error "No pyproject.toml or versioned settings.json found in $INTEGRATION_DIR"
     exit 1
 fi
 
