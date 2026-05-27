@@ -43,11 +43,34 @@ jobs:
       tools-agent-sdk: ${{ steps.filter.outputs.tools-agent-sdk }}
       dev: ${{ steps.filter.outputs.dev }}
       ci: ${{ steps.filter.outputs.ci }}
-      # Secrets are available for internal PRs and workflow_dispatch.
-      # Fork PRs via pull_request event do NOT have access to secrets.
-      has_secrets: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      external_test_secrets: ${{ steps.secret-check.outputs.external_test_secrets }}
     steps:
     - uses: actions/checkout@v6
+
+    - name: Detect external test secrets
+      id: secret-check
+      env:
+        GCP_VERTEXAI_CREDENTIALS: ${{ secrets.GCP_VERTEXAI_CREDENTIALS }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      run: |
+        if [[ -n "$GCP_VERTEXAI_CREDENTIALS" \
+          && -n "$GEMINI_API_KEY" \
+          && -n "$OPENAI_API_KEY" \
+          && -n "$COHERE_API_KEY" \
+          && -n "$GROQ_API_KEY" \
+          && -n "$AWS_ACCESS_KEY_ID" \
+          && -n "$AWS_SECRET_ACCESS_KEY" \
+          && -n "$AWS_REGION_NAME" ]]; then
+          echo "external_test_secrets=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "external_test_secrets=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - uses: dorny/paths-filter@v4
       id: filter
@@ -724,7 +747,7 @@ jobs:
   test-rust-cli:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.cli == 'true' ||
@@ -874,7 +897,7 @@ jobs:
   build-docker-images:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.docker == 'true' ||
@@ -967,7 +990,7 @@ jobs:
   test-api:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1043,7 +1066,7 @@ jobs:
   test-api-llm-acceptance:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
       github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
@@ -1149,7 +1172,7 @@ jobs:
     # Gated behind the "oracle-tests" PR label so it doesn't run by default.
     # Add the label to any PR that needs Oracle validation.
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       contains(github.event.pull_request.labels.*.name, 'oracle-tests') &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
@@ -1268,7 +1291,7 @@ jobs:
   test-python-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
@@ -1379,7 +1402,7 @@ jobs:
   test-typescript-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -1508,7 +1531,7 @@ jobs:
   test-python-client-oracle:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
@@ -1667,7 +1690,7 @@ jobs:
   test-typescript-client-oracle:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -1826,7 +1849,7 @@ jobs:
   test-typescript-client-deno:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -1979,7 +2002,7 @@ jobs:
   test-rust-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-rust == 'true' ||
@@ -2094,7 +2117,7 @@ jobs:
   test-go-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-go == 'true' ||
@@ -2207,7 +2230,7 @@ jobs:
   test-openclaw-integration:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.integrations-openclaw == 'true' ||
@@ -2339,7 +2362,7 @@ jobs:
   test-integration:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.integration-tests == 'true' ||
@@ -2479,7 +2502,7 @@ jobs:
   test-pip-slim:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2547,7 +2570,7 @@ jobs:
   test-embed:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
@@ -2614,7 +2637,7 @@ jobs:
     # (closes #1240).
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
@@ -2791,7 +2814,7 @@ jobs:
   test-hindsight-all:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.hindsight-all == 'true' ||
@@ -2875,7 +2898,7 @@ jobs:
   test-doc-examples:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -3027,7 +3050,7 @@ jobs:
   test-upgrade:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.dev == 'true' ||
