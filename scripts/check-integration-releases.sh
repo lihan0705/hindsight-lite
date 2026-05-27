@@ -10,7 +10,7 @@ BLUE='\033[0;34m'
 DIM='\033[2m'
 NC='\033[0m'
 
-ALL_INTEGRATIONS=("ai-sdk" "chat" "openclaw" "nemoclaw" "claude-code" "codex" "paperclip" "opencode" "cloudflare-oauth-proxy" "n8n" "dify")
+ALL_INTEGRATIONS=("codex")
 
 usage() {
     echo "Usage: $0 [integration]"

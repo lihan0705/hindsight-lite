@@ -84,7 +84,7 @@ cd hindsight-control-plane && npm run dev
 - **hindsight-cli/**: CLI tool (Rust, cargo, uses progenitor for API client)
 - **hindsight-clients/**: Generated SDK clients (Python, TypeScript, Rust)
 - **hindsight-docs/**: Docusaurus documentation site
-- **hindsight-integrations/**: Codex integration plus legacy Node/plugin integrations still pending shrink cleanup
+- **hindsight-integrations/**: Codex hook integration
 - **hindsight-dev/**: Development tools and benchmarks
 
 ### Core Engine (hindsight-api-slim/hindsight_api/engine/)
