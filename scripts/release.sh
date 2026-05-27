@@ -135,16 +135,6 @@ else
     print_warn "File $HELM_CHART_FILE not found, skipping"
 fi
 
-# Update Control Plane package.json
-CONTROL_PLANE_PKG="hindsight-control-plane/package.json"
-if [ -f "$CONTROL_PLANE_PKG" ]; then
-    print_info "Updating $CONTROL_PLANE_PKG"
-    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" "$CONTROL_PLANE_PKG"
-    rm "${CONTROL_PLANE_PKG}.bak"
-else
-    print_warn "File $CONTROL_PLANE_PKG not found, skipping"
-fi
-
 # Update hindsight-all npm wrapper package.json
 ALL_NPM_PKG="hindsight-all-npm/package.json"
 if [ -f "$ALL_NPM_PKG" ]; then
@@ -175,64 +165,20 @@ else
     print_warn "File $TYPESCRIPT_CLIENT_PKG not found, skipping"
 fi
 
-# Update documentation version (creates new version or syncs to existing)
-print_info "Updating documentation for version $VERSION..."
-if [ -f "scripts/update-docs-version.sh" ]; then
-    ./scripts/update-docs-version.sh "$VERSION" 2>&1 | grep -E "✓|IMPORTANT|Error" || true
-    if [ ${PIPESTATUS[0]} -eq 0 ]; then
-        print_info "✓ Documentation updated"
-    else
-        print_warn "Failed to update documentation, but continuing..."
-    fi
-else
-    print_warn "update-docs-version.sh not found, skipping docs update"
-fi
-
-# Regenerate OpenAPI spec and clients with new version
-print_info "Regenerating OpenAPI spec and client SDKs..."
-if ./scripts/generate-openapi.sh && ./scripts/generate-clients.sh; then
-    print_info "✓ OpenAPI spec and clients regenerated"
-else
-    print_error "Failed to regenerate clients"
-    print_warn "You may need to fix this manually before committing"
-    read -p "Continue anyway? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_error "Release cancelled. Rolling back changes..."
-        git checkout .
-        exit 1
-    fi
-fi
-
 # Commit changes
 print_info "Committing version changes..."
 git add -A
-
-# Extract major.minor and patch for commit message
-MAJOR_MINOR=$(echo "$VERSION" | sed -E 's/^([0-9]+\.[0-9]+)\.[0-9]+$/\1/')
-PATCH_VERSION=$(echo "$VERSION" | sed -E 's/^[0-9]+\.[0-9]+\.([0-9]+)$/\1/')
 
 # Build commit message
 COMMIT_MSG="Release v$VERSION
 
 - Update version to $VERSION in all components
-- Regenerate OpenAPI spec and client SDKs
 - Python packages: hindsight-api, hindsight-dev, hindsight-all, hindsight-embed
 - Python client: hindsight-clients/python
 - TypeScript client: hindsight-clients/typescript
 - hindsight-all npm wrapper: hindsight-all-npm
 - Rust CLI: hindsight-cli
-- Control Plane: hindsight-control-plane
 - Helm chart"
-
-# Add docs update note
-if [ "$PATCH_VERSION" != "0" ]; then
-    COMMIT_MSG="$COMMIT_MSG
-- Sync documentation to version-$MAJOR_MINOR"
-else
-    COMMIT_MSG="$COMMIT_MSG
-- Create documentation version-$MAJOR_MINOR"
-fi
 
 git commit --no-verify -m "$COMMIT_MSG"
 

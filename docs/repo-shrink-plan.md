@@ -23,14 +23,14 @@ change has a clear blast radius and verification path.
 |---|---|---|---|
 | 1 | Local residue and stale planning docs | Lowest risk cleanup | `.sesskey` removed; old `docs/superpowers/` implementation notes removed |
 | 2 | Non-Codex integrations | V1 is Codex-first | Python, Node, and plugin integrations removed; only Codex remains |
-| 3 | Control plane and docs site | Lite has no server UI or Docusaurus docs site | Remove `hindsight-control-plane/`, `hindsight-docs/`, related npm workspaces and docs workflows |
+| 3 | Control plane and docs site | Lite has no server UI or Docusaurus docs site | Control plane, docs site, docs-derived skills, and related workflows removed |
 | 4 | API, database, clients, CLI, packaging wrappers | Lite runtime does not use FastAPI, PostgreSQL, generated clients, Rust CLI, or meta packages | Remove `hindsight-api-slim/`, `hindsight-api/`, `hindsight-clients/`, `hindsight-cli/`, `hindsight-all*`, `hindsight-embed/`, `hindsight-dev/` after scripts and CI are narrowed |
 | 5 | Deployment, release, benchmarks, monitoring | No hosted service remains | Remove Docker, Helm, release workflows, benchmark scripts, monitoring configs |
 
 ## Rewrite Alongside Deletions
 
-- `CLAUDE.md` and `AGENTS.md` should describe the lite runtime, not the upstream
-  API/control-plane monorepo.
+- `CLAUDE.md` and `AGENTS.md` should describe the lite runtime, not the
+  remaining upstream monorepo surface.
 - `pyproject.toml` should stop listing deleted uv workspace members.
 - `package.json`, `package-lock.json`, and `deno.lock` should be removed once no
   tracked Node workspace remains.

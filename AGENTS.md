@@ -40,8 +40,6 @@ The intended direction is subtraction:
   abstractions.
 - Keep structured Python data typed with Pydantic models or dataclasses; do not
   use raw dicts for known schemas or multi-item tuple returns.
-- After API endpoint changes, regenerate OpenAPI and affected clients with the
-  scripts documented in `CLAUDE.md`.
 - After Python or TypeScript/Node changes, run `./scripts/hooks/lint.sh`.
 - Add or update focused tests for behavior changes. For deleted behavior, update
   or remove tests that asserted the old surface.
@@ -51,14 +49,11 @@ The intended direction is subtraction:
 ## Useful Commands
 
 ```bash
-# Start API and control plane
+# Start API
 ./scripts/dev/start.sh
 
 # API tests
 cd hindsight-api-slim && uv run pytest tests/
-
-# Control plane dev server
-cd hindsight-control-plane && npm run dev
 
 # Lint Python and TypeScript/Node changes
 ./scripts/hooks/lint.sh

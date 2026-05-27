@@ -24,7 +24,6 @@ jobs:
         include:
           - { image: hindsight-api, suffix: '' }
           - { image: hindsight-api, suffix: '-slim' }
-          - { image: hindsight-control-plane, suffix: '' }
           - { image: hindsight, suffix: '' }
           - { image: hindsight, suffix: '-slim' }
 
