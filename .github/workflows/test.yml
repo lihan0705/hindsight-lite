@@ -34,29 +34,43 @@ jobs:
       integrations-chat: ${{ steps.filter.outputs.integrations-chat }}
       integrations-claude-code: ${{ steps.filter.outputs.integrations-claude-code }}
       integrations-codex: ${{ steps.filter.outputs.integrations-codex }}
-      integrations-crewai: ${{ steps.filter.outputs.integrations-crewai }}
-      integrations-litellm: ${{ steps.filter.outputs.integrations-litellm }}
-      integrations-pydantic-ai: ${{ steps.filter.outputs.integrations-pydantic-ai }}
-      integrations-ag2: ${{ steps.filter.outputs.integrations-ag2 }}
-      integrations-llamaindex: ${{ steps.filter.outputs.integrations-llamaindex }}
       integrations-paperclip: ${{ steps.filter.outputs.integrations-paperclip }}
       integrations-opencode: ${{ steps.filter.outputs.integrations-opencode }}
       integrations-n8n: ${{ steps.filter.outputs.integrations-n8n }}
       integrations-cloudflare-oauth-proxy: ${{ steps.filter.outputs.integrations-cloudflare-oauth-proxy }}
       integrations-lockfiles: ${{ steps.filter.outputs.integrations-lockfiles }}
-      integrations-openai-agents: ${{ steps.filter.outputs.integrations-openai-agents }}
-      integrations-pipecat: ${{ steps.filter.outputs.integrations-pipecat }}
-      integrations-agentcore: ${{ steps.filter.outputs.integrations-agentcore }}
-      integrations-smolagents: ${{ steps.filter.outputs.integrations-smolagents }}
       integrations-dify: ${{ steps.filter.outputs.integrations-dify }}
       tools-agent-sdk: ${{ steps.filter.outputs.tools-agent-sdk }}
       dev: ${{ steps.filter.outputs.dev }}
       ci: ${{ steps.filter.outputs.ci }}
-      # Secrets are available for internal PRs and workflow_dispatch.
-      # Fork PRs via pull_request event do NOT have access to secrets.
-      has_secrets: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      external_test_secrets: ${{ steps.secret-check.outputs.external_test_secrets }}
     steps:
     - uses: actions/checkout@v6
+
+    - name: Detect external test secrets
+      id: secret-check
+      env:
+        GCP_VERTEXAI_CREDENTIALS: ${{ secrets.GCP_VERTEXAI_CREDENTIALS }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      run: |
+        if [[ -n "$GCP_VERTEXAI_CREDENTIALS" \
+          && -n "$GEMINI_API_KEY" \
+          && -n "$OPENAI_API_KEY" \
+          && -n "$COHERE_API_KEY" \
+          && -n "$GROQ_API_KEY" \
+          && -n "$AWS_ACCESS_KEY_ID" \
+          && -n "$AWS_SECRET_ACCESS_KEY" \
+          && -n "$AWS_REGION_NAME" ]]; then
+          echo "external_test_secrets=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "external_test_secrets=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - uses: dorny/paths-filter@v4
       id: filter
@@ -111,16 +125,6 @@ jobs:
             - 'hindsight-integrations/claude-code/**'
           integrations-codex:
             - 'hindsight-integrations/codex/**'
-          integrations-crewai:
-            - 'hindsight-integrations/crewai/**'
-          integrations-litellm:
-            - 'hindsight-integrations/litellm/**'
-          integrations-pydantic-ai:
-            - 'hindsight-integrations/pydantic-ai/**'
-          integrations-ag2:
-            - 'hindsight-integrations/ag2/**'
-          integrations-llamaindex:
-            - 'hindsight-integrations/llamaindex/**'
           integrations-paperclip:
             - 'hindsight-integrations/paperclip/**'
           integrations-opencode:
@@ -133,14 +137,6 @@ jobs:
             - 'hindsight-integrations/*/package-lock.json'
             - 'hindsight-integrations/*/package.json'
             - 'scripts/check-integration-lockfiles.sh'
-          integrations-openai-agents:
-            - 'hindsight-integrations/openai-agents/**'
-          integrations-pipecat:
-            - 'hindsight-integrations/pipecat/**'
-          integrations-agentcore:
-            - 'hindsight-integrations/agentcore/**'
-          integrations-smolagents:
-            - 'hindsight-integrations/smolagents/**'
           integrations-dify:
             - 'hindsight-integrations/dify/**'
           tools-agent-sdk:
@@ -662,43 +658,6 @@ jobs:
       working-directory: ./hindsight-integrations/paperclip
       run: npm test
 
-  test-pipecat-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-pipecat == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build pipecat integration
-      working-directory: ./hindsight-integrations/pipecat
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/pipecat
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/pipecat
-      run: uv run pytest tests -v
-
-
   build-control-plane:
     needs: [detect-changes]
     if: >-
@@ -788,7 +747,7 @@ jobs:
   test-rust-cli:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.cli == 'true' ||
@@ -938,7 +897,7 @@ jobs:
   build-docker-images:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.docker == 'true' ||
@@ -1031,7 +990,7 @@ jobs:
   test-api:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1107,7 +1066,7 @@ jobs:
   test-api-llm-acceptance:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
       github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
@@ -1213,7 +1172,7 @@ jobs:
     # Gated behind the "oracle-tests" PR label so it doesn't run by default.
     # Add the label to any PR that needs Oracle validation.
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       contains(github.event.pull_request.labels.*.name, 'oracle-tests') &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
@@ -1332,7 +1291,7 @@ jobs:
   test-python-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
@@ -1443,7 +1402,7 @@ jobs:
   test-typescript-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -1572,7 +1531,7 @@ jobs:
   test-python-client-oracle:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
@@ -1731,7 +1690,7 @@ jobs:
   test-typescript-client-oracle:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -1890,7 +1849,7 @@ jobs:
   test-typescript-client-deno:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -2043,7 +2002,7 @@ jobs:
   test-rust-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-rust == 'true' ||
@@ -2158,7 +2117,7 @@ jobs:
   test-go-client:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-go == 'true' ||
@@ -2271,7 +2230,7 @@ jobs:
   test-openclaw-integration:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.integrations-openclaw == 'true' ||
@@ -2403,7 +2362,7 @@ jobs:
   test-integration:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.integration-tests == 'true' ||
@@ -2506,78 +2465,6 @@ jobs:
         echo "=== API Server Logs ==="
         cat /tmp/api-server.log || echo "No API server log found"
 
-  test-ag2-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-ag2 == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build ag2 integration
-      working-directory: ./hindsight-integrations/ag2
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/ag2
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/ag2
-      run: uv run pytest tests -v
-
-  test-smolagents-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-smolagents == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build smolagents integration
-      working-directory: ./hindsight-integrations/smolagents
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/smolagents
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/smolagents
-      run: uv run pytest tests -v
-
   test-dify-integration:
     needs: [detect-changes]
     if: >-
@@ -2612,226 +2499,10 @@ jobs:
       working-directory: ./hindsight-integrations/dify
       run: pytest tests -v
 
-  test-crewai-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-crewai == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build crewai integration
-      working-directory: ./hindsight-integrations/crewai
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/crewai
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/crewai
-      run: uv run pytest tests -v
-
-  test-litellm-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-litellm == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build litellm integration
-      working-directory: ./hindsight-integrations/litellm
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/litellm
-      run: uv sync --frozen --extra dev
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/litellm
-      run: uv run pytest tests -v
-
-  test-pydantic-ai-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-pydantic-ai == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build pydantic-ai integration
-      working-directory: ./hindsight-integrations/pydantic-ai
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/pydantic-ai
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/pydantic-ai
-      run: uv run pytest tests -v
-
-  test-llamaindex-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-llamaindex == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build llamaindex integration
-      working-directory: ./hindsight-integrations/llamaindex
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/llamaindex
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/llamaindex
-      run: uv run pytest tests -v
-
-  test-openai-agents-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-openai-agents == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build openai-agents integration
-      working-directory: ./hindsight-integrations/openai-agents
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/openai-agents
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/openai-agents
-      run: uv run pytest tests -v
-
-  test-agentcore-integration:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.integrations-agentcore == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Build agentcore integration
-      working-directory: ./hindsight-integrations/agentcore
-      run: uv build
-
-    - name: Install dependencies
-      working-directory: ./hindsight-integrations/agentcore
-      run: uv sync --frozen
-
-    - name: Run tests
-      working-directory: ./hindsight-integrations/agentcore
-      run: uv run pytest tests -v
-
   test-pip-slim:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2899,7 +2570,7 @@ jobs:
   test-embed:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
@@ -2966,7 +2637,7 @@ jobs:
     # (closes #1240).
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
@@ -3143,7 +2814,7 @@ jobs:
   test-hindsight-all:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.hindsight-all == 'true' ||
@@ -3227,7 +2898,7 @@ jobs:
   test-doc-examples:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -3379,7 +3050,7 @@ jobs:
   test-upgrade:
     needs: [detect-changes]
     if: >-
-      needs.detect-changes.outputs.has_secrets == 'true' &&
+      needs.detect-changes.outputs.external_test_secrets == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.dev == 'true' ||
@@ -3644,7 +3315,6 @@ jobs:
       - test-cloudflare-oauth-proxy-integration
       - build-chat-integration
       - test-paperclip-integration
-      - test-pipecat-integration
       - build-control-plane
       - build-docs
       - test-rust-cli
@@ -3662,14 +3332,7 @@ jobs:
       - test-go-client
       - test-openclaw-integration
       - test-integration
-      - test-ag2-integration
-      - test-smolagents-integration
       - test-dify-integration
-      - test-crewai-integration
-      - test-litellm-integration
-      - test-pydantic-ai-integration
-      - test-llamaindex-integration
-      - test-agentcore-integration
       - test-pip-slim
       - test-embed
       - test-embed-windows

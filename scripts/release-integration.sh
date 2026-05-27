@@ -13,7 +13,7 @@ print_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 print_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-VALID_INTEGRATIONS=("litellm" "pydantic-ai" "crewai" "ag2" "ai-sdk" "chat" "openclaw" "langgraph" "llamaindex" "nemoclaw" "strands" "claude-code" "codex" "hermes" "autogen" "paperclip" "opencode" "cloudflare-oauth-proxy" "openai-agents" "pipecat" "agentcore" "smolagents" "n8n" "dify")
+VALID_INTEGRATIONS=("ai-sdk" "chat" "openclaw" "nemoclaw" "claude-code" "codex" "hermes" "paperclip" "opencode" "cloudflare-oauth-proxy" "n8n" "dify")
 
 usage() {
     print_error "Usage: $0 <integration> <version>"
@@ -22,9 +22,9 @@ usage() {
     echo "  version      Semantic version (e.g. 0.2.0) or bump keyword: patch, minor, major"
     echo ""
     echo "Examples:"
-    echo "  $0 litellm 0.2.0"
-    echo "  $0 pydantic-ai patch"
-    echo "  $0 crewai minor"
+    echo "  $0 codex 0.2.0"
+    echo "  $0 ai-sdk patch"
+    echo "  $0 opencode minor"
     exit 1
 }
 
