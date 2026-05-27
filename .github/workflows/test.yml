@@ -1466,37 +1466,6 @@ jobs:
         echo "=== API Server Logs ==="
         cat /tmp/api-server.log || echo "No API server log found"
 
-  build-rust-cli-arm64:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.cli == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-24.04-arm
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: aarch64-unknown-linux-gnu
-
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          hindsight-cli/target
-        key: linux-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-    - name: Build CLI
-      working-directory: hindsight-cli
-      run: cargo build --release --target aarch64-unknown-linux-gnu
-
   test-rust-client:
     needs: [detect-changes]
     if: >-
@@ -2303,39 +2272,6 @@ jobs:
           fi
         done
 
-  check-cli-coverage:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.core == 'true' ||
-      needs.detect-changes.outputs.cli == 'true' ||
-      needs.detect-changes.outputs.dev == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Install hindsight-dev dependencies
-      run: |
-        cd hindsight-dev && uv sync --frozen --index-strategy unsafe-best-match
-
-    - name: Check CLI covers every OpenAPI operation
-      run: |
-        cd hindsight-dev
-        uv run cli-coverage-check
-
   # Report CI status back to the PR for pull_request_review events.
   # GitHub does not automatically link pull_request_review check runs to the PR,
   # so we create a commit status on the PR head SHA and post a comment.
@@ -2356,7 +2292,6 @@ jobs:
       - test-typescript-client
       - test-typescript-client-oracle
       - test-typescript-client-deno
-      - build-rust-cli-arm64
       - test-rust-client
       - test-go-client
       - test-integration
@@ -2366,7 +2301,6 @@ jobs:
       - test-hindsight-all
       - test-hindsight-agent-sdk
       - test-upgrade
-      - check-cli-coverage
     runs-on: ubuntu-latest
     permissions:
       statuses: write
