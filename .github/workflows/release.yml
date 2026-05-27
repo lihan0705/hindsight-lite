@@ -199,68 +199,6 @@ jobs:
         path: hindsight-all-npm/*.tgz
         retention-days: 1
 
-  release-control-plane:
-    runs-on: ubuntu-latest
-    environment: npm
-
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20'
-        registry-url: 'https://registry.npmjs.org'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Build TypeScript client (dependency)
-      run: npm run build --workspace=hindsight-clients/typescript
-
-    - name: Fix platform-specific native modules
-      run: |
-        # npm ci installs from lockfile which may have wrong platform binaries
-        # Delete hoisted native modules and reinstall for current platform
-        rm -rf node_modules/lightningcss node_modules/@tailwindcss
-        npm install lightningcss @tailwindcss/postcss @tailwindcss/node
-
-    - name: Build
-      run: npm run build --workspace=hindsight-control-plane
-
-    - name: Verify standalone build
-      run: test -f hindsight-control-plane/standalone/server.js || (echo 'standalone/server.js missing - build failed' && exit 1)
-
-    - name: Publish to npm
-      working-directory: ./hindsight-control-plane
-      run: |
-        set +e
-        OUTPUT=$(npm publish --access public --ignore-scripts 2>&1)
-        EXIT_CODE=$?
-        echo "$OUTPUT"
-        if [ $EXIT_CODE -ne 0 ]; then
-          if echo "$OUTPUT" | grep -q "cannot publish over"; then
-            echo "Package version already published, skipping..."
-            exit 0
-          fi
-          exit $EXIT_CODE
-        fi
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-    - name: Pack for GitHub release
-      working-directory: ./hindsight-control-plane
-      run: npm pack
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: control-plane
-        path: hindsight-control-plane/*.tgz
-        retention-days: 1
-
   release-rust-cli:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -328,10 +266,6 @@ jobs:
             build_args: |
               INCLUDE_LOCAL_MODELS=false
               PRELOAD_ML_MODELS=false
-          - target: cp-only
-            image_name: hindsight-control-plane
-            tag_suffix: ""
-            build_args: ""
           - target: standalone
             image_name: hindsight
             tag_suffix: ""
@@ -483,7 +417,7 @@ jobs:
 
   create-github-release:
     runs-on: ubuntu-latest
-    needs: [release-python-packages, release-typescript-client, release-hindsight-all-npm, release-control-plane, release-rust-cli, release-docker-images, release-helm-chart]
+    needs: [release-python-packages, release-typescript-client, release-hindsight-all-npm, release-rust-cli, release-docker-images, release-helm-chart]
     permissions:
       contents: write
 
@@ -505,12 +439,6 @@ jobs:
       with:
         name: typescript-client
         path: ./artifacts/typescript-client
-
-    - name: Download Control Plane
-      uses: actions/download-artifact@v8
-      with:
-        name: control-plane
-        path: ./artifacts/control-plane
 
     - name: Download hindsight-embed npm wrapper
       uses: actions/download-artifact@v8
@@ -562,8 +490,6 @@ jobs:
         cp artifacts/typescript-client/*.tgz release-assets/ || true
         # hindsight-embed npm wrapper
         cp artifacts/hindsight-all-npm/*.tgz release-assets/ || true
-        # Control Plane
-        cp artifacts/control-plane/*.tgz release-assets/ || true
         # Rust CLI binaries
         cp artifacts/rust-cli-linux/hindsight-linux-amd64 release-assets/ || true
         cp artifacts/rust-cli-linux-arm64/hindsight-linux-arm64 release-assets/ || true

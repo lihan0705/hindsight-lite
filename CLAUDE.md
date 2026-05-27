@@ -11,9 +11,9 @@ Hindsight is an agent memory system that provides long-term memory for AI agents
 
 ## Development Commands
 
-### Local Development (API + UI)
+### Local Development
 ```bash
-# Start both API server and control plane UI
+# Start API server
 ./scripts/dev/start.sh
 ```
 
@@ -39,28 +39,6 @@ cd hindsight-api-slim && uv run ruff format .
 cd hindsight-api-slim && uv run ty check hindsight_api/
 ```
 
-### Control Plane (Next.js)
-```bash
-./scripts/dev/start-control-plane.sh
-# Or manually:
-cd hindsight-control-plane && npm run dev
-```
-
-### Documentation Site (Docusaurus)
-```bash
-./scripts/dev/start-docs.sh
-```
-
-
-### Generating Clients/OpenAPI
-```bash
-# Regenerate OpenAPI spec after API changes (REQUIRED after changing endpoints)
-./scripts/generate-openapi.sh
-
-# Regenerate all client SDKs (Python, TypeScript, Rust)
-./scripts/generate-clients.sh
-```
-
 ### Benchmarks
 ```bash
 # Accuracy benchmarks
@@ -80,10 +58,8 @@ cd hindsight-control-plane && npm run dev
 
 ### Monorepo Structure
 - **hindsight-api-slim/**: Core FastAPI server with memory engine (Python, uv)
-- **hindsight-control-plane/**: Admin UI (Next.js, npm)
 - **hindsight-cli/**: CLI tool (Rust, cargo, uses progenitor for API client)
 - **hindsight-clients/**: Generated SDK clients (Python, TypeScript, Rust)
-- **hindsight-docs/**: Docusaurus documentation site
 - **hindsight-integrations/**: Codex hook integration
 - **hindsight-dev/**: Development tools and benchmarks
 
@@ -231,25 +207,6 @@ migration file dispatches through `run_for_dialect`, which calls either
 - Multi-bank queries are client responsibility to orchestrate
 - Disposition traits only affect reflect, not recall
 
-### Control Plane API Routes
-
-When adding or modifying parameters in the dataplane API (hindsight-api), you must also update the control plane routes that proxy to it:
-
-1. **API Routes** (`hindsight-control-plane/src/app/api/`):
-   - `recall/route.ts` - proxies to `/v1/default/banks/{bank_id}/memories/recall`
-   - `reflect/route.ts` - proxies to `/v1/default/banks/{bank_id}/reflect`
-   - `memories/retain/route.ts` - proxies to `/v1/default/banks/{bank_id}/memories/retain`
-   - Other routes follow the same pattern
-
-2. **Client types** (`hindsight-control-plane/src/lib/api.ts`):
-   - Update the TypeScript type definitions for `recall()`, `reflect()`, `retain()` etc.
-
-3. **Checklist when adding new API parameters**:
-   - Add parameter extraction in the route handler (destructure from `body`)
-   - Pass the parameter to the SDK call
-   - Update the client type definition in `lib/api.ts`
-   - Update any UI components that need to use the new parameter
-
 ### Adding New Integrations
 
 Every new integration in `hindsight-integrations/` must satisfy all of the following before it can be merged:
@@ -260,10 +217,6 @@ Every new integration in `hindsight-integrations/` must satisfy all of the follo
 4. **Follow project code standards** — Python style, type safety, no raw dicts for structured data, no multi-item tuple returns (see `.claude/skills/code-review/SKILL.md`).
 
 If any of these are missing, the integration is incomplete and must not be pushed or merged.
-
-### Changelogs
-
-Never add "Unreleased" entries to changelogs (e.g. `hindsight-docs/src/pages/changelog/**`). Changelog entries are written by the release script (`./scripts/release-integration.sh`) when a version is actually cut. If a bug fix or feature needs documenting before release, describe it in the PR/commit — the release tooling will surface it in the published changelog section.
 
 ### Adding New API Configuration Flags
 
@@ -306,10 +259,6 @@ Fields must be categorized as either **hierarchical** (can be overridden per-ten
    config = get_config()
    value = config.my_static_field
    ```
-
-5. **Documentation** (`hindsight-docs/docs/developer/configuration.md`):
-   - Add to appropriate section table with Variable, Description, Default
-   - Mark if it's hierarchical (can be overridden per-bank)
 
 #### Hierarchical vs Static Guidelines
 

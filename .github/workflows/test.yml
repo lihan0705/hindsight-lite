@@ -20,11 +20,9 @@ jobs:
       clients-python: ${{ steps.filter.outputs.clients-python }}
       clients-rust: ${{ steps.filter.outputs.clients-rust }}
       clients-go: ${{ steps.filter.outputs.clients-go }}
-      control-plane: ${{ steps.filter.outputs.control-plane }}
       cli: ${{ steps.filter.outputs.cli }}
       docker: ${{ steps.filter.outputs.docker }}
       helm: ${{ steps.filter.outputs.helm }}
-      docs: ${{ steps.filter.outputs.docs }}
       embed: ${{ steps.filter.outputs.embed }}
       all-npm: ${{ steps.filter.outputs.all-npm }}
       hindsight-all: ${{ steps.filter.outputs.hindsight-all }}
@@ -82,19 +80,12 @@ jobs:
             - 'hindsight-clients/rust/**'
           clients-go:
             - 'hindsight-clients/go/**'
-          control-plane:
-            - 'hindsight-control-plane/**'
-            - 'package.json'
-            - 'package-lock.json'
           cli:
             - 'hindsight-cli/**'
           docker:
             - 'docker/**'
           helm:
             - 'helm/**'
-          docs:
-            - 'hindsight-docs/**'
-            - '*.md'
           embed:
             - 'hindsight-embed/**'
           all-npm:
@@ -256,92 +247,6 @@ jobs:
     - name: Build
       run: npm run build --workspace=hindsight-tools/hindsight-agent-sdk
 
-  build-control-plane:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.control-plane == 'true' ||
-      needs.detect-changes.outputs.clients-ts == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install SDK dependencies
-      run: npm ci --workspace=hindsight-clients/typescript
-
-    - name: Build SDK
-      run: npm run build --workspace=hindsight-clients/typescript
-
-    # Install control plane deps and fix hoisted lightningcss binary
-    # lightningcss gets hoisted to root node_modules, so we need to reinstall it there
-    - name: Install Control Plane dependencies
-      run: |
-        npm install --workspace=hindsight-control-plane
-        rm -rf node_modules/lightningcss node_modules/@tailwindcss
-        npm install lightningcss @tailwindcss/postcss @tailwindcss/node
-
-    - name: Build Control Plane
-      run: npm run build --workspace=hindsight-control-plane
-
-    - name: Verify standalone build
-      run: |
-        test -f hindsight-control-plane/standalone/server.js || exit 1
-        test -d hindsight-control-plane/standalone/node_modules || exit 1
-        node hindsight-control-plane/bin/cli.js --help
-
-    - name: Smoke test - verify server starts
-      run: |
-        cd hindsight-control-plane
-        node bin/cli.js --port 9999 &
-        SERVER_PID=$!
-        sleep 5
-        if curl -sf http://localhost:9999 > /dev/null 2>&1; then
-          echo "Server started successfully"
-          kill $SERVER_PID 2>/dev/null || true
-          exit 0
-        else
-          echo "Server failed to respond"
-          kill $SERVER_PID 2>/dev/null || true
-          exit 1
-        fi
-
-  build-docs:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.docs == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install dependencies
-      run: npm ci --workspace=hindsight-docs
-
-    - name: Build docs
-      run: npm run build --workspace=hindsight-docs
-
   test-rust-cli:
     needs: [detect-changes]
     if: >-
@@ -499,7 +404,6 @@ jobs:
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.docker == 'true' ||
-      needs.detect-changes.outputs.control-plane == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
     name: Build Docker (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -516,10 +420,6 @@ jobs:
             build_args: |
               INCLUDE_LOCAL_MODELS=false
               PRELOAD_ML_MODELS=false
-          - target: cp-only
-            name: control-plane
-            variant: full
-            build_args: ""
           - target: standalone
             name: standalone
             variant: full
@@ -2297,15 +2197,6 @@ jobs:
     - name: Build SDK
       run: npm run build --workspace=hindsight-clients/typescript
 
-    - name: Install Control Plane dependencies
-      run: |
-        npm install --workspace=hindsight-control-plane
-        rm -rf node_modules/lightningcss node_modules/@tailwindcss
-        npm install lightningcss @tailwindcss/postcss @tailwindcss/node
-
-    - name: Build Control Plane
-      run: npm run build --workspace=hindsight-control-plane
-
     - name: Build hindsight-all
       working-directory: ./hindsight-all
       run: uv build
@@ -2326,158 +2217,6 @@ jobs:
     - name: Run unit tests
       working-directory: ./hindsight-all
       run: uv run pytest tests/ -v
-
-  test-doc-examples:
-    needs: [detect-changes]
-    if: >-
-      needs.detect-changes.outputs.external_test_secrets == 'true' &&
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.core == 'true' ||
-      needs.detect-changes.outputs.clients-ts == 'true' ||
-      needs.detect-changes.outputs.clients-python == 'true' ||
-      needs.detect-changes.outputs.clients-go == 'true' ||
-      needs.detect-changes.outputs.cli == 'true' ||
-      needs.detect-changes.outputs.docs == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [python, node, cli, go]
-    name: test-doc-examples (${{ matrix.language }})
-    env:
-      HINDSIGHT_API_LLM_PROVIDER: vertexai
-      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
-      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
-      HINDSIGHT_API_URL: http://localhost:8888
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Setup GCP credentials
-      run: |
-        printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > /tmp/gcp-credentials.json
-        PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
-        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
-
-    - name: Install Rust
-      if: matrix.language == 'cli'
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Cache cargo
-      if: matrix.language == 'cli'
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          hindsight-cli/target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-    - name: Build CLI
-      if: matrix.language == 'cli'
-      working-directory: hindsight-cli
-      run: |
-        cargo build --release
-        cp target/release/hindsight /usr/local/bin/hindsight
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-        prune-cache: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Set up Node.js
-      if: matrix.language == 'node'
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install Python client dependencies
-      if: matrix.language == 'python'
-      working-directory: ./hindsight-clients/python
-      run: uv sync --frozen --extra test --index-strategy unsafe-best-match
-
-    - name: Build and install API
-      working-directory: ./hindsight-api-slim
-      run: |
-        uv build
-        uv sync --frozen --all-extras --index-strategy unsafe-best-match
-
-    - name: Install TypeScript client
-      if: matrix.language == 'node'
-      run: |
-        npm ci --workspace=hindsight-clients/typescript
-        npm run build --workspace=hindsight-clients/typescript
-
-    - name: Cache HuggingFace models
-      uses: actions/cache@v5
-      with:
-        path: ~/.cache/huggingface
-        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-huggingface-
-
-    - name: Pre-download models
-      working-directory: ./hindsight-api-slim
-      run: |
-        uv run python -c "
-        from sentence_transformers import SentenceTransformer, CrossEncoder
-        print('Downloading embedding model...')
-        SentenceTransformer('BAAI/bge-small-en-v1.5')
-        print('Downloading reranker model...')
-        CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        print('Models downloaded successfully')
-        "
-
-    - name: Create .env file
-      run: |
-        cat > .env << EOF
-        HINDSIGHT_API_LLM_PROVIDER=${{ env.HINDSIGHT_API_LLM_PROVIDER }}
-        HINDSIGHT_API_LLM_MODEL=${{ env.HINDSIGHT_API_LLM_MODEL }}
-        HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY=/tmp/gcp-credentials.json
-        HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID
-        EOF
-
-    - name: Start API server
-      run: |
-        ./scripts/dev/start-api.sh > /tmp/api-server.log 2>&1 &
-        echo "Waiting for API server to be ready..."
-        for i in {1..120}; do
-          if curl -sf http://localhost:8888/health > /dev/null 2>&1; then
-            echo "API server is ready after ${i}s"
-            break
-          fi
-          if [ $i -eq 120 ]; then
-            echo "API server failed to start after 120s"
-            cat /tmp/api-server.log
-            exit 1
-          fi
-          sleep 1
-        done
-
-    - name: Configure CLI
-      if: matrix.language == 'cli'
-      run: hindsight configure --api-url http://localhost:8888
-
-    - name: Run doc examples (${{ matrix.language }})
-      run: ./scripts/test-doc-examples.sh --lang ${{ matrix.language }}
-
-    - name: Show API server logs
-      if: always()
-      run: |
-        echo "=== API Server Logs ==="
-        cat /tmp/api-server.log || echo "No API server log found"
 
   test-upgrade:
     needs: [detect-changes]
@@ -2564,136 +2303,6 @@ jobs:
           fi
         done
 
-  verify-generated-files:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-        key: ${{ runner.os }}-cargo-gen-${{ hashFiles('**/Cargo.lock') }}
-
-    - name: Install Node dependencies
-      run: npm ci
-
-    - name: Install Python dependencies
-      run: |
-        cd hindsight-dev && uv sync --frozen --index-strategy unsafe-best-match
-        cd ../hindsight-api && uv sync --frozen --index-strategy unsafe-best-match
-        cd ../hindsight-embed && uv sync --frozen --index-strategy unsafe-best-match
-
-    - name: Run generate-openapi
-      run: ./scripts/generate-openapi.sh
-
-    - name: Run generate-bank-template-schema
-      run: ./scripts/generate-bank-template-schema.sh
-
-    - name: Run generate-clients
-      run: ./scripts/generate-clients.sh
-
-    - name: Run generate-docs-skill
-      run: ./scripts/generate-docs-skill.sh
-
-    - name: Run lint
-      run: ./scripts/hooks/lint.sh
-
-    - name: Verify no uncommitted changes
-      run: |
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "❌ Error: Generated files are out of sync with committed files."
-          echo ""
-          echo "The following files have changed after running generation scripts:"
-          git status --porcelain
-          echo ""
-          echo "Please run the following commands locally and commit the changes:"
-          echo "  ./scripts/generate-openapi.sh"
-          echo "  ./scripts/generate-bank-template-schema.sh"
-          echo "  ./scripts/generate-clients.sh"
-          echo "  ./scripts/generate-docs-skill.sh"
-          echo "  ./scripts/hooks/lint.sh"
-          echo ""
-          git diff --stat
-          exit 1
-        fi
-        echo "✓ All generated files are up to date"
-
-  check-openapi-compatibility:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.core == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-        fetch-depth: 0  # Fetch full git history to access base branch
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: ".python-version"
-
-    - name: Install hindsight-dev dependencies
-      run: |
-        cd hindsight-dev && uv sync --frozen --index-strategy unsafe-best-match
-
-    - name: Check OpenAPI compatibility with base branch
-      run: |
-        # Get the base branch (usually main)
-        BASE_BRANCH="${{ github.base_ref }}"
-
-        if [ -z "$BASE_BRANCH" ]; then
-          echo "⚠️  Warning: No base branch found (not a PR?). Skipping compatibility check."
-          exit 0
-        fi
-
-        echo "Checking OpenAPI compatibility against base branch: $BASE_BRANCH"
-
-        # Extract the old OpenAPI spec from base branch
-        git show "origin/$BASE_BRANCH:hindsight-docs/static/openapi.json" > /tmp/old-openapi.json
-
-        if [ ! -s /tmp/old-openapi.json ]; then
-          echo "⚠️  Warning: Could not find OpenAPI spec in base branch. Skipping compatibility check."
-          exit 0
-        fi
-
-        # Check compatibility using our tool
-        cd hindsight-dev
-        uv run check-openapi-compatibility /tmp/old-openapi.json ../hindsight-docs/static/openapi.json
-
   check-cli-coverage:
     needs: [detect-changes]
     if: >-
@@ -2737,8 +2346,6 @@ jobs:
       - build-api-python-versions
       - build-typescript-client
       - test-codex-integration
-      - build-control-plane
-      - build-docs
       - test-rust-cli
       - lint-helm-chart
       - build-docker-images
@@ -2758,10 +2365,7 @@ jobs:
       - test-embed-windows
       - test-hindsight-all
       - test-hindsight-agent-sdk
-      - test-doc-examples
       - test-upgrade
-      - verify-generated-files
-      - check-openapi-compatibility
       - check-cli-coverage
     runs-on: ubuntu-latest
     permissions:

@@ -151,25 +151,9 @@ else
     exit 1
 fi
 
-# Generate changelog entry using LLM
-print_info "Generating changelog entry..."
-if cd hindsight-dev && uv run generate-changelog "$VERSION" --integration "$INTEGRATION"; then
-    cd ..
-    print_info "Changelog generated"
-else
-    cd ..
-    print_error "Changelog generation failed"
-    git checkout .
-    exit 1
-fi
-
-# Regenerate docs skill so changelog/SDK pages stay in sync
-print_info "Regenerating docs skill..."
-./scripts/generate-docs-skill.sh
-
-# Commit version bump + changelog + regenerated skill together
+# Commit version bump.
 print_info "Committing changes..."
-git add "hindsight-integrations/$INTEGRATION/" "hindsight-docs/src/pages/changelog/integrations/$INTEGRATION.md" "skills/"
+git add "hindsight-integrations/$INTEGRATION/"
 git commit --no-verify -m "release($INTEGRATION): v$VERSION"
 
 # Create annotated tag
