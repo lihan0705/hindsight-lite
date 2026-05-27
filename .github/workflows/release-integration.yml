@@ -17,7 +17,7 @@ jobs:
     - name: Extract integration info
       id: info
       run: |
-        # refs/tags/integrations/litellm/v0.1.0 → integration=litellm, version=0.1.0
+        # refs/tags/integrations/codex/v0.1.0 → integration=codex, version=0.1.0
         TAG="${GITHUB_REF#refs/tags/}"
         INTEGRATION=$(echo "$TAG" | cut -d'/' -f2)
         VERSION=$(echo "$TAG" | cut -d'/' -f3 | sed 's/^v//')
@@ -37,7 +37,7 @@ jobs:
           echo "type=plugin" >> $GITHUB_OUTPUT
         fi
 
-    # ── Python integrations (litellm, pydantic-ai, crewai) ──────────────────
+    # ── Python integrations ─────────────────────────────────────────────────
 
     - name: Install uv
       if: steps.type.outputs.type == 'python'

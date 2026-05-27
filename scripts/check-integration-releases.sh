@@ -10,12 +10,12 @@ BLUE='\033[0;34m'
 DIM='\033[2m'
 NC='\033[0m'
 
-ALL_INTEGRATIONS=("litellm" "pydantic-ai" "crewai" "ag2" "ai-sdk" "chat" "openclaw" "langgraph" "llamaindex" "nemoclaw" "strands" "claude-code" "codex" "autogen" "paperclip" "opencode" "cloudflare-oauth-proxy")
+ALL_INTEGRATIONS=("ai-sdk" "chat" "openclaw" "nemoclaw" "claude-code" "codex" "paperclip" "opencode" "cloudflare-oauth-proxy" "n8n" "dify")
 
 usage() {
     echo "Usage: $0 [integration]"
     echo ""
-    echo "  integration   Optional. Name (e.g. 'crewai') or path (e.g. 'hindsight-integrations/crewai')."
+    echo "  integration   Optional. Name (e.g. 'codex') or path (e.g. 'hindsight-integrations/codex')."
     echo "                If omitted, checks all integrations."
     exit 1
 }

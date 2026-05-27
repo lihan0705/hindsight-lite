@@ -84,7 +84,7 @@ cd hindsight-control-plane && npm run dev
 - **hindsight-cli/**: CLI tool (Rust, cargo, uses progenitor for API client)
 - **hindsight-clients/**: Generated SDK clients (Python, TypeScript, Rust)
 - **hindsight-docs/**: Docusaurus documentation site
-- **hindsight-integrations/**: Framework integrations (LiteLLM, CrewAI, LangGraph, Pydantic AI, AG2, Claude Code, etc.)
+- **hindsight-integrations/**: Codex integration plus legacy Node/plugin integrations still pending shrink cleanup
 - **hindsight-dev/**: Development tools and benchmarks
 
 ### Core Engine (hindsight-api-slim/hindsight_api/engine/)
@@ -255,7 +255,7 @@ When adding or modifying parameters in the dataplane API (hindsight-api), you mu
 Every new integration in `hindsight-integrations/` must satisfy all of the following before it can be merged:
 
 1. **Tests are required** — tests must simulate or exercise the external system (mock the framework's interfaces and verify the integration actually calls Hindsight correctly). Pure unit tests of helper functions are not sufficient.
-2. **CI job** — add a test job in `.github/workflows/test.yml` following the existing pattern (e.g., `test-crewai-integration`). The job must build, install deps, and run `uv run pytest tests -v`. Also add the integration to `detect-changes` outputs so it only runs when its files change.
+2. **CI job** — add a test job in `.github/workflows/test.yml` following the existing pattern (e.g., `test-codex-integration`). The job must build, install deps, and run `uv run pytest tests -v`. Also add the integration to `detect-changes` outputs so it only runs when its files change.
 3. **Release process** — add the integration name to the `VALID_INTEGRATIONS` array in `scripts/release-integration.sh` so it can be released via the standard release workflow.
 4. **Follow project code standards** — Python style, type safety, no raw dicts for structured data, no multi-item tuple returns (see `.claude/skills/code-review/SKILL.md`).
 

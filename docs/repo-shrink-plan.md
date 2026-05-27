@@ -22,7 +22,7 @@ change has a clear blast radius and verification path.
 | Stage | Candidate surface | Rationale | Notes |
 |---|---|---|---|
 | 1 | Local residue and stale planning docs | Lowest risk cleanup | `.sesskey` removed; old `docs/superpowers/` implementation notes removed |
-| 2 | Non-Codex integrations | V1 is Codex-first | Keep only `hindsight-integrations/codex/`; remove release/test references in the same PR |
+| 2 | Non-Codex integrations | V1 is Codex-first | First Python integration batch removed; Node/plugin integrations remain for follow-up cleanup |
 | 3 | Control plane and docs site | Lite has no server UI or Docusaurus docs site | Remove `hindsight-control-plane/`, `hindsight-docs/`, related npm workspaces and docs workflows |
 | 4 | API, database, clients, CLI, packaging wrappers | Lite runtime does not use FastAPI, PostgreSQL, generated clients, Rust CLI, or meta packages | Remove `hindsight-api-slim/`, `hindsight-api/`, `hindsight-clients/`, `hindsight-cli/`, `hindsight-all*`, `hindsight-embed/`, `hindsight-dev/` after scripts and CI are narrowed |
 | 5 | Deployment, release, benchmarks, monitoring | No hosted service remains | Remove Docker, Helm, release workflows, benchmark scripts, monitoring configs |
