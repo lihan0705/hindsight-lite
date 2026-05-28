@@ -16,6 +16,8 @@ class MemoryUiFile:
     content: str
     metadata: dict[str, str] = field(default_factory=dict)
     editable: bool = False
+    download_name: str = ""
+    download_prefix: str = ""
 
 
 @dataclass(frozen=True)
@@ -80,6 +82,8 @@ def _pages_section(store: LocalMemoryStore) -> MemoryUiSection:
                     **page.metadata,
                 },
                 editable=True,
+                download_name=Path(page.path).name,
+                download_prefix=_page_download_prefix(Path(page.path)),
             )
         )
     return MemoryUiSection(id="pages", label="Pages", files=files)
@@ -145,6 +149,18 @@ def _format_json_file(path: Path) -> str:
     return json.dumps(parsed, ensure_ascii=False, indent=2, sort_keys=True)
 
 
+def _page_download_prefix(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        return ""
+
+    marker = "\n---\n"
+    end_index = text.find(marker, len("---\n"))
+    if end_index == -1:
+        return ""
+    return text[: end_index + len(marker)]
+
+
 _HTML_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
@@ -163,6 +179,7 @@ _HTML_TEMPLATE = """<!doctype html>
       --blue: #245f9f;
       --gold: #9b6b12;
       --violet: #6848a8;
+      --red: #a23b3b;
       --shadow: 0 10px 30px rgba(24, 32, 27, 0.08);
     }
     * { box-sizing: border-box; }
@@ -274,7 +291,7 @@ _HTML_TEMPLATE = """<!doctype html>
       box-shadow: var(--shadow);
       min-height: calc(100vh - 48px);
       display: grid;
-      grid-template-rows: auto auto minmax(320px, 1fr);
+      grid-template-rows: auto auto auto minmax(320px, 1fr);
       overflow: hidden;
     }
     .viewer-header {
@@ -303,6 +320,35 @@ _HTML_TEMPLATE = """<!doctype html>
       font-size: 12px;
       max-width: 100%;
       overflow-wrap: anywhere;
+    }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--line);
+      min-height: 54px;
+      align-items: center;
+    }
+    .action {
+      border: 1px solid var(--line);
+      background: #f8faf5;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+    }
+    .action:hover { background: #edf3e8; }
+    .action:disabled {
+      cursor: not-allowed;
+      color: var(--muted);
+      background: #f3f4ef;
+    }
+    .dirty {
+      color: var(--red);
+      border-color: rgba(162, 59, 59, 0.35);
     }
     textarea,
     pre {
@@ -346,6 +392,7 @@ _HTML_TEMPLATE = """<!doctype html>
           <div class="path" id="file-path"></div>
         </div>
         <div class="metadata" id="metadata"></div>
+        <div class="toolbar" id="toolbar"></div>
         <div id="content"></div>
       </section>
     </main>
@@ -354,6 +401,7 @@ _HTML_TEMPLATE = """<!doctype html>
     const snapshot = __MEMORY_SNAPSHOT__;
     const files = snapshot.sections.flatMap((section) => section.files);
     let activeId = files[0]?.id || "";
+    const drafts = new Map();
 
     function render() {
       document.getElementById("bank-title").textContent = snapshot.bank_id;
@@ -395,6 +443,10 @@ _HTML_TEMPLATE = """<!doctype html>
       button.type = "button";
       button.innerHTML = `<span class="dot kind-${file.kind}"></span><span class="label"></span><span class="pill">${file.kind}</span>`;
       button.querySelector(".label").textContent = file.label;
+      if (hasDraft(file)) {
+        button.querySelector(".pill").textContent = "edited";
+        button.querySelector(".pill").classList.add("dirty");
+      }
       button.addEventListener("click", () => {
         activeId = file.id;
         renderTree();
@@ -408,6 +460,7 @@ _HTML_TEMPLATE = """<!doctype html>
       document.getElementById("file-title").textContent = file ? file.label : "No memory files";
       document.getElementById("file-path").textContent = file ? file.path : "";
       renderMetadata(file);
+      renderToolbar(file);
       const content = document.getElementById("content");
       content.innerHTML = "";
       if (!file) {
@@ -419,7 +472,12 @@ _HTML_TEMPLATE = """<!doctype html>
       }
       if (file.editable) {
         const editor = document.createElement("textarea");
-        editor.value = file.content;
+        editor.value = currentContent(file);
+        editor.addEventListener("input", () => {
+          drafts.set(file.id, editor.value);
+          renderToolbar(file);
+          renderTree();
+        });
         content.append(editor);
         return;
       }
@@ -438,6 +496,60 @@ _HTML_TEMPLATE = """<!doctype html>
         item.textContent = `${key}: ${value}`;
         metadata.append(item);
       });
+    }
+
+    function renderToolbar(file) {
+      const toolbar = document.getElementById("toolbar");
+      toolbar.innerHTML = "";
+      if (!file || !file.editable) return;
+
+      const download = document.createElement("button");
+      download.className = "action";
+      download.type = "button";
+      download.textContent = "Download Markdown";
+      download.addEventListener("click", () => downloadMarkdown(file));
+      toolbar.append(download);
+
+      const reset = document.createElement("button");
+      reset.className = "action";
+      reset.type = "button";
+      reset.textContent = "Reset changes";
+      reset.disabled = !hasDraft(file);
+      reset.addEventListener("click", () => {
+        drafts.delete(file.id);
+        renderTree();
+        renderFile();
+      });
+      toolbar.append(reset);
+
+      if (hasDraft(file)) {
+        const badge = document.createElement("span");
+        badge.className = "meta dirty";
+        badge.textContent = "Unsaved draft";
+        toolbar.append(badge);
+      }
+    }
+
+    function hasDraft(file) {
+      return drafts.has(file.id) && drafts.get(file.id) !== file.content;
+    }
+
+    function currentContent(file) {
+      return drafts.has(file.id) ? drafts.get(file.id) : file.content;
+    }
+
+    function downloadMarkdown(file) {
+      const body = currentContent(file).replace(/\\s+$/u, "");
+      const text = `${file.download_prefix || ""}${body}\n`;
+      const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.download_name || `${file.label}.md`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     }
 
     render();

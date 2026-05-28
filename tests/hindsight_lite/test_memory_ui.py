@@ -19,6 +19,9 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert "reflect-1.json" in html
     assert "recall-cache.json" in html
     assert "Keep this fork local-first." in html
+    assert "Download Markdown" in html
+    assert "Reset changes" in html
+    assert "Unsaved draft" in html
 
 
 def test_render_memory_ui_escapes_script_closing_tags(tmp_path: Path) -> None:
@@ -48,6 +51,16 @@ def test_memory_ui_snapshot_is_structured_for_json_payload() -> None:
         "bank_path": "/tmp/bank",
         "sections": [],
     }
+
+
+def test_memory_ui_pages_include_downloadable_markdown_frontmatter(tmp_path: Path) -> None:
+    store = _store_with_memory(tmp_path)
+
+    html = render_memory_ui(store)
+
+    assert '"editable": true' in html
+    assert '"download_name": "project-rules.md"' in html
+    assert '"download_prefix": "---\\nid: \\"project-rules\\"' in html
 
 
 def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
