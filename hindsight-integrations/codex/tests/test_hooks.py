@@ -90,7 +90,9 @@ class TestSessionStartHook:
     def test_disabled_memory_skips_local_bank_init(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(session_id="sess-start")
 
-        _run_hook("session_start", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False, "autoRetain": False})
+        _run_hook(
+            "session_start", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False, "autoRetain": False}
+        )
 
         assert not (tmp_path / ".hindsight-lite").exists()
 
@@ -177,8 +179,7 @@ class TestRecallHook:
 
     def test_disabled_auto_recall_produces_no_output(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is the capital of France?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                           user_config={"autoRecall": False})
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False})
         assert output.strip() == ""
 
 
@@ -316,7 +317,8 @@ class TestRetainHook:
 
     def test_retain_uses_session_id_as_document_id(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "question"}, {"role": "assistant", "content": "answer"},
+            {"role": "user", "content": "question"},
+            {"role": "assistant", "content": "answer"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-doc-test")

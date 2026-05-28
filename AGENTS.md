@@ -1,15 +1,15 @@
 # AGENTS.md
 
-This repository is a subtractive fork of Hindsight for heavier secondary
-development. Treat the upstream implementation as reference material, but do
-not default to adding features or preserving every upstream surface area.
+This repository is a subtractive fork of Hindsight focused on `hindsight-lite`:
+a local-first memory runtime for Codex CLI using Markdown, JSONL, and static
+inspection tools.
 
 ## Source Of Truth
 
 Read [CLAUDE.md](./CLAUDE.md) before making code changes. It contains the
-project architecture, local commands, and hard coding conventions.
+current project architecture, local commands, and conventions.
 
-Before Python or TypeScript implementation work, also read
+Before Python implementation work, also read
 [.claude/skills/code-review/SKILL.md](./.claude/skills/code-review/SKILL.md).
 Its standards apply here even when using Codex instead of Claude Code.
 
@@ -19,11 +19,9 @@ The intended direction is subtraction:
 
 - Prefer deleting, simplifying, or narrowing behavior over adding new
   compatibility layers.
-- Keep changes scoped to the new product direction; avoid upstream-style
-  feature accumulation unless explicitly requested.
-- When removing code, remove the related docs, tests, release hooks, generated
-  clients, workflows, and integration references in the same change when they
-  are no longer valid.
+- Keep changes scoped to the lite runtime and Codex integration.
+- When removing code, remove related docs, tests, workflows, scripts, and
+  references in the same change when they are no longer valid.
 - Preserve user-visible correctness over nominal backwards compatibility.
 - Do not leave dead adapters, unused exports, placeholder compatibility shims,
   or "removed" comments behind.
@@ -40,7 +38,7 @@ The intended direction is subtraction:
   abstractions.
 - Keep structured Python data typed with Pydantic models or dataclasses; do not
   use raw dicts for known schemas or multi-item tuple returns.
-- After Python or TypeScript/Node changes, run `./scripts/hooks/lint.sh`.
+- After Python changes, run `./scripts/hooks/lint.sh`.
 - Add or update focused tests for behavior changes. For deleted behavior, update
   or remove tests that asserted the old surface.
 - Before pushing or opening a PR, run the repository code-review workflow
@@ -49,12 +47,9 @@ The intended direction is subtraction:
 ## Useful Commands
 
 ```bash
-# Start API
-./scripts/dev/start.sh
+# Lite runtime and Codex integration tests
+uv run pytest tests/hindsight_lite hindsight-integrations/codex/tests -v
 
-# API tests
-cd hindsight-api-slim && uv run pytest tests/
-
-# Lint Python and TypeScript/Node changes
+# Lint Python code
 ./scripts/hooks/lint.sh
 ```

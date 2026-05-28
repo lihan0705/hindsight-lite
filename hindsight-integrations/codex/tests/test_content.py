@@ -75,10 +75,13 @@ class TestSyntheticCodexUserMessage:
 
 class TestReadTranscriptFlat:
     def test_reads_flat_format(self, tmp_path):
-        path = _write_jsonl(tmp_path, [
-            {"role": "user", "content": "hello"},
-            {"role": "assistant", "content": "hi there"},
-        ])
+        path = _write_jsonl(
+            tmp_path,
+            [
+                {"role": "user", "content": "hello"},
+                {"role": "assistant", "content": "hi there"},
+            ],
+        )
         msgs = read_transcript(path)
         assert len(msgs) == 2
         assert msgs[0] == {"role": "user", "content": "hello"}
@@ -229,8 +232,10 @@ class TestSliceLastTurnsByUserBoundary:
 
     def test_slices_to_last_one_turn(self):
         msgs = _msgs(
-            ("user", "first"), ("assistant", "a1"),
-            ("user", "second"), ("assistant", "a2"),
+            ("user", "first"),
+            ("assistant", "a1"),
+            ("user", "second"),
+            ("assistant", "a2"),
         )
         result = slice_last_turns_by_user_boundary(msgs, 1)
         assert result[0]["content"] == "second"
@@ -238,9 +243,12 @@ class TestSliceLastTurnsByUserBoundary:
 
     def test_slices_to_last_two_turns(self):
         msgs = _msgs(
-            ("user", "u1"), ("assistant", "a1"),
-            ("user", "u2"), ("assistant", "a2"),
-            ("user", "u3"), ("assistant", "a3"),
+            ("user", "u1"),
+            ("assistant", "a1"),
+            ("user", "u2"),
+            ("assistant", "a2"),
+            ("user", "u3"),
+            ("assistant", "a3"),
         )
         result = slice_last_turns_by_user_boundary(msgs, 2)
         assert result[0]["content"] == "u2"
@@ -680,10 +688,13 @@ class TestReadTranscriptRich:
         assert msgs[0]["content"][0]["text"] == "The answer"
 
     def test_flat_format_works_in_rich_mode(self, tmp_path):
-        path = _write_jsonl(tmp_path, [
-            {"role": "user", "content": "hello"},
-            {"role": "assistant", "content": "hi"},
-        ])
+        path = _write_jsonl(
+            tmp_path,
+            [
+                {"role": "user", "content": "hello"},
+                {"role": "assistant", "content": "hi"},
+            ],
+        )
         msgs = read_transcript(path, include_tool_calls=True)
         assert len(msgs) == 2
         assert msgs[0]["content"] == [{"type": "text", "text": "hello"}]
@@ -736,9 +747,7 @@ class TestPrepareRetentionTranscriptJson:
             {"role": "user", "content": [{"type": "text", "text": "hello"}]},
             {"role": "assistant", "content": [{"type": "text", "text": "hi"}]},
         ]
-        transcript, count = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, count = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         assert count == 2
         parsed = json.loads(transcript)
         assert len(parsed) == 2
@@ -757,9 +766,7 @@ class TestPrepareRetentionTranscriptJson:
                 ],
             },
         ]
-        transcript, count = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, count = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         parsed = json.loads(transcript)
         assistant = parsed[1]
         assert any(b["type"] == "tool_use" for b in assistant["content"])
@@ -774,9 +781,7 @@ class TestPrepareRetentionTranscriptJson:
                 ],
             },
         ]
-        transcript, _ = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         assert "hindsight_memories" not in transcript
         assert "secret" not in transcript
         assert "real question" in transcript

@@ -24,20 +24,20 @@ change has a clear blast radius and verification path.
 | 1 | Local residue and stale planning docs | Lowest risk cleanup | `.sesskey` removed; old `docs/superpowers/` implementation notes removed |
 | 2 | Non-Codex integrations | V1 is Codex-first | Python, Node, and plugin integrations removed; only Codex remains |
 | 3 | Control plane and docs site | Lite has no server UI or Docusaurus docs site | Control plane, docs site, docs-derived skills, and related workflows removed |
-| 4 | API, database, clients, CLI, packaging wrappers | Lite runtime does not use FastAPI, PostgreSQL, generated clients, Rust CLI, or meta packages | Remove `hindsight-api-slim/`, `hindsight-api/`, `hindsight-clients/`, `hindsight-cli/`, `hindsight-all*`, `hindsight-embed/`, `hindsight-dev/` after scripts and CI are narrowed |
-| 5 | Deployment, release, benchmarks, monitoring | No hosted service remains | Remove Docker, Helm, release workflows, benchmark scripts, monitoring configs |
+| 4 | API, database, clients, CLI, packaging wrappers | Lite runtime does not use FastAPI, PostgreSQL, generated clients, Rust CLI, or meta packages | API packages, generated clients, Rust CLI, meta packages, old dev tools, and dependent package/release workflows removed |
+| 5 | Deployment, release, benchmarks, monitoring | No hosted service remains | Docker, Helm, benchmark scripts, monitoring assets, and hosted-release workflows removed |
 
 ## Rewrite Alongside Deletions
 
 - `CLAUDE.md` and `AGENTS.md` should describe the lite runtime, not the
   remaining upstream monorepo surface.
-- `pyproject.toml` should stop listing deleted uv workspace members.
-- `package.json`, `package-lock.json`, and `deno.lock` should be removed once no
-  tracked Node workspace remains.
-- `.github/workflows/test.yml` should shrink to the lite Python tests and Codex
+- `pyproject.toml` now describes the lite runtime and test/lint tooling.
+- `package.json`, `package-lock.json`, and `deno.lock` were removed with the
+  final tracked Node workspaces.
+- `.github/workflows/test.yml` now runs only lite Python tests and Codex
   integration tests.
-- `scripts/hooks/lint.sh` should stop linting deleted packages and only cover
-  the local Python runtime plus active Codex integration.
+- `scripts/hooks/lint.sh` now covers only the local Python runtime plus active
+  Codex integration.
 
 ## Verification Target
 
