@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from hindsight_lite.models import ReflectionResult, ReflectionTrajectory
 from hindsight_lite.reflection import create_reflection_packet
 from hindsight_lite.store import LocalMemoryStore
 
@@ -24,9 +25,46 @@ def test_create_reflection_packet_retrieves_context_and_writes_json(tmp_path: Pa
     assert packet.bank_id == "codex"
     assert packet.session_id == "session-1"
     assert packet.retrieved_context[0].id == "rl-trajectory"
-    assert "state -> action -> observation -> outcome -> lesson" in packet.reflection_prompt
+    assert "trajectory: state -> action -> observation -> outcome -> lesson" in packet.reflection_prompt
+    assert packet.result_schema.version == "1.0"
+    assert packet.result_schema.result_type == "reflection_result"
+    assert [field.name for field in packet.result_schema.fields] == [
+        "trajectory",
+        "durable_facts",
+        "reusable_procedures",
+        "uncertain_items",
+        "confidence",
+    ]
 
     saved_path = store.paths.reflections_dir / f"{packet.id}.json"
     saved = json.loads(saved_path.read_text(encoding="utf-8"))
     assert saved["type"] == "reflection_request"
     assert saved["retrieved_context"][0]["id"] == "rl-trajectory"
+    assert saved["result_schema"]["result_type"] == "reflection_result"
+    assert saved["result_schema"]["fields"][0]["name"] == "trajectory"
+
+
+def test_reflection_result_schema_matches_result_model() -> None:
+    result = ReflectionResult(
+        type="reflection_result",
+        id="result-1",
+        request_id="reflect-1",
+        timestamp="2026-05-28T10:00:00Z",
+        bank_id="codex",
+        session_id="session-1",
+        trajectory=ReflectionTrajectory(
+            state="Need to make memory data reviewable.",
+            action="Added an editable memory tree page flow.",
+            observation="Pages can be edited and downloaded while sessions remain read-only.",
+            outcome="The agent has a cleaner review loop for long-term memory.",
+            lesson="Keep mutable knowledge pages separate from audit-style event logs.",
+        ),
+        durable_facts=["Pages are user-editable long-term memory."],
+        reusable_procedures=["Review pages in the memory tree before promoting new facts."],
+        uncertain_items=["Whether direct browser file writes are worth the permission tradeoff."],
+        confidence=0.82,
+    )
+
+    assert result.trajectory.lesson == "Keep mutable knowledge pages separate from audit-style event logs."
+    assert result.durable_facts == ["Pages are user-editable long-term memory."]
+    assert result.confidence == 0.82

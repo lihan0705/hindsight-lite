@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from hindsight_lite.codex_memory import import_codex_memories
+from hindsight_lite.demo_memory import DemoMemoryExistsError, seed_demo_memory
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
@@ -118,6 +119,15 @@ def _build_parser() -> argparse.ArgumentParser:
     memory_ui_parser.add_argument("--output", type=Path, default=None)
     memory_ui_parser.set_defaults(handler=_cmd_memory_ui)
 
+    demo_memory_parser = subparsers.add_parser("demo-memory", help="Generate demo memory for UI inspection.")
+    demo_memory_subparsers = demo_memory_parser.add_subparsers(required=True)
+    demo_seed_parser = demo_memory_subparsers.add_parser("seed", help="Seed five demo memory history items.")
+    _add_bank_arg(demo_seed_parser)
+    demo_seed_parser.add_argument("--overwrite", action="store_true")
+    demo_seed_parser.add_argument("--write-ui", action="store_true")
+    demo_seed_parser.add_argument("--output", type=Path, default=None)
+    demo_seed_parser.set_defaults(handler=_cmd_demo_memory_seed)
+
     return parser
 
 
@@ -200,6 +210,27 @@ def _cmd_codex_memory_import(args: argparse.Namespace) -> int:
 def _cmd_memory_ui(args: argparse.Namespace) -> int:
     output_path = write_memory_ui(store=_store(args), output_path=args.output)
     print(output_path)
+    return 0
+
+
+def _cmd_demo_memory_seed(args: argparse.Namespace) -> int:
+    store = _store(args)
+    try:
+        result = seed_demo_memory(store=store, overwrite=args.overwrite)
+    except DemoMemoryExistsError as exc:
+        print(f"demo memory already exists; pass --overwrite to replace: {exc}", file=sys.stderr)
+        return 1
+
+    for page_id in result.pages:
+        print(f"page\t{page_id}")
+    for session_id in result.sessions:
+        print(f"session\t{session_id}")
+    for reflection_id in result.reflections:
+        print(f"reflection\t{reflection_id}")
+    for index_file in result.index_files:
+        print(f"index\t{index_file}")
+    if args.write_ui:
+        print(f"ui\t{write_memory_ui(store=store, output_path=args.output)}")
     return 0
 
 

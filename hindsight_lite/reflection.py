@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from hindsight_lite.models import ReflectionPacket
+from hindsight_lite.models import ReflectionPacket, default_reflection_result_schema
 from hindsight_lite.recall import recall
 from hindsight_lite.store import LocalMemoryStore
 
@@ -39,10 +39,12 @@ def _build_reflection_prompt(query: str) -> str:
             "",
             f"Query: {query}",
             "",
-            "Return a concise reflection packet with:",
-            "- state -> action -> observation -> outcome -> lesson",
+            "Return a concise reflection_result object matching schema version "
+            f"{default_reflection_result_schema().version}:",
+            "- trajectory: state -> action -> observation -> outcome -> lesson",
             "- durable facts worth promoting",
             "- procedures worth reusing",
             "- uncertainty or conflicts that should not be promoted yet",
+            "- confidence from 0.0 to 1.0",
         ]
     )

@@ -211,3 +211,29 @@ def test_cli_generates_memory_ui(tmp_path: Path, capsys) -> None:
     output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
     assert str(output_path) in output
     assert "Memory tree UI should make pages inspectable." in output_path.read_text(encoding="utf-8")
+
+
+def test_cli_seeds_demo_memory_and_generates_ui(tmp_path: Path, capsys) -> None:
+    assert (
+        main(
+            [
+                "--home",
+                str(tmp_path),
+                "demo-memory",
+                "seed",
+                "--bank",
+                "codex",
+                "--write-ui",
+            ]
+        )
+        == 0
+    )
+
+    output = capsys.readouterr().out
+    output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
+    assert "page\tproject-direction" in output
+    assert "session\tauth-redirect-loop" in output
+    assert f"ui\t{output_path}" in output
+    html = output_path.read_text(encoding="utf-8")
+    assert "Project Direction" in html
+    assert "auth-redirect-loop.jsonl" in html
