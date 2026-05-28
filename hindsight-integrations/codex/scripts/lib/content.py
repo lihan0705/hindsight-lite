@@ -224,11 +224,13 @@ def _read_transcript_rich(transcript_path: str) -> list:
                     elif ptype == "local_shell_call":
                         action = payload.get("action", {})
                         command = action.get("command", [])
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": "shell",
-                            "input": {"command": command},
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": "shell",
+                                "input": {"command": command},
+                            }
+                        )
 
                     elif ptype == "function_call":
                         name = payload.get("name", "unknown")
@@ -237,20 +239,24 @@ def _read_transcript_rich(transcript_path: str) -> list:
                             inp = json.loads(arguments)
                         except (json.JSONDecodeError, TypeError):
                             inp = {"raw": arguments}
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": name,
-                            "input": inp,
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": name,
+                                "input": inp,
+                            }
+                        )
 
                     elif ptype == "function_call_output":
                         output = payload.get("output", "")
                         output_text = _extract_function_output_text(output)
                         if output_text:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate(output_text),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate(output_text),
+                                }
+                            )
 
                     elif ptype == "custom_tool_call":
                         name = payload.get("name", "unknown")
@@ -259,30 +265,36 @@ def _read_transcript_rich(transcript_path: str) -> list:
                             inp = json.loads(inp_str)
                         except (json.JSONDecodeError, TypeError):
                             inp = {"raw": inp_str}
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": name,
-                            "input": inp,
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": name,
+                                "input": inp,
+                            }
+                        )
 
                     elif ptype == "custom_tool_call_output":
                         output = payload.get("output", "")
                         output_text = _extract_function_output_text(output)
                         if output_text:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate(output_text),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate(output_text),
+                                }
+                            )
 
                     elif ptype == "web_search_call":
                         action = payload.get("action", {})
                         query = action.get("query", "") if isinstance(action, dict) else ""
                         if query:
-                            assistant_blocks.append({
-                                "type": "tool_use",
-                                "name": "web_search",
-                                "input": {"query": query},
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_use",
+                                    "name": "web_search",
+                                    "input": {"query": query},
+                                }
+                            )
 
                 # --- event_msg ---
                 elif item_type == "event_msg":
@@ -295,11 +307,13 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         exit_code = payload.get("exit_code")
                         status = payload.get("status", "")
                         # Add as tool_use + tool_result pair
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": "shell",
-                            "input": {"command": command},
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": "shell",
+                                "input": {"command": command},
+                            }
+                        )
                         result_parts = []
                         if output:
                             result_parts.append(output)
@@ -308,25 +322,31 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         if status and status != "completed":
                             result_parts.append(f"status: {status}")
                         if result_parts:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate("\n".join(result_parts)),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate("\n".join(result_parts)),
+                                }
+                            )
 
                     elif ptype == "patch_apply_end":
                         changes = payload.get("changes", [])
                         status = payload.get("status", "")
                         if changes:
-                            assistant_blocks.append({
-                                "type": "tool_use",
-                                "name": "patch",
-                                "input": {"changes": changes},
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_use",
+                                    "name": "patch",
+                                    "input": {"changes": changes},
+                                }
+                            )
                             if status:
-                                assistant_blocks.append({
-                                    "type": "tool_result",
-                                    "content": f"status: {status}",
-                                })
+                                assistant_blocks.append(
+                                    {
+                                        "type": "tool_result",
+                                        "content": f"status: {status}",
+                                    }
+                                )
 
                     elif ptype == "mcp_tool_call_end":
                         result = payload.get("result", {})
@@ -344,10 +364,12 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         elif isinstance(result, str):
                             result_text = result
                         if result_text:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate(result_text),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate(result_text),
+                                }
+                            )
 
     except OSError:
         pass

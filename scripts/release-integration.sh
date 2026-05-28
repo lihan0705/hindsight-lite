@@ -117,19 +117,6 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
     exit 1
 fi
 
-# Load .env for OPENAI_API_KEY if needed
-if [ -z "$OPENAI_API_KEY" ] && [ -f ".env" ]; then
-    print_info "Loading environment from .env"
-    set -a
-    source ".env"
-    set +a
-fi
-
-if [ -z "$OPENAI_API_KEY" ]; then
-    print_error "OPENAI_API_KEY is not set and no .env file found. Required for changelog generation."
-    exit 1
-fi
-
 # Determine integration type and update version
 INTEGRATION_DIR="hindsight-integrations/$INTEGRATION"
 
@@ -167,4 +154,4 @@ git push origin "$TAG"
 
 print_info "✅ Released $INTEGRATION v$VERSION"
 print_info "Tag: $TAG"
-print_info "GitHub Actions will publish to the package registry."
+print_info "GitHub Actions will validate the Codex integration release tag."

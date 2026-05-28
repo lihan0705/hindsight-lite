@@ -42,9 +42,9 @@ LAST_RECALL_STATE = "last_recall.json"
 
 def main():
     if sys.platform == "win32":
-        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8', errors='replace')
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace")
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
     config = load_config()
 
@@ -90,7 +90,7 @@ def main():
     if len(query) > recall_max_query_chars:
         query = query[:recall_max_query_chars]
 
-    query = query.encode('utf-8', errors='ignore').decode('utf-8')
+    query = query.encode("utf-8", errors="ignore").decode("utf-8")
 
     preamble = config.get("recallPromptPreamble", "")
     max_results = config.get("recallMaxResults", 5)

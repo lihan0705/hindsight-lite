@@ -96,7 +96,9 @@ def _build_parser() -> argparse.ArgumentParser:
     codex_memory_parser = subparsers.add_parser("codex-memory", help="Import OpenAI Codex memory files.")
     codex_memory_subparsers = codex_memory_parser.add_subparsers(required=True)
 
-    codex_memory_import_parser = codex_memory_subparsers.add_parser("import", help="Import Codex memory files as pages.")
+    codex_memory_import_parser = codex_memory_subparsers.add_parser(
+        "import", help="Import Codex memory files as pages."
+    )
     _add_bank_arg(codex_memory_import_parser)
     codex_memory_import_parser.add_argument("--source-dir", type=Path, default=None)
     codex_memory_import_parser.add_argument("--dry-run", action="store_true")

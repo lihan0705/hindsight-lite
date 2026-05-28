@@ -1,1 +1,0 @@
-"""Consolidation performance benchmarks."""

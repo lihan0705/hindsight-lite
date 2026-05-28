@@ -1,297 +1,89 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code and other coding agents working in
+this repository.
 
 ## Project Overview
 
-Hindsight is an agent memory system that provides long-term memory for AI agents using biomimetic data structures. Memories are organized as:
-- **World facts**: General knowledge ("The sky is blue")
-- **Experience facts**: Personal experiences ("I visited Paris in 2023")
-- **Mental models**: Consolidated knowledge synthesized from facts ("User prefers functional programming patterns")
+`hindsight-lite` is a local-first memory runtime for AI coding agents. It stores
+agent memory as editable files, with no API server, daemon, database, generated
+SDKs, or hosted control plane.
+
+The first supported integration is Codex CLI. Codex hooks call the local Python
+runtime to retain session memory, recall compact context, and write reflection
+requests for later evaluation/RL data work.
 
 ## Development Commands
 
-### Local Development
 ```bash
-# Start API server
-./scripts/dev/start.sh
-```
+# Run focused test coverage
+uv run pytest tests/hindsight_lite hindsight-integrations/codex/tests -v
 
-### API Server (Python/FastAPI)
-```bash
-# Start API server only (loads .env automatically)
-./scripts/dev/start-api.sh
+# Lint and format Python code
+./scripts/hooks/lint.sh
 
-# Run all tests (parallelized with pytest-xdist)
-cd hindsight-api-slim && uv run pytest tests/
-
-# Run specific test file
-cd hindsight-api-slim && uv run pytest tests/test_http_api_integration.py -v
-
-# Run single test function
-cd hindsight-api-slim && uv run pytest tests/test_retain.py::test_retain_simple -v
-
-# Lint and format
-cd hindsight-api-slim && uv run ruff check .
-cd hindsight-api-slim && uv run ruff format .
-
-# Type checking (uses ty - extremely fast type checker from Astral)
-cd hindsight-api-slim && uv run ty check hindsight_api/
-```
-
-### Benchmarks
-```bash
-# Accuracy benchmarks
-./scripts/benchmarks/run-longmemeval.sh
-./scripts/benchmarks/run-locomo.sh
-
-# Performance benchmarks
-./scripts/benchmarks/run-perf-test.sh                      # System perf (mock LLM + pg0)
-./scripts/benchmarks/run-perf-test.sh --scale tiny          # Quick smoke test
-./scripts/benchmarks/run-consolidation.sh
-
-# Results viewer
-./scripts/benchmarks/start-visualizer.sh  # View results at localhost:8001
+# Exercise the local CLI
+python3 -m hindsight_lite --help
+python3 -m hindsight_lite memory-ui --bank codex
 ```
 
 ## Architecture
 
-### Monorepo Structure
-- **hindsight-api-slim/**: Core FastAPI server with memory engine (Python, uv)
-- **hindsight-cli/**: CLI tool (Rust, cargo, uses progenitor for API client)
-- **hindsight-clients/**: Generated SDK clients (Python, TypeScript, Rust)
-- **hindsight-integrations/**: Codex hook integration
-- **hindsight-dev/**: Development tools and benchmarks
+Tracked runtime surface:
 
-### Core Engine (hindsight-api-slim/hindsight_api/engine/)
-- `memory_engine.py`: Main orchestrator for retain/recall/reflect operations
-- `llm_wrapper.py`: LLM abstraction supporting OpenAI, Anthropic, Gemini, VertexAI, Groq, MiniMax, Ollama, LM Studio, LiteLLM, Claude Code
-- `embeddings.py`: Embedding generation (local sentence-transformers or TEI)
-- `cross_encoder.py`: Reranking (local or TEI)
-- `entity_resolver.py`: Entity extraction and normalization
-- `query_analyzer.py`: Query intent analysis
+- `hindsight_lite/`: local memory runtime and CLI
+- `tests/hindsight_lite/`: focused tests for the local runtime
+- `hindsight-integrations/codex/`: Codex hook scripts, sample settings, and tests
+- `docs/assets/`: README images and UI previews
+- `docs/agent-contribution-guide.md`: contribution workflow
+- `scripts/hooks/lint.sh`: local lint entry point
 
-**retain/**: Memory ingestion pipeline
-- `orchestrator.py`: Coordinates the retain flow
-- `fact_extraction.py`: LLM-based fact extraction from content
-- `link_utils.py`: Entity link creation and management
+The memory store is file-based:
 
-**search/**: Multi-strategy retrieval
-- `retrieval.py`: Main retrieval orchestrator
-- `graph_retrieval.py`: Graph retrieval abstract base class
-- `link_expansion_retrieval.py`: Link expansion graph retrieval
-- `fusion.py`: Reciprocal rank fusion for combining results
-- `reranking.py`: Cross-encoder reranking
+```text
+~/.hindsight-lite/
+  banks/
+    <bank_id>/
+      sessions/*.jsonl
+      pages/*.md
+      reflections/*.json
+      index/recall-cache.json
+      metadata.json
+```
 
-### API Layer (hindsight-api-slim/hindsight_api/api/)
-- `http.py`: FastAPI HTTP routers for all REST endpoints
-- `mcp.py`: Model Context Protocol server implementation
+Core modules:
 
-Main operations:
-- **Retain**: Store memories, extracts facts/entities/relationships
-- **Recall**: Retrieve memories via 4 parallel strategies (semantic, BM25, graph, temporal) + reranking
-- **Reflect**: Disposition-aware reasoning using memories and mental models.
+- `hindsight_lite/store.py`: typed file-store operations
+- `hindsight_lite/recall.py`: local text recall over sessions and pages
+- `hindsight_lite/reflection.py`: reflection request packet creation
+- `hindsight_lite/codex_memory.py`: Codex memory import
+- `hindsight_lite/memory_ui.py`: static memory tree inspector
+- `hindsight_lite/cli.py`: command-line surface
 
-### Database
-PostgreSQL with pgvector. Schema managed via Alembic migrations in `hindsight-api-slim/hindsight_api/alembic/`. Migrations run automatically on API startup.
+Codex hook flow:
 
-Key tables: `banks`, `memory_units`, `documents`, `entities`, `entity_links`
+```text
+SessionStart      -> codex_hook.py -> session_start.py
+UserPromptSubmit  -> codex_hook.py -> recall.py
+PreToolUse        -> codex_hook.py -> file_context.py
+Stop              -> codex_hook.py -> retain.py
+```
 
-### Adding Database Migrations
+## Coding Conventions
 
-Hindsight runs the same Alembic tree against PostgreSQL and Oracle 23ai. Each
-migration file dispatches through `run_for_dialect`, which calls either
-`_pg_upgrade` or `_oracle_upgrade` based on the live connection. A pytest lint
-(`tests/test_migration_shape.py`) fails CI if a migration omits the dispatcher.
+- Keep changes scoped to the lite runtime and active Codex integration.
+- Prefer deleting stale upstream surface over adding compatibility shims.
+- Use dataclasses or Pydantic models for known structured data.
+- Do not return multi-item tuples from Python helpers.
+- Keep comments for non-obvious reasoning, not line-by-line narration.
+- Update tests with behavior changes and remove tests for deleted behavior.
 
-1. **Create a new migration file** in `hindsight-api-slim/hindsight_api/alembic/versions/`:
-   - File name format: `<revision_id>_<description>.py` (e.g., `f1a2b3c4d5e6_add_new_index.py`)
-   - Use a unique hex revision ID (12 chars)
-   - Set `down_revision` to the previous migration's revision ID
+## Verification
 
-2. **Migration template** (the `script.py.mako` template scaffolds this; fill in the bodies):
-   ```python
-   """Description of the migration
+Before opening a PR, run:
 
-   Revision ID: f1a2b3c4d5e6
-   Revises: <previous_revision_id>
-   Create Date: YYYY-MM-DD
-   """
-   from collections.abc import Sequence
-   from alembic import context, op
-
-   from hindsight_api.alembic._dialect import run_for_dialect
-
-   revision: str = "f1a2b3c4d5e6"
-   down_revision: str | Sequence[str] | None = "<previous_revision_id>"
-   branch_labels: str | Sequence[str] | None = None
-   depends_on: str | Sequence[str] | None = None
-
-
-   def _pg_schema_prefix() -> str:
-       """Schema-qualifier for raw SQL on PG (multi-tenant search_path)."""
-       schema = context.config.get_main_option("target_schema")
-       return f'"{schema}".' if schema else ""
-
-
-   def _pg_upgrade() -> None:
-       schema = _pg_schema_prefix()
-       op.execute(f"CREATE INDEX ... ON {schema}table_name(...)")
-
-
-   def _pg_downgrade() -> None:
-       schema = _pg_schema_prefix()
-       op.execute(f"DROP INDEX IF EXISTS {schema}index_name")
-
-
-   def _oracle_upgrade() -> None:
-       # Oracle 23ai equivalent. Use op.get_bind().exec_driver_sql for forms
-       # that Alembic core does not model (vector/text indexes, partitions).
-       op.execute("CREATE INDEX ... ON table_name(...)")
-
-
-   def _oracle_downgrade() -> None:
-       op.execute("DROP INDEX IF EXISTS index_name")
-
-
-   def upgrade() -> None:
-       run_for_dialect(pg=_pg_upgrade, oracle=_oracle_upgrade)
-
-
-   def downgrade() -> None:
-       run_for_dialect(pg=_pg_downgrade, oracle=_oracle_downgrade)
-   ```
-
-   **Dialect-only migrations.** If a change genuinely doesn't apply to one
-   dialect (e.g. enabling `pg_trgm` is PG-only), omit the unused slot:
-   ```python
-   def upgrade() -> None:
-       run_for_dialect(pg=_pg_upgrade)  # oracle slot intentionally absent → no-op
-   ```
-   Make the asymmetry deliberate. Don't leave an Oracle slot empty just because
-   you didn't think about it — copy-pasting a PG migration without the Oracle
-   half is exactly how schemas drift.
-
-3. **Run migrations locally**:
-   ```bash
-   # Set database URL and run migrations for the base schema plus all tenants
-   uv run hindsight-admin run-db-migration
-
-   # Run on a specific tenant schema
-   uv run hindsight-admin run-db-migration --schema tenant_xyz
-   ```
-
-## Key Conventions
-
-### Code Quality
-
-**Before writing code, read `.claude/skills/code-review/SKILL.md`** for the full coding standards (Python style, type safety, TypeScript style, general principles).
-
-**Always run the lint script after making Python or TypeScript/Node changes:**
 ```bash
+uv run pytest tests/hindsight_lite hindsight-integrations/codex/tests -v
 ./scripts/hooks/lint.sh
+git diff --check
 ```
-
-**After completing any implementation work, run `/code-review`** to verify your changes against project standards (missing tests, dead code, type safety, etc.). Fix any "must fix" issues before considering the task done.
-
-**MANDATORY: Run `/code-review` before pushing code or creating a pull request.** Do not push or create a PR until all "must fix" issues are resolved.
-
-### Memory Banks
-- Each bank is an isolated memory store (like a "brain" for one user/agent)
-- Banks have dispositions (skepticism, literalism, empathy traits 1-5) affecting reflect
-- Banks can have background context
-- Bank isolation is strict - no cross-bank data leakage
-
-### API Design
-- All endpoints operate on a single bank per request
-- Multi-bank queries are client responsibility to orchestrate
-- Disposition traits only affect reflect, not recall
-
-### Adding New Integrations
-
-Every new integration in `hindsight-integrations/` must satisfy all of the following before it can be merged:
-
-1. **Tests are required** — tests must simulate or exercise the external system (mock the framework's interfaces and verify the integration actually calls Hindsight correctly). Pure unit tests of helper functions are not sufficient.
-2. **CI job** — add a test job in `.github/workflows/test.yml` following the existing pattern (e.g., `test-codex-integration`). The job must build, install deps, and run `uv run pytest tests -v`. Also add the integration to `detect-changes` outputs so it only runs when its files change.
-3. **Release process** — add the integration name to the `VALID_INTEGRATIONS` array in `scripts/release-integration.sh` so it can be released via the standard release workflow.
-4. **Follow project code standards** — Python style, type safety, no raw dicts for structured data, no multi-item tuple returns (see `.claude/skills/code-review/SKILL.md`).
-
-If any of these are missing, the integration is incomplete and must not be pushed or merged.
-
-### Adding New API Configuration Flags
-
-Configuration follows a hierarchical system: **Global (env vars) → Tenant (via extension) → Bank (database)**.
-
-Fields must be categorized as either **hierarchical** (can be overridden per-tenant/bank) or **static** (server-level only).
-
-#### Adding a New Configuration Field
-
-1. **config.py** (`hindsight-api-slim/hindsight_api/config.py`):
-   - Add `ENV_*` constant for the environment variable name (e.g., `ENV_MY_SETTING = "HINDSIGHT_API_MY_SETTING"`)
-   - Add `DEFAULT_*` constant for the default value
-   - Add field to `HindsightConfig` dataclass with type annotation
-   - **Mark as configurable** by adding to `_CONFIGURABLE_FIELDS` set if the field should be overridable per-tenant/bank via API
-   - Add initialization in `from_env()` method
-
-   ```python
-   # Configurable field (can be overridden per-tenant/bank via API)
-   _CONFIGURABLE_FIELDS = {
-       ...,
-       "my_setting",  # Add here for configurable
-   }
-
-   # Static field - just don't add to _CONFIGURABLE_FIELDS
-   ```
-
-2. **main.py** (`hindsight-api-slim/hindsight_api/main.py`):
-   - Add field to the manual `HindsightConfig()` constructor call (search for "CLI override")
-
-3. **Use hierarchical config in MemoryEngine**:
-   ```python
-   # Config is resolved automatically per bank via ConfigResolver
-   config_dict = await self._config_resolver.get_bank_config(bank_id, context)
-   value = config_dict["my_setting"]
-   ```
-
-4. **Use static config** (non-hierarchical):
-   ```python
-   from ...config import get_config
-   config = get_config()
-   value = config.my_static_field
-   ```
-
-#### Hierarchical vs Static Guidelines
-
-**Hierarchical** (per-bank overridable):
-- LLM settings (provider, model, API key, base URL)
-- Operation-specific settings (retain mode, chunk size, etc.)
-- Feature flags that vary by customer/bank
-
-**Static** (server-level only):
-- Infrastructure settings (database URL, port, host)
-- Global limits (max concurrent operations)
-- System-wide feature flags
-
-## Environment Setup
-
-```bash
-cp .env.example .env
-# Edit .env with LLM API key
-
-# Python deps
-uv sync --directory hindsight-api-slim/
-
-# Node deps (uses npm workspaces)
-npm install
-```
-
-Required env vars:
-- `HINDSIGHT_API_LLM_PROVIDER`: openai, anthropic, gemini, groq, minimax, ollama, lmstudio
-- `HINDSIGHT_API_LLM_API_KEY`: Your API key
-- `HINDSIGHT_API_LLM_MODEL`: Model name (e.g., gpt-4o-mini, claude-sonnet-4-20250514)
-
-Optional (uses local models by default):
-- `HINDSIGHT_API_EMBEDDINGS_PROVIDER`: local (default) or tei
-- `HINDSIGHT_API_RERANKER_PROVIDER`: local (default) or tei
-- `HINDSIGHT_API_DATABASE_URL`: External PostgreSQL (uses embedded pg0 by default)
-- `HINDSIGHT_API_ENABLE_BANK_CONFIG_API`: Enable per-bank config API (default: true)

@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # for PyPI trusted publishing
+      contents: read
 
     steps:
     - uses: actions/checkout@v6

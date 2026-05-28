@@ -97,7 +97,9 @@ class LocalMemoryStore:
 
     def write_reflection_packet(self, packet: ReflectionPacket) -> Path:
         packet_path = self.paths.reflections_dir / f"{packet.id}.json"
-        packet_path.write_text(json.dumps(asdict(packet), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+        packet_path.write_text(
+            json.dumps(asdict(packet), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
         return packet_path
 
     def _page_path(self, page_id: str) -> Path:
