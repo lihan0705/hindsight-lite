@@ -268,6 +268,16 @@ python3 -m hindsight_lite reflection-result write --bank codex --file result.jso
 The command validates the result shape and stores it under `reflections/` next
 to the request packet, keeping future eval/RL artifacts local and inspectable.
 
+Paired requests and results can be exported as JSONL for downstream eval or RL
+dataset tooling:
+
+```bash
+python3 -m hindsight_lite reflection-dataset export --bank codex --output reflections.jsonl
+```
+
+Only records with both a `reflection_request` and linked `reflection_result` are
+included, so each output line is a complete local trajectory sample.
+
 ---
 
 ## Contributing

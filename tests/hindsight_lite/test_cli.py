@@ -139,6 +139,76 @@ def test_cli_writes_reflection_result_file(tmp_path: Path, capsys) -> None:
     assert saved["trajectory"]["lesson"] == "Keep RL data artifacts explicit and inspectable."
 
 
+def test_cli_exports_reflection_dataset(tmp_path: Path, capsys) -> None:
+    home = tmp_path / "home"
+    request_path = home / "banks" / "codex" / "reflections" / "reflect-1.json"
+    result_path = home / "banks" / "codex" / "reflections" / "result-1.json"
+    request_path.parent.mkdir(parents=True)
+    request_path.write_text(
+        json.dumps(
+            {
+                "type": "reflection_request",
+                "id": "reflect-1",
+                "timestamp": "2026-05-30T10:00:00Z",
+                "bank_id": "codex",
+                "session_id": "session-1",
+                "query": "How should this become eval data?",
+                "retrieved_context": [],
+                "task_context": {"repo": "hindsight-lite"},
+                "reflection_prompt": "Return a reflection_result.",
+            }
+        ),
+        encoding="utf-8",
+    )
+    result_path.write_text(
+        json.dumps(
+            {
+                "type": "reflection_result",
+                "id": "result-1",
+                "request_id": "reflect-1",
+                "timestamp": "2026-05-30T10:01:00Z",
+                "bank_id": "codex",
+                "session_id": "session-1",
+                "trajectory": {
+                    "state": "Need eval data.",
+                    "action": "Export paired records.",
+                    "observation": "JSONL keeps records scriptable.",
+                    "outcome": "Later tooling can consume one row per result.",
+                    "lesson": "Pair request and result before exporting.",
+                },
+                "durable_facts": [],
+                "reusable_procedures": [],
+                "uncertain_items": [],
+                "confidence": 0.75,
+            }
+        ),
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "reflection-dataset.jsonl"
+
+    assert (
+        main(
+            [
+                "--home",
+                str(home),
+                "reflection-dataset",
+                "export",
+                "--bank",
+                "codex",
+                "--output",
+                str(output_path),
+            ]
+        )
+        == 0
+    )
+
+    output = capsys.readouterr().out
+    assert f"{output_path}\t1" in output
+    rows = [json.loads(line) for line in output_path.read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["request_id"] == "reflect-1"
+    assert rows[0]["trajectory"]["lesson"] == "Pair request and result before exporting."
+
+
 def test_cli_agent_knowledge_aliases_match_v1_surface(tmp_path: Path, capsys) -> None:
     source = tmp_path / "AGENTS.md"
     source.write_text("Keep the Codex local memory path small.", encoding="utf-8")
