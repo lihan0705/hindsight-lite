@@ -13,8 +13,8 @@ from hindsight_lite.demo_memory import DemoMemoryExistsError, seed_demo_memory
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
-from hindsight_lite.reflection import create_reflection_packet
-from hindsight_lite.store import LocalMemoryStore
+from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, write_reflection_result_from_file
+from hindsight_lite.store import LocalMemoryStore, UnsafeReflectionIdError
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -65,6 +65,19 @@ def _build_parser() -> argparse.ArgumentParser:
     agent_reflect_parser.add_argument("--max-results", type=int, default=5)
     agent_reflect_parser.add_argument("query")
     agent_reflect_parser.set_defaults(handler=_cmd_reflect)
+
+    reflection_result_parser = subparsers.add_parser(
+        "reflection-result",
+        help="Write a reflection_result JSON file into local memory.",
+    )
+    reflection_result_subparsers = reflection_result_parser.add_subparsers(required=True)
+    reflection_result_write_parser = reflection_result_subparsers.add_parser(
+        "write",
+        help="Write one reflection_result JSON file.",
+    )
+    _add_bank_arg(reflection_result_write_parser)
+    reflection_result_write_parser.add_argument("--file", required=True, type=Path)
+    reflection_result_write_parser.set_defaults(handler=_cmd_reflection_result_write)
 
     knowledge_parser = subparsers.add_parser("knowledge", help="Manage Markdown knowledge pages.")
     knowledge_subparsers = knowledge_parser.add_subparsers(required=True)
@@ -175,6 +188,17 @@ def _cmd_reflect(args: argparse.Namespace) -> int:
         max_results=args.max_results,
     )
     print(json.dumps(asdict(packet), ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _cmd_reflection_result_write(args: argparse.Namespace) -> int:
+    try:
+        path = write_reflection_result_from_file(store=_store(args), path=args.file)
+    except (json.JSONDecodeError, ReflectionResultError, UnsafeReflectionIdError) as exc:
+        print(f"invalid reflection_result: {exc}", file=sys.stderr)
+        return 1
+
+    print(path)
     return 0
 
 
