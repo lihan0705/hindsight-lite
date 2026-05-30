@@ -162,7 +162,17 @@ a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
 files without starting a server. Markdown pages can be edited in the browser and
 downloaded as complete `.md` files with their frontmatter preserved.
 
-![Memory tree UI preview](docs/assets/memory-tree-ui-preview.png)
+![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
+
+For a more convincing local demo, seed five representative history items across
+pages, sessions, reflections, and index files:
+
+```bash
+python3 -m hindsight_lite demo-memory seed --bank codex --write-ui
+```
+
+The command refuses to overwrite existing demo files unless `--overwrite` is
+provided.
 
 ---
 
@@ -211,7 +221,23 @@ and saves a `reflection_request` event:
     "git_commit": "abcdef",
     "recent_prompt": "..."
   },
-  "reflection_prompt": "Use the retrieved evidence to produce a concise decision-oriented reflection..."
+  "reflection_prompt": "Use the retrieved evidence to produce a concise decision-oriented reflection...",
+  "result_schema": {
+    "version": "1.0",
+    "result_type": "reflection_result",
+    "fields": [
+      {
+        "name": "trajectory",
+        "value_type": "object",
+        "description": "State, action, observation, outcome, and lesson."
+      },
+      {
+        "name": "confidence",
+        "value_type": "number",
+        "description": "Confidence score from 0.0 to 1.0."
+      }
+    ]
+  }
 }
 ```
 
@@ -221,8 +247,10 @@ That shape is meant to support future agentic RL datasets:
 state/context -> retrieved memory -> reflection request -> later agent action
 ```
 
-V1 records reflection requests only. Reflection results can be added later once
-the training/evaluation schema is stable.
+V1 records reflection requests only, but each request now carries the stable
+result schema expected from a later evaluator or reflection agent. The result
+shape separates `trajectory` evidence, promotable facts, reusable procedures,
+uncertain items, and a confidence score.
 
 ---
 
