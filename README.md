@@ -161,6 +161,8 @@ The command writes `memory-tree.html` inside the selected bank directory. It is
 a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
 files without starting a server. Markdown pages can be edited in the browser and
 downloaded as complete `.md` files with their frontmatter preserved.
+Reflection request/result files are labeled separately and surface request
+links, confidence, and lesson previews for quick eval review.
 
 ![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
 
