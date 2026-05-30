@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040" role="img" aria-labelledby="title desc">
-  <title id="title">Demo memory tree section walkthrough</title>
-  <desc id="desc">A contact-sheet preview of the hindsight-lite memory tree after seeding demo memory, showing pages, sessions, reflections, and index files selected.</desc>
+  <title id="title">Demo memory tree reflection review walkthrough</title>
+  <desc id="desc">A contact-sheet preview of the hindsight-lite memory tree showing editable pages, retained sessions, and linked reflection request/result metadata for eval review.</desc>
   <defs>
     <style>
       .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
@@ -17,6 +17,7 @@
       .page { fill: #1f7a4c; }
       .session { fill: #245f9f; }
       .reflection { fill: #6848a8; }
+      .result { fill: #9b6b12; }
       .index { fill: #9b6b12; }
     </style>
   </defs>
@@ -38,7 +39,7 @@
       <text x="138" y="26" class="ui section">2</text>
       <text x="138" y="45" class="ui small">Sessions</text>
       <rect y="72" width="108" height="58" rx="8" class="panel"/>
-      <text x="14" y="98" class="ui section">1</text>
+      <text x="14" y="98" class="ui section">2</text>
       <text x="14" y="117" class="ui small">Reflections</text>
       <rect x="124" y="72" width="108" height="58" rx="8" class="panel"/>
       <text x="138" y="98" class="ui section">1</text>
@@ -61,10 +62,12 @@
     <text x="24" y="512" class="ui small" font-weight="700">REFLECTIONS</text>
     <circle cx="36" cy="542" r="5" class="reflection"/>
     <text x="52" y="547" class="ui body">ui-review-reflection.json</text>
+    <circle cx="36" cy="582" r="5" class="result"/>
+    <text x="52" y="587" class="ui body">ui-review-result.json</text>
 
-    <text x="24" y="606" class="ui small" font-weight="700">INDEX</text>
-    <circle cx="36" cy="636" r="5" class="index"/>
-    <text x="52" y="641" class="ui body">recall-cache.json</text>
+    <text x="24" y="646" class="ui small" font-weight="700">INDEX</text>
+    <circle cx="36" cy="676" r="5" class="index"/>
+    <text x="52" y="681" class="ui body">recall-cache.json</text>
   </g>
 
   <g transform="translate(356 112)">
@@ -94,7 +97,7 @@
 
   <g transform="translate(874 112)">
     <rect width="490" height="424" rx="8" class="panel"/>
-    <text x="24" y="38" class="ui section">Sessions / auth-redirect-loop</text>
+    <text x="24" y="38" class="ui section">Sessions / auth redirect</text>
     <text x="24" y="62" class="mono muted-code">sessions/auth-redirect-loop.jsonl</text>
     <line x1="0" y1="82" x2="490" y2="82" stroke="#d9ded2"/>
     <g transform="translate(24 104)">
@@ -114,37 +117,46 @@
 
   <g transform="translate(356 572)">
     <rect width="490" height="424" rx="8" class="panel"/>
-    <text x="24" y="38" class="ui section">Reflections / ui-review-reflection</text>
+    <text x="24" y="38" class="ui section">Reflection Request / ui-review-reflection</text>
     <text x="24" y="62" class="mono muted-code">reflections/ui-review-reflection.json</text>
     <line x1="0" y1="82" x2="490" y2="82" stroke="#d9ded2"/>
-    <rect x="0" y="84" width="490" height="340" fill="#fffefb"/>
-    <text x="24" y="124" class="mono code">{</text>
-    <text x="24" y="150" class="mono code">  "type": "reflection_request",</text>
-    <text x="24" y="176" class="mono code">  "query": "What should the memory tree UI</text>
-    <text x="24" y="202" class="mono code">  make easier to evaluate?",</text>
-    <text x="24" y="242" class="mono code">  "result_schema": {</text>
-    <text x="24" y="268" class="mono code">    "result_type": "reflection_result",</text>
-    <text x="24" y="294" class="mono code">    "fields": ["trajectory", "confidence"]</text>
-    <text x="24" y="320" class="mono code">  }</text>
-    <text x="24" y="346" class="mono code">}</text>
+    <g transform="translate(24 104)">
+      <rect width="158" height="28" rx="14" class="panel"/>
+      <text x="12" y="19" class="ui small">type: reflection_request</text>
+      <rect x="172" width="180" height="28" rx="14" class="panel"/>
+      <text x="184" y="19" class="ui small">result: ui-review-result</text>
+    </g>
+    <rect x="0" y="150" width="490" height="274" fill="#fffefb"/>
+    <text x="24" y="186" class="mono code">{</text>
+    <text x="24" y="212" class="mono code">  "query": "What should the memory tree</text>
+    <text x="24" y="238" class="mono code">  UI make easier to evaluate?",</text>
+    <text x="24" y="280" class="mono code">  "result_schema": {</text>
+    <text x="24" y="306" class="mono code">    "result_type": "reflection_result",</text>
+    <text x="24" y="332" class="mono code">    "fields": ["trajectory", "confidence"]</text>
+    <text x="24" y="358" class="mono code">  }</text>
+    <text x="24" y="384" class="mono code">}</text>
   </g>
 
   <g transform="translate(874 572)">
     <rect width="490" height="424" rx="8" class="panel"/>
-    <text x="24" y="38" class="ui section">Index / recall-cache</text>
-    <text x="24" y="62" class="mono muted-code">index/recall-cache.json</text>
+    <text x="24" y="38" class="ui section">Reflection Result / ui-review-result</text>
+    <text x="24" y="62" class="mono muted-code">reflections/ui-review-result.json</text>
     <line x1="0" y1="82" x2="490" y2="82" stroke="#d9ded2"/>
-    <rect x="0" y="84" width="490" height="340" fill="#fffefb"/>
-    <text x="24" y="124" class="mono code">{</text>
-    <text x="24" y="150" class="mono code">  "source": "demo",</text>
-    <text x="24" y="176" class="mono code">  "items": [</text>
-    <text x="24" y="202" class="mono code">    { "id": "project-direction",</text>
-    <text x="24" y="228" class="mono code">      "kind": "page" },</text>
-    <text x="24" y="254" class="mono code">    { "id": "auth-redirect-loop",</text>
-    <text x="24" y="280" class="mono code">      "kind": "session" },</text>
-    <text x="24" y="306" class="mono code">    { "id": "ui-review-reflection",</text>
-    <text x="24" y="332" class="mono code">      "kind": "reflection" }</text>
-    <text x="24" y="358" class="mono code">  ]</text>
-    <text x="24" y="384" class="mono code">}</text>
+    <g transform="translate(24 104)">
+      <rect width="206" height="28" rx="14" class="panel"/>
+      <text x="12" y="19" class="ui small">request: ui-review-reflection</text>
+      <rect x="220" width="108" height="28" rx="14" class="panel"/>
+      <text x="232" y="19" class="ui small">confidence: 0.82</text>
+    </g>
+    <rect x="0" y="150" width="490" height="274" fill="#fffefb"/>
+    <text x="24" y="186" class="mono code">{</text>
+    <text x="24" y="212" class="mono code">  "type": "reflection_result",</text>
+    <text x="24" y="238" class="mono code">  "trajectory": {</text>
+    <text x="24" y="264" class="mono code">    "lesson": "Keep result confidence</text>
+    <text x="24" y="290" class="mono code">    and lesson visible next to JSON."</text>
+    <text x="24" y="316" class="mono code">  },</text>
+    <text x="24" y="342" class="mono code">  "durable_facts": ["results are local"],</text>
+    <text x="24" y="368" class="mono code">  "confidence": 0.82</text>
+    <text x="24" y="394" class="mono code">}</text>
   </g>
 </svg>

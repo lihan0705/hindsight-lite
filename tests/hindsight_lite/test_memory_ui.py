@@ -3,7 +3,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from hindsight_lite.memory_ui import MemoryUiSnapshot, render_memory_ui, write_memory_ui
-from hindsight_lite.models import ReflectionPacket, SessionMemoryEvent
+from hindsight_lite.models import ReflectionPacket, ReflectionResult, ReflectionTrajectory, SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore
 
 
@@ -17,6 +17,13 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert "project-rules" in html
     assert "session-1.jsonl" in html
     assert "reflect-1.json" in html
+    assert "result-1.json" in html
+    assert '"kind": "reflection-request"' in html
+    assert '"kind": "reflection-result"' in html
+    assert '"result_ids": "result-1"' in html
+    assert '"request_id": "reflect-1"' in html
+    assert '"confidence": "0.82"' in html
+    assert '"lesson": "Keep request and result data linked for eval review."' in html
     assert "recall-cache.json" in html
     assert "Keep this fork local-first." in html
     assert "Download Markdown" in html
@@ -95,6 +102,27 @@ def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
             retrieved_context=[],
             task_context={"cwd": "/tmp/project"},
             reflection_prompt="Reflect on memory UI evidence.",
+        )
+    )
+    store.write_reflection_result(
+        ReflectionResult(
+            type="reflection_result",
+            id="result-1",
+            request_id="reflect-1",
+            timestamp="2026-05-24T12:02:00Z",
+            bank_id="codex",
+            session_id="session-1",
+            trajectory=ReflectionTrajectory(
+                state="Need to inspect reflection records.",
+                action="Render semantic reflection metadata in the UI.",
+                observation="Requests and results are both local JSON files.",
+                outcome="Reviewers can connect result lessons to source requests.",
+                lesson="Keep request and result data linked for eval review.",
+            ),
+            durable_facts=["Reflection results can be reviewed in the memory tree."],
+            reusable_procedures=["Check confidence before promoting lessons."],
+            uncertain_items=[],
+            confidence=0.82,
         )
     )
     (store.paths.index_dir / "recall-cache.json").write_text('{"ready":true}', encoding="utf-8")

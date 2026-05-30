@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -59,7 +60,7 @@ def _build_snapshot(store: LocalMemoryStore) -> MemoryUiSnapshot:
         sections=[
             _pages_section(store),
             _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
-            _json_section("reflections", "Reflections", store.paths.reflections_dir),
+            _reflections_section(store.paths.reflections_dir),
             _raw_section("index", "Index", store.paths.index_dir),
         ],
     )
@@ -106,19 +107,21 @@ def _jsonl_section(section_id: str, label: str, directory: Path) -> MemoryUiSect
     return MemoryUiSection(id=section_id, label=label, files=files)
 
 
-def _json_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
-    files: list[MemoryUiFile] = []
-    for path in sorted(directory.glob("*.json")):
-        files.append(
-            MemoryUiFile(
-                id=f"{section_id}:{path.name}",
-                label=path.name,
-                kind="json",
-                path=str(path),
-                content=_format_json_file(path),
-            )
+def _reflections_section(directory: Path) -> MemoryUiSection:
+    parsed_files = [(path, _read_json_object(path)) for path in sorted(directory.glob("*.json"))]
+    result_ids_by_request = _reflection_result_ids_by_request(parsed_files)
+    files = [
+        MemoryUiFile(
+            id=f"reflections:{path.name}",
+            label=path.name,
+            kind=_reflection_kind(data),
+            path=str(path),
+            content=_format_json_value(data) if data is not None else path.read_text(encoding="utf-8"),
+            metadata=_reflection_metadata(data, result_ids_by_request),
         )
-    return MemoryUiSection(id=section_id, label=label, files=files)
+        for path, data in parsed_files
+    ]
+    return MemoryUiSection(id="reflections", label="Reflections", files=files)
 
 
 def _raw_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
@@ -140,13 +143,82 @@ def _count_jsonl_lines(content: str) -> int:
     return sum(1 for line in content.splitlines() if line.strip())
 
 
-def _format_json_file(path: Path) -> str:
-    text = path.read_text(encoding="utf-8")
+def _format_json_value(value: object) -> str:
+    return json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True)
+
+
+def _read_json_object(path: Path) -> Mapping[str, object] | None:
     try:
-        parsed = json.loads(text)
+        parsed = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return text
-    return json.dumps(parsed, ensure_ascii=False, indent=2, sort_keys=True)
+        return None
+    if isinstance(parsed, Mapping):
+        return parsed
+    return None
+
+
+def _reflection_kind(data: Mapping[str, object] | None) -> str:
+    if data is None:
+        return "json"
+    result_type = data.get("type")
+    if result_type == "reflection_request":
+        return "reflection-request"
+    if result_type == "reflection_result":
+        return "reflection-result"
+    return "json"
+
+
+def _reflection_metadata(
+    data: Mapping[str, object] | None,
+    result_ids_by_request: Mapping[str, list[str]],
+) -> dict[str, str]:
+    if data is None:
+        return {}
+
+    metadata = {"type": _string_value(data.get("type"))}
+    request_id = _string_value(data.get("request_id"))
+    if request_id:
+        metadata["request_id"] = request_id
+    result_ids = result_ids_by_request.get(_string_value(data.get("id")), [])
+    if result_ids:
+        metadata["result_ids"] = ", ".join(result_ids)
+    confidence = _confidence_value(data.get("confidence"))
+    if confidence:
+        metadata["confidence"] = confidence
+    lesson = _trajectory_lesson(data.get("trajectory"))
+    if lesson:
+        metadata["lesson"] = lesson
+    return metadata
+
+
+def _reflection_result_ids_by_request(
+    parsed_files: list[tuple[Path, Mapping[str, object] | None]],
+) -> dict[str, list[str]]:
+    result_ids_by_request: dict[str, list[str]] = {}
+    for _path, data in parsed_files:
+        if data is None or data.get("type") != "reflection_result":
+            continue
+        request_id = _string_value(data.get("request_id"))
+        result_id = _string_value(data.get("id"))
+        if request_id and result_id:
+            result_ids_by_request.setdefault(request_id, []).append(result_id)
+    return result_ids_by_request
+
+
+def _string_value(value: object) -> str:
+    return value if isinstance(value, str) else ""
+
+
+def _confidence_value(value: object) -> str:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return ""
+    return f"{float(value):.2f}"
+
+
+def _trajectory_lesson(value: object) -> str:
+    if not isinstance(value, Mapping):
+        return ""
+    return _string_value(value.get("lesson"))
 
 
 def _page_download_prefix(path: Path) -> str:
@@ -271,6 +343,8 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     .kind-jsonl { background: var(--blue); }
     .kind-json { background: var(--violet); }
+    .kind-reflection-request { background: var(--violet); }
+    .kind-reflection-result { background: var(--gold); }
     .kind-file { background: var(--gold); }
     .label {
       overflow: hidden;
