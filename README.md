@@ -202,6 +202,10 @@ that path, and emits a small `<hindsight_lite_file_context>` block. This follows
 the same conservative rule as prompt recall: inject only excerpts and IDs, not
 full historical transcripts.
 
+Recall scoring is intentionally lightweight and local. It uses body text plus
+titles, tags, metadata, and session identifiers, then excerpts near matching
+query terms so injected context stays small and relevant.
+
 ---
 
 ## Reflection For Agentic RL Data

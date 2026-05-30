@@ -44,6 +44,51 @@ def test_recall_respects_max_results_and_ignores_zero_scores(tmp_path: Path) -> 
     assert [result.id for result in results] == ["matching"]
 
 
+def test_recall_uses_titles_tags_and_session_metadata(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    store.write_page(
+        page_id="project-direction",
+        title="Project Direction",
+        content="Keep runtime behavior local-first and easy to inspect.",
+        tags=["architecture"],
+    )
+    store.append_session_event(
+        SessionMemoryEvent(
+            type="session_memory",
+            id="evt-auth",
+            timestamp="2026-05-20T09:15:00Z",
+            bank_id="codex",
+            session_id="auth-redirect-loop",
+            source="codex",
+            document_id="codex-auth-redirect-loop",
+            content="Middleware ran before cookie refresh.",
+            tags=["debugging", "auth"],
+            metadata={"area": "redirect"},
+        )
+    )
+
+    results = recall(store, "auth redirect debugging", max_results=3)
+
+    assert [result.id for result in results] == ["evt-auth"]
+    assert results[0].score > 0
+
+
+def test_recall_excerpt_focuses_near_query_terms(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    prefix = " ".join(["background"] * 80)
+    store.write_page(
+        page_id="late-match",
+        title="Late Match",
+        content=f"{prefix} The useful lesson is to refresh cookies before redirect checks.",
+    )
+
+    result = recall(store, "refresh cookies redirect", max_results=1)[0]
+
+    assert result.id == "late-match"
+    assert "refresh cookies before redirect checks" in result.excerpt
+    assert not result.excerpt.startswith("background background")
+
+
 def test_format_recall_for_codex_keeps_context_compact(tmp_path: Path) -> None:
     store = LocalMemoryStore(home=tmp_path, bank_id="codex")
     store.write_page(
