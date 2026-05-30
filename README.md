@@ -256,6 +256,16 @@ result schema expected from a later evaluator or reflection agent. The result
 shape separates `trajectory` evidence, promotable facts, reusable procedures,
 uncertain items, and a confidence score.
 
+Evaluator or human-reviewed outputs can be written back as explicit
+`reflection_result` JSON files:
+
+```bash
+python3 -m hindsight_lite reflection-result write --bank codex --file result.json
+```
+
+The command validates the result shape and stores it under `reflections/` next
+to the request packet, keeping future eval/RL artifacts local and inspectable.
+
 ---
 
 ## Contributing

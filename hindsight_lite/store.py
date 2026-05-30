@@ -5,11 +5,15 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from hindsight_lite.models import KnowledgePage, ReflectionPacket, SessionMemoryEvent
+from hindsight_lite.models import KnowledgePage, ReflectionPacket, ReflectionResult, SessionMemoryEvent
 from hindsight_lite.paths import MemoryPaths, default_home, unsafe_page_id
 
 
 class UnsafePageIdError(ValueError):
+    pass
+
+
+class UnsafeReflectionIdError(ValueError):
     pass
 
 
@@ -96,16 +100,28 @@ class LocalMemoryStore:
         return self._read_page_path(page_path)
 
     def write_reflection_packet(self, packet: ReflectionPacket) -> Path:
-        packet_path = self.paths.reflections_dir / f"{packet.id}.json"
+        packet_path = self._reflection_path(packet.id)
         packet_path.write_text(
             json.dumps(asdict(packet), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
         )
         return packet_path
 
+    def write_reflection_result(self, result: ReflectionResult) -> Path:
+        result_path = self._reflection_path(result.id)
+        result_path.write_text(
+            json.dumps(asdict(result), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        return result_path
+
     def _page_path(self, page_id: str) -> Path:
         if unsafe_page_id(page_id):
             raise UnsafePageIdError(page_id)
         return self.paths.pages_dir / f"{page_id}.md"
+
+    def _reflection_path(self, reflection_id: str) -> Path:
+        if unsafe_page_id(reflection_id):
+            raise UnsafeReflectionIdError(reflection_id)
+        return self.paths.reflections_dir / f"{reflection_id}.json"
 
     def _read_page_path(self, page_path: Path) -> KnowledgePage:
         document = self._parse_page(page_path.read_text(encoding="utf-8"))

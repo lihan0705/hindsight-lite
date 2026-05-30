@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from hindsight_lite.cli import main
@@ -85,6 +86,57 @@ def test_cli_reflect_outputs_packet_json(tmp_path: Path, capsys) -> None:
     output = capsys.readouterr().out
     assert '"type": "reflection_request"' in output
     assert '"id": "reflection"' in output
+
+
+def test_cli_writes_reflection_result_file(tmp_path: Path, capsys) -> None:
+    result_file = tmp_path / "reflection-result.json"
+    result_file.write_text(
+        json.dumps(
+            {
+                "type": "reflection_result",
+                "id": "result-1",
+                "request_id": "reflect-1",
+                "timestamp": "2026-05-30T10:00:00Z",
+                "bank_id": "codex",
+                "session_id": "session-1",
+                "trajectory": {
+                    "state": "Need evaluator output stored locally.",
+                    "action": "Write a typed reflection result JSON.",
+                    "observation": "The CLI validates the result before persisting it.",
+                    "outcome": "The memory bank has a reusable eval artifact.",
+                    "lesson": "Keep RL data artifacts explicit and inspectable.",
+                },
+                "durable_facts": ["Reflection results live in the reflections tree."],
+                "reusable_procedures": ["Validate result files before writing them to memory."],
+                "uncertain_items": [],
+                "confidence": 0.88,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert (
+        main(
+            [
+                "--home",
+                str(tmp_path / "home"),
+                "reflection-result",
+                "write",
+                "--bank",
+                "codex",
+                "--file",
+                str(result_file),
+            ]
+        )
+        == 0
+    )
+
+    output = capsys.readouterr().out
+    saved_path = tmp_path / "home" / "banks" / "codex" / "reflections" / "result-1.json"
+    assert str(saved_path) in output
+    saved = json.loads(saved_path.read_text(encoding="utf-8"))
+    assert saved["type"] == "reflection_result"
+    assert saved["trajectory"]["lesson"] == "Keep RL data artifacts explicit and inspectable."
 
 
 def test_cli_agent_knowledge_aliases_match_v1_surface(tmp_path: Path, capsys) -> None:
