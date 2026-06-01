@@ -14,6 +14,7 @@ from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, write_reflection_result_from_file
+from hindsight_lite.reflection_dataset import export_reflection_dataset
 from hindsight_lite.store import LocalMemoryStore, UnsafeReflectionIdError
 
 
@@ -78,6 +79,19 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_bank_arg(reflection_result_write_parser)
     reflection_result_write_parser.add_argument("--file", required=True, type=Path)
     reflection_result_write_parser.set_defaults(handler=_cmd_reflection_result_write)
+
+    reflection_dataset_parser = subparsers.add_parser(
+        "reflection-dataset",
+        help="Export paired reflection_request and reflection_result records.",
+    )
+    reflection_dataset_subparsers = reflection_dataset_parser.add_subparsers(required=True)
+    reflection_dataset_export_parser = reflection_dataset_subparsers.add_parser(
+        "export",
+        help="Export paired reflection data as JSONL.",
+    )
+    _add_bank_arg(reflection_dataset_export_parser)
+    reflection_dataset_export_parser.add_argument("--output", required=True, type=Path)
+    reflection_dataset_export_parser.set_defaults(handler=_cmd_reflection_dataset_export)
 
     knowledge_parser = subparsers.add_parser("knowledge", help="Manage Markdown knowledge pages.")
     knowledge_subparsers = knowledge_parser.add_subparsers(required=True)
@@ -199,6 +213,12 @@ def _cmd_reflection_result_write(args: argparse.Namespace) -> int:
         return 1
 
     print(path)
+    return 0
+
+
+def _cmd_reflection_dataset_export(args: argparse.Namespace) -> int:
+    result = export_reflection_dataset(store=_store(args), output_path=args.output)
+    print(f"{result.output_path}\t{result.example_count}")
     return 0
 
 
