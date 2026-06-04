@@ -355,7 +355,11 @@ def test_cli_seeds_demo_memory_and_generates_ui(tmp_path: Path, capsys) -> None:
     output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
     assert "page\tproject-direction" in output
     assert "session\tauth-redirect-loop" in output
+    assert "reflection\tui-review-negative" in output
     assert f"ui\t{output_path}" in output
     html = output_path.read_text(encoding="utf-8")
     assert "Project Direction" in html
     assert "auth-redirect-loop.jsonl" in html
+    assert "Trajectory Samples" in html
+    assert "Error / Negative Candidates" in html
+    assert "Task failed because the agent treated a stale draft as final." in html

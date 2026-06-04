@@ -51,12 +51,13 @@ def test_write_memory_ui_uses_default_bank_output_path(tmp_path: Path) -> None:
 
 
 def test_memory_ui_snapshot_is_structured_for_json_payload() -> None:
-    snapshot = MemoryUiSnapshot(bank_id="codex", bank_path="/tmp/bank", sections=[])
+    snapshot = MemoryUiSnapshot(bank_id="codex", bank_path="/tmp/bank", sections=[], graph=None)
 
     assert json.loads(json.dumps(asdict(snapshot))) == {
         "bank_id": "codex",
         "bank_path": "/tmp/bank",
         "sections": [],
+        "graph": None,
     }
 
 
@@ -68,6 +69,45 @@ def test_memory_ui_pages_include_downloadable_markdown_frontmatter(tmp_path: Pat
     assert '"editable": true' in html
     assert '"download_name": "project-rules.md"' in html
     assert '"download_prefix": "---\\nid: \\"project-rules\\"' in html
+
+
+def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None:
+    store = _store_with_memory(tmp_path)
+    store.write_reflection_result(
+        ReflectionResult(
+            type="reflection_result",
+            id="result-error",
+            request_id="reflect-1",
+            timestamp="2026-05-24T12:03:00Z",
+            bank_id="codex",
+            session_id="session-1",
+            trajectory=ReflectionTrajectory(
+                state="Agent tried to finish a task with missing evidence.",
+                action="Changed the implementation before checking the failing case.",
+                observation="The task still failed and the output was wrong.",
+                outcome="Task failed because the trajectory skipped validation.",
+                lesson="Treat this as a negative RL trajectory sample.",
+            ),
+            durable_facts=[],
+            reusable_procedures=[],
+            uncertain_items=["Need reviewer confirmation before promotion."],
+            confidence=0.31,
+        )
+    )
+
+    html = render_memory_ui(store)
+
+    assert '"label": "Trajectory Samples"' in html
+    assert '"label": "Success"' in html
+    assert '"label": "Error / Negative Candidates"' in html
+    assert '"label": "Uncertain"' in html
+    assert '"sample_status": "negative"' in html
+    assert '"sample_status": "success"' in html
+    assert '"parent_id": "trajectory-negative"' in html
+    assert '"parent_id": "trajectory-success"' in html
+    assert '"label": "outcome"' in html
+    assert "Task failed because the trajectory skipped validation." in html
+    assert "Graph" in html
 
 
 def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:

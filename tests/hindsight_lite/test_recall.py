@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
 from hindsight_lite.models import SessionMemoryEvent
@@ -87,6 +88,46 @@ def test_recall_excerpt_focuses_near_query_terms(tmp_path: Path) -> None:
     assert result.id == "late-match"
     assert "refresh cookies before redirect checks" in result.excerpt
     assert not result.excerpt.startswith("background background")
+
+
+def test_recall_filters_solved_bugs_by_past_day_window(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    store.append_session_event(
+        SessionMemoryEvent(
+            type="session_memory",
+            id="evt-recent-bug",
+            timestamp="2026-05-31T12:00:00Z",
+            bank_id="codex",
+            session_id="recent-auth",
+            source="codex",
+            document_id="codex-recent-auth",
+            content="Resolved auth redirect loop bug by refreshing session state before redirect checks.",
+            tags=["debugging"],
+        )
+    )
+    store.append_session_event(
+        SessionMemoryEvent(
+            type="session_memory",
+            id="evt-old-bug",
+            timestamp="2026-05-10T12:00:00Z",
+            bank_id="codex",
+            session_id="old-cache",
+            source="codex",
+            document_id="codex-old-cache",
+            content="Resolved stale cache bug by clearing the generated index.",
+            tags=["debugging"],
+        )
+    )
+
+    results = recall(
+        store,
+        "过去10天我解决了哪些bug",
+        max_results=5,
+        current_time=datetime(2026, 6, 4, tzinfo=timezone.utc),
+    )
+
+    assert [result.id for result in results] == ["evt-recent-bug"]
+    assert "auth redirect loop bug" in results[0].excerpt
 
 
 def test_format_recall_for_codex_keeps_context_compact(tmp_path: Path) -> None:

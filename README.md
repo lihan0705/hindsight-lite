@@ -162,12 +162,15 @@ a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
 files without starting a server. Markdown pages can be edited in the browser and
 downloaded as complete `.md` files with their frontmatter preserved.
 Reflection request/result files are labeled separately and surface request
-links, confidence, and lesson previews for quick eval review.
+links, confidence, and lesson previews for quick eval review. The `Graph` view
+adds a deterministic tree over the same local files, including trajectory
+samples grouped as success, error/negative candidates, or uncertain records for
+RL dataset review.
 
 ![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
 
-For a more convincing local demo, seed five representative history items across
-pages, sessions, reflections, and index files:
+For a more convincing local demo, seed representative history items across
+pages, sessions, reflections, trajectory results, and index files:
 
 ```bash
 python3 -m hindsight_lite demo-memory seed --bank codex --write-ui

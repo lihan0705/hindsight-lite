@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 
-from hindsight_lite.models import ReflectionPacket, SessionMemoryEvent
+from hindsight_lite.models import ReflectionPacket, ReflectionResult, ReflectionTrajectory, SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore
 
 
@@ -26,6 +26,8 @@ def seed_demo_memory(store: LocalMemoryStore, overwrite: bool = False) -> DemoMe
         store.paths.sessions_dir / "auth-redirect-loop.jsonl",
         store.paths.sessions_dir / "memory-ui-feedback.jsonl",
         store.paths.reflections_dir / "ui-review-reflection.json",
+        store.paths.reflections_dir / "ui-review-success.json",
+        store.paths.reflections_dir / "ui-review-negative.json",
         store.paths.index_dir / "recall-cache.json",
     ]
     existing = [path for path in targets if path.exists()]
@@ -148,7 +150,47 @@ def _write_demo_reflections(store: LocalMemoryStore) -> list[str]:
         reflection_prompt="Summarize whether the UI makes long-term memory review easier.",
     )
     store.write_reflection_packet(packet)
-    return [packet.id]
+    success = ReflectionResult(
+        type="reflection_result",
+        id="ui-review-success",
+        request_id=packet.id,
+        timestamp="2026-05-24T15:07:00Z",
+        bank_id=store.paths.bank_id,
+        session_id="memory-ui-feedback",
+        trajectory=ReflectionTrajectory(
+            state="Need to make memory review inspectable without a server.",
+            action="Render pages, sessions, and reflections in one static tree UI.",
+            observation="Editable pages remain separate from read-only audit records.",
+            outcome="The UI made review faster while preserving local files as source of truth.",
+            lesson="Keep the graph deterministic and tied to source files.",
+        ),
+        durable_facts=["The memory UI can expose reflection results as local trajectory samples."],
+        reusable_procedures=["Review graph branches before promoting reflection lessons into pages."],
+        uncertain_items=[],
+        confidence=0.86,
+    )
+    negative = ReflectionResult(
+        type="reflection_result",
+        id="ui-review-negative",
+        request_id=packet.id,
+        timestamp="2026-05-24T15:12:00Z",
+        bank_id=store.paths.bank_id,
+        session_id="memory-ui-feedback",
+        trajectory=ReflectionTrajectory(
+            state="Agent needed to update the memory UI preview.",
+            action="Used an old draft instead of checking the generated HTML.",
+            observation="The preview missed the trajectory graph and gave reviewers stale evidence.",
+            outcome="Task failed because the agent treated a stale draft as final.",
+            lesson="Treat stale-preview mistakes as negative RL trajectory samples.",
+        ),
+        durable_facts=[],
+        reusable_procedures=[],
+        uncertain_items=["A reviewer should confirm whether this sample is useful for training export."],
+        confidence=0.28,
+    )
+    store.write_reflection_result(success)
+    store.write_reflection_result(negative)
+    return [packet.id, success.id, negative.id]
 
 
 def _write_demo_index(store: LocalMemoryStore) -> list[str]:

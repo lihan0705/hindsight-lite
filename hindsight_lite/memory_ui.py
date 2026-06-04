@@ -29,10 +29,29 @@ class MemoryUiSection:
 
 
 @dataclass(frozen=True)
+class MemoryUiGraphNode:
+    id: str
+    label: str
+    kind: str
+    parent_id: str
+    file_id: str = ""
+    content: str = ""
+    sample_status: str = ""
+    metadata: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class MemoryUiGraph:
+    root_id: str
+    nodes: list[MemoryUiGraphNode]
+
+
+@dataclass(frozen=True)
 class MemoryUiSnapshot:
     bank_id: str
     bank_path: str
     sections: list[MemoryUiSection]
+    graph: MemoryUiGraph | None = None
 
 
 def write_memory_ui(store: LocalMemoryStore, output_path: Path | None = None) -> Path:
@@ -54,15 +73,17 @@ def _script_safe_json(snapshot: MemoryUiSnapshot) -> str:
 
 
 def _build_snapshot(store: LocalMemoryStore) -> MemoryUiSnapshot:
+    sections = [
+        _pages_section(store),
+        _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
+        _reflections_section(store.paths.reflections_dir),
+        _raw_section("index", "Index", store.paths.index_dir),
+    ]
     return MemoryUiSnapshot(
         bank_id=store.paths.bank_id,
         bank_path=str(store.paths.bank_dir),
-        sections=[
-            _pages_section(store),
-            _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
-            _reflections_section(store.paths.reflections_dir),
-            _raw_section("index", "Index", store.paths.index_dir),
-        ],
+        sections=sections,
+        graph=_build_graph(store.paths.bank_id, sections),
     )
 
 
@@ -221,6 +242,152 @@ def _trajectory_lesson(value: object) -> str:
     return _string_value(value.get("lesson"))
 
 
+def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph:
+    root_id = "bank"
+    nodes = [
+        MemoryUiGraphNode(id=root_id, label=bank_id, kind="bank", parent_id=""),
+        MemoryUiGraphNode(id="memory-files", label="Memory Files", kind="group", parent_id=root_id),
+        MemoryUiGraphNode(id="trajectory-samples", label="Trajectory Samples", kind="group", parent_id=root_id),
+        MemoryUiGraphNode(
+            id="trajectory-success", label="Success", kind="sample-group", parent_id="trajectory-samples"
+        ),
+        MemoryUiGraphNode(
+            id="trajectory-negative",
+            label="Error / Negative Candidates",
+            kind="sample-group",
+            parent_id="trajectory-samples",
+        ),
+        MemoryUiGraphNode(
+            id="trajectory-uncertain", label="Uncertain", kind="sample-group", parent_id="trajectory-samples"
+        ),
+    ]
+    for section in sections:
+        section_id = f"section-{section.id}"
+        nodes.append(
+            MemoryUiGraphNode(
+                id=section_id,
+                label=section.label,
+                kind="section",
+                parent_id="memory-files",
+                metadata={"files": str(len(section.files))},
+            )
+        )
+        for file in section.files:
+            file_node_id = f"file-{file.id}"
+            nodes.append(
+                MemoryUiGraphNode(
+                    id=file_node_id,
+                    label=file.label,
+                    kind=file.kind,
+                    parent_id=section_id,
+                    file_id=file.id,
+                    metadata=file.metadata,
+                )
+            )
+            nodes.extend(_trajectory_graph_nodes(file))
+    return MemoryUiGraph(root_id=root_id, nodes=nodes)
+
+
+def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
+    data = _json_object_from_content(file.content)
+    if data is None or data.get("type") != "reflection_result":
+        return []
+    trajectory = data.get("trajectory")
+    if not isinstance(trajectory, Mapping):
+        return []
+
+    sample_status = _trajectory_sample_status(data)
+    sample_id = f"trajectory-{_safe_graph_id(_string_value(data.get('id')) or file.id)}"
+    nodes = [
+        MemoryUiGraphNode(
+            id=sample_id,
+            label=_string_value(data.get("id")) or file.label,
+            kind="trajectory-sample",
+            parent_id=f"trajectory-{sample_status}",
+            file_id=file.id,
+            content=_string_value(trajectory.get("lesson")),
+            sample_status=sample_status,
+            metadata={
+                "request_id": _string_value(data.get("request_id")),
+                "session_id": _string_value(data.get("session_id")),
+                "confidence": _confidence_value(data.get("confidence")),
+            },
+        )
+    ]
+    for step in ("state", "action", "observation", "outcome", "lesson"):
+        content = _string_value(trajectory.get(step))
+        if not content:
+            continue
+        nodes.append(
+            MemoryUiGraphNode(
+                id=f"{sample_id}-{step}",
+                label=step,
+                kind="trajectory-step",
+                parent_id=sample_id,
+                file_id=file.id,
+                content=content,
+                sample_status=sample_status,
+            )
+        )
+    return nodes
+
+
+def _json_object_from_content(content: str) -> Mapping[str, object] | None:
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(parsed, Mapping):
+        return parsed
+    return None
+
+
+def _trajectory_sample_status(data: Mapping[str, object]) -> str:
+    confidence = _numeric_confidence(data.get("confidence"))
+    if confidence is not None and confidence < 0.5:
+        return "negative"
+
+    trajectory = data.get("trajectory")
+    if isinstance(trajectory, Mapping) and _contains_negative_signal(trajectory):
+        return "negative"
+
+    uncertain_items = data.get("uncertain_items")
+    if isinstance(uncertain_items, list) and uncertain_items:
+        return "uncertain"
+
+    return "success"
+
+
+def _numeric_confidence(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    return float(value)
+
+
+def _contains_negative_signal(trajectory: Mapping[str, object]) -> bool:
+    text = " ".join(
+        _string_value(trajectory.get(key)) for key in ("action", "observation", "outcome", "lesson")
+    ).lower()
+    return any(
+        term in text
+        for term in (
+            "failed",
+            "failure",
+            "wrong",
+            "incorrect",
+            "error",
+            "negative",
+            "skipped validation",
+            "失败",
+            "错误",
+        )
+    )
+
+
+def _safe_graph_id(value: str) -> str:
+    return "".join(character if character.isalnum() else "-" for character in value).strip("-") or "sample"
+
+
 def _page_download_prefix(path: Path) -> str:
     text = path.read_text(encoding="utf-8")
     if not text.startswith("---\n"):
@@ -372,12 +539,42 @@ _HTML_TEMPLATE = """<!doctype html>
       padding: 18px 20px 12px;
       border-bottom: 1px solid var(--line);
     }
+    .viewer-title-row {
+      display: flex;
+      gap: 12px;
+      align-items: start;
+      justify-content: space-between;
+    }
     .viewer-header h2 {
       margin: 0;
       font-size: 20px;
       line-height: 1.2;
     }
     .viewer-header .path { margin-top: 8px; }
+    .view-switch {
+      display: inline-flex;
+      gap: 4px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8faf5;
+      flex: 0 0 auto;
+    }
+    .view-tab {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      padding: 5px 9px;
+    }
+    .view-tab.active {
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(24, 32, 27, 0.08);
+    }
     .metadata {
       display: flex;
       flex-wrap: wrap;
@@ -439,6 +636,83 @@ _HTML_TEMPLATE = """<!doctype html>
       overflow-wrap: anywhere;
       outline: none;
     }
+    .graph-view {
+      min-height: 100%;
+      overflow: auto;
+      padding: 22px;
+      background: #fffefb;
+    }
+    .graph-tree {
+      min-width: 760px;
+    }
+    .graph-children {
+      margin-left: 26px;
+      padding-left: 18px;
+      border-left: 1px solid var(--line);
+    }
+    .graph-row {
+      position: relative;
+      padding: 8px 0;
+    }
+    .graph-row::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: 26px;
+      width: 18px;
+      height: 1px;
+      background: var(--line);
+    }
+    .graph-tree > .graph-row::before { display: none; }
+    .graph-node {
+      width: min(680px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 9px 11px;
+      box-shadow: 0 4px 14px rgba(24, 32, 27, 0.05);
+    }
+    .graph-node.clickable { cursor: pointer; }
+    .graph-node.clickable:hover { background: #f8faf5; }
+    .graph-node.trajectory-sample {
+      border-color: rgba(155, 107, 18, 0.38);
+    }
+    .graph-node.trajectory-step {
+      background: #fbfbf7;
+      box-shadow: none;
+    }
+    .graph-node.status-negative {
+      border-color: rgba(162, 59, 59, 0.42);
+      background: #fff8f6;
+    }
+    .graph-node.status-uncertain {
+      border-color: rgba(155, 107, 18, 0.42);
+      background: #fffaf0;
+    }
+    .graph-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .graph-label {
+      font-weight: 650;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .graph-content {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+    .graph-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 7px;
+    }
     .empty {
       padding: 40px;
       color: var(--muted);
@@ -448,6 +722,9 @@ _HTML_TEMPLATE = """<!doctype html>
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       main { padding: 14px; }
       .viewer { min-height: 70vh; }
+      .viewer-title-row { display: block; }
+      .view-switch { margin-top: 12px; }
+      .graph-tree { min-width: 560px; }
     }
   </style>
 </head>
@@ -462,7 +739,10 @@ _HTML_TEMPLATE = """<!doctype html>
     <main>
       <section class="viewer">
         <div class="viewer-header">
-          <h2 id="file-title"></h2>
+          <div class="viewer-title-row">
+            <h2 id="file-title"></h2>
+            <div class="view-switch" id="view-switch"></div>
+          </div>
           <div class="path" id="file-path"></div>
         </div>
         <div class="metadata" id="metadata"></div>
@@ -475,6 +755,7 @@ _HTML_TEMPLATE = """<!doctype html>
     const snapshot = __MEMORY_SNAPSHOT__;
     const files = snapshot.sections.flatMap((section) => section.files);
     let activeId = files[0]?.id || "";
+    let activeView = "file";
     const drafts = new Map();
 
     function render() {
@@ -482,7 +763,8 @@ _HTML_TEMPLATE = """<!doctype html>
       document.getElementById("bank-path").textContent = snapshot.bank_path;
       renderSummary();
       renderTree();
-      renderFile();
+      renderViewSwitch();
+      renderActiveView();
     }
 
     function renderSummary() {
@@ -523,10 +805,36 @@ _HTML_TEMPLATE = """<!doctype html>
       }
       button.addEventListener("click", () => {
         activeId = file.id;
+        activeView = "file";
         renderTree();
-        renderFile();
+        renderActiveView();
       });
       return button;
+    }
+
+    function renderViewSwitch() {
+      const switcher = document.getElementById("view-switch");
+      switcher.innerHTML = "";
+      ["file", "graph"].forEach((mode) => {
+        const button = document.createElement("button");
+        button.className = `view-tab ${activeView === mode ? "active" : ""}`;
+        button.type = "button";
+        button.textContent = mode === "file" ? "File" : "Graph";
+        button.addEventListener("click", () => {
+          activeView = mode;
+          renderViewSwitch();
+          renderActiveView();
+        });
+        switcher.append(button);
+      });
+    }
+
+    function renderActiveView() {
+      if (activeView === "graph") {
+        renderGraph();
+        return;
+      }
+      renderFile();
     }
 
     function renderFile() {
@@ -558,6 +866,120 @@ _HTML_TEMPLATE = """<!doctype html>
       const pre = document.createElement("pre");
       pre.textContent = file.content;
       content.append(pre);
+    }
+
+    function renderGraph() {
+      const graph = snapshot.graph;
+      document.getElementById("file-title").textContent = "Memory Graph";
+      document.getElementById("file-path").textContent = snapshot.bank_path;
+      renderGraphMetadata(graph);
+      document.getElementById("toolbar").innerHTML = "";
+
+      const content = document.getElementById("content");
+      content.innerHTML = "";
+      if (!graph || !graph.nodes.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No graph nodes found.";
+        content.append(empty);
+        return;
+      }
+
+      const view = document.createElement("div");
+      view.className = "graph-view";
+      const tree = document.createElement("div");
+      tree.className = "graph-tree";
+      tree.append(graphRow(graph.root_id, graphNodesByParent(graph.nodes)));
+      view.append(tree);
+      content.append(view);
+    }
+
+    function renderGraphMetadata(graph) {
+      const metadata = document.getElementById("metadata");
+      metadata.innerHTML = "";
+      if (!graph) return;
+      const counts = [
+        ["nodes", graph.nodes.length],
+        ["trajectories", graph.nodes.filter((node) => node.kind === "trajectory-sample").length],
+        ["negative", graph.nodes.filter((node) => node.sample_status === "negative" && node.kind === "trajectory-sample").length],
+      ];
+      counts.forEach(([key, value]) => {
+        const item = document.createElement("span");
+        item.className = "meta";
+        item.textContent = `${key}: ${value}`;
+        metadata.append(item);
+      });
+    }
+
+    function graphNodesByParent(nodes) {
+      const groups = new Map();
+      nodes.forEach((node) => {
+        const parent = node.parent_id || "";
+        if (!groups.has(parent)) groups.set(parent, []);
+        groups.get(parent).push(node);
+      });
+      return groups;
+    }
+
+    function graphRow(nodeId, groups) {
+      const node = snapshot.graph.nodes.find((item) => item.id === nodeId);
+      const row = document.createElement("div");
+      row.className = "graph-row";
+      if (!node) return row;
+      row.append(graphNode(node));
+      const children = groups.get(node.id) || [];
+      if (children.length) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "graph-children";
+        children.forEach((child) => wrapper.append(graphRow(child.id, groups)));
+        row.append(wrapper);
+      }
+      return row;
+    }
+
+    function graphNode(node) {
+      const element = document.createElement("div");
+      element.className = `graph-node ${node.kind} ${node.sample_status ? `status-${node.sample_status}` : ""}`;
+      if (node.file_id) {
+        element.classList.add("clickable");
+        element.addEventListener("click", (event) => {
+          event.stopPropagation();
+          activeId = node.file_id;
+          activeView = "file";
+          renderTree();
+          renderViewSwitch();
+          renderActiveView();
+        });
+      }
+      const head = document.createElement("div");
+      head.className = "graph-head";
+      const label = document.createElement("div");
+      label.className = "graph-label";
+      label.textContent = node.label;
+      const kind = document.createElement("span");
+      kind.className = "pill";
+      kind.textContent = node.sample_status || node.kind;
+      head.append(label, kind);
+      element.append(head);
+      if (node.content) {
+        const body = document.createElement("div");
+        body.className = "graph-content";
+        body.textContent = node.content;
+        element.append(body);
+      }
+      const metadata = Object.entries(node.metadata || {}).filter((entry) => entry[1]);
+      if (metadata.length) {
+        const meta = document.createElement("div");
+        meta.className = "graph-meta";
+        metadata.forEach(([key, value]) => {
+          const item = document.createElement("span");
+          item.className = "meta";
+          item.textContent = `${key}: ${value}`;
+          meta.append(item);
+        });
+        element.append(meta);
+      }
+      return element;
     }
 
     function renderMetadata(file) {
@@ -592,7 +1014,7 @@ _HTML_TEMPLATE = """<!doctype html>
       reset.addEventListener("click", () => {
         drafts.delete(file.id);
         renderTree();
-        renderFile();
+        renderActiveView();
       });
       toolbar.append(reset);
 

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from hindsight_lite.models import KnowledgePage, RecallResult, SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore
+from hindsight_lite.user_profile import expand_user_profile_query
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
 
@@ -22,13 +23,31 @@ class SearchCandidate:
     metadata: dict[str, str]
 
 
-def recall(store: LocalMemoryStore, query: str, max_results: int = 5) -> list[RecallResult]:
-    query_terms = _tokenize(query)
+@dataclass(frozen=True)
+class TemporalBugQuery:
+    days: int
+    current_time: datetime
+
+    @property
+    def cutoff(self) -> datetime:
+        return self.current_time - timedelta(days=self.days)
+
+
+def recall(
+    store: LocalMemoryStore,
+    query: str,
+    max_results: int = 5,
+    current_time: datetime | None = None,
+) -> list[RecallResult]:
+    temporal_bug_query = _parse_temporal_bug_query(query, current_time)
+    expanded_query = _expand_recall_query(query, temporal_bug_query)
+    query_terms = _tokenize(expanded_query)
     if not query_terms or max_results <= 0:
         return []
 
-    query_phrase = _normalize_phrase(query)
-    results = [_score_candidate(candidate, query_terms, query_phrase) for candidate in _iter_candidates(store)]
+    query_phrase = _normalize_phrase(expanded_query)
+    candidates = _filter_temporal_bug_candidates(_iter_candidates(store), temporal_bug_query)
+    results = [_score_candidate(candidate, query_terms, query_phrase) for candidate in candidates]
     ranked = sorted((result for result in results if result.score > 0), key=lambda result: (-result.score, result.id))
     return ranked[:max_results]
 
@@ -116,6 +135,78 @@ def _tokenize(text: str) -> set[str]:
 def _join_search_terms(title: str, tags: list[str], metadata: dict[str, str], extra: str = "") -> str:
     metadata_terms = [item for pair in metadata.items() for item in pair]
     return " ".join([title, *tags, *metadata_terms, extra])
+
+
+def _expand_recall_query(query: str, temporal_bug_query: TemporalBugQuery | None) -> str:
+    expanded_query = expand_user_profile_query(query)
+    if temporal_bug_query is None:
+        return expanded_query
+    return " ".join([expanded_query, "bug", "resolved", "fixed", "debugging"])
+
+
+def _parse_temporal_bug_query(query: str, current_time: datetime | None) -> TemporalBugQuery | None:
+    days = _parse_past_day_window(query)
+    if days is None or not _asks_for_solved_bugs(query):
+        return None
+    return TemporalBugQuery(days=days, current_time=_coerce_current_time(current_time))
+
+
+def _parse_past_day_window(query: str) -> int | None:
+    patterns = [
+        r"过去\s*(\d+)\s*天",
+        r"last\s+(\d+)\s+days?",
+        r"past\s+(\d+)\s+days?",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, query, flags=re.IGNORECASE)
+        if match:
+            days = int(match.group(1))
+            return days if days > 0 else None
+    return None
+
+
+def _asks_for_solved_bugs(query: str) -> bool:
+    normalized = query.lower()
+    has_bug = "bug" in normalized or "bugs" in normalized
+    has_resolution = any(term in normalized for term in ("resolved", "solved", "fixed", "fix")) or "解决" in query
+    return has_bug and has_resolution
+
+
+def _coerce_current_time(current_time: datetime | None) -> datetime:
+    if current_time is None:
+        return datetime.now(timezone.utc)
+    if current_time.tzinfo is None:
+        return current_time.replace(tzinfo=timezone.utc)
+    return current_time.astimezone(timezone.utc)
+
+
+def _filter_temporal_bug_candidates(
+    candidates: list[SearchCandidate],
+    temporal_bug_query: TemporalBugQuery | None,
+) -> list[SearchCandidate]:
+    if temporal_bug_query is None:
+        return candidates
+    return [candidate for candidate in candidates if _matches_temporal_bug_query(candidate, temporal_bug_query)]
+
+
+def _matches_temporal_bug_query(candidate: SearchCandidate, temporal_bug_query: TemporalBugQuery) -> bool:
+    if candidate.source != "session":
+        return False
+    timestamp = _parse_timestamp(candidate.timestamp)
+    if timestamp is None or timestamp < temporal_bug_query.cutoff or timestamp > temporal_bug_query.current_time:
+        return False
+    searchable = " ".join([candidate.title, candidate.keywords, candidate.body]).lower()
+    return "bug" in searchable and any(term in searchable for term in ("resolved", "solved", "fixed", "fix"))
+
+
+def _parse_timestamp(timestamp: str | None) -> datetime | None:
+    if timestamp is None:
+        return None
+    try:
+        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return _coerce_current_time(parsed)
 
 
 def _contains_query_phrase(candidate: SearchCandidate, query_phrase: str) -> bool:

@@ -12,11 +12,13 @@ import io
 import json
 import os
 import sys
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
 from conftest import FakeHTTPResponse, make_hook_input, make_memory, make_transcript_file, make_user_config
 
+from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore
 
 # ---------------------------------------------------------------------------
@@ -181,6 +183,44 @@ class TestRecallHook:
         hook_input = make_hook_input(prompt="What is the capital of France?")
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False})
         assert output.strip() == ""
+
+    def test_recall_filters_solved_bugs_to_recent_window(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        now = datetime.now(timezone.utc)
+        store.append_session_event(
+            SessionMemoryEvent(
+                type="session_memory",
+                id="evt-recent-bug",
+                timestamp=(now - timedelta(days=5)).isoformat().replace("+00:00", "Z"),
+                bank_id="codex",
+                session_id="recent-auth",
+                source="codex",
+                document_id="codex-recent-auth",
+                content="Resolved auth redirect loop bug by refreshing session state before redirect checks.",
+                tags=["debugging"],
+            )
+        )
+        store.append_session_event(
+            SessionMemoryEvent(
+                type="session_memory",
+                id="evt-old-bug",
+                timestamp=(now - timedelta(days=20)).isoformat().replace("+00:00", "Z"),
+                bank_id="codex",
+                session_id="old-cache",
+                source="codex",
+                document_id="codex-old-cache",
+                content="Resolved stale cache bug by clearing the generated index.",
+                tags=["debugging"],
+            )
+        )
+
+        hook_input = make_hook_input(prompt="过去10天我解决了哪些bug")
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
+
+        data = json.loads(output)
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert "auth redirect loop bug" in context
+        assert "stale cache bug" not in context
 
 
 # ---------------------------------------------------------------------------
@@ -359,3 +399,32 @@ class TestRetainHook:
 
         content = _retained_events(tmp_path)[0].content
         assert "TypeScript" in content
+
+    def test_promotes_user_profile_and_recalls_across_sessions(self, monkeypatch, tmp_path):
+        messages = [
+            {"role": "user", "content": "我是jack 我爱rust"},
+            {"role": "assistant", "content": "记住了。"},
+        ]
+        transcript = make_transcript_file(tmp_path, messages)
+
+        retain_input = make_hook_input(transcript_path=transcript, session_id="sess-profile-source")
+        _run_hook("retain", retain_input, monkeypatch, tmp_path)
+
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        profile = store.get_page("user-profile")
+        assert "jack" in profile.content
+        assert "rust" in profile.content
+        assert "user" in profile.tags
+        assert "programming-language" in profile.tags
+
+        recall_input = make_hook_input(
+            prompt="我是谁 我喜欢什么编程语言",
+            session_id="sess-profile-question",
+        )
+        output = _run_hook("recall", recall_input, monkeypatch, tmp_path)
+
+        data = json.loads(output)
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert "jack" in context
+        assert "rust" in context
+        assert "[page] (user-profile)" in context

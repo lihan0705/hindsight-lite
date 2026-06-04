@@ -34,6 +34,7 @@ from lib.state import increment_turn_count
 
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore
+from hindsight_lite.user_profile import promote_user_profile_from_messages
 
 
 def main():
@@ -152,6 +153,7 @@ def main():
             tags=tags or [],
         )
         store.append_session_event(event)
+        promote_user_profile_from_messages(store, messages_to_retain)
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
 
