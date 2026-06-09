@@ -1,0 +1,32 @@
+<svg width="960" height="420" viewBox="0 0 960 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Trajectory branch map legend</title>
+  <desc id="desc">A legend showing failed and uncertain reflection trajectories branching away from the successful main path.</desc>
+  <rect width="960" height="420" rx="0" fill="#F7F7F3"/>
+  <rect x="28" y="28" width="904" height="364" rx="8" fill="#FFFEFB" stroke="#D9DED2"/>
+  <text x="56" y="66" fill="#18201B" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="24" font-weight="700">Trajectory Branch Map Legend</text>
+  <text x="56" y="94" fill="#667065" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14">Reflection results are grouped as side branches or the main successful path for eval and RL review.</text>
+
+  <line x1="480" y1="100" x2="480" y2="334" stroke="#CBD8C4" stroke-width="4" stroke-linecap="round"/>
+
+  <line x1="260" y1="150" x2="480" y2="150" stroke="#D9DED2" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="480" cy="150" r="11" fill="#A23B3B" stroke="#FFFEFB" stroke-width="4"/>
+  <rect x="70" y="112" width="300" height="76" rx="8" fill="#FFF8F6" stroke="#C9897E"/>
+  <text x="94" y="132" fill="#18201B" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="15" font-weight="700">Failed side branch</text>
+  <text x="94" y="156" fill="#667065" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13">Low confidence, failed outcome, or stale evidence</text>
+
+  <line x1="480" y1="220" x2="690" y2="220" stroke="#D9DED2" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="480" cy="220" r="11" fill="#1F7A4C" stroke="#FFFEFB" stroke-width="4"/>
+  <rect x="610" y="182" width="280" height="76" rx="8" fill="#F8FBF5" stroke="#7DB591"/>
+  <text x="634" y="210" fill="#18201B" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="15" font-weight="700">Correct path node</text>
+  <text x="634" y="234" fill="#667065" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13">Successful trajectory worth reusing later</text>
+
+  <line x1="280" y1="300" x2="480" y2="300" stroke="#D9DED2" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="480" cy="300" r="11" fill="#9B6B12" stroke="#FFFEFB" stroke-width="4"/>
+  <rect x="70" y="262" width="300" height="76" rx="8" fill="#FFFAF0" stroke="#D7B36B"/>
+  <text x="94" y="290" fill="#18201B" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="15" font-weight="700">Uncertain side branch</text>
+  <text x="94" y="314" fill="#667065" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13">Needs reviewer confirmation before promotion</text>
+
+  <rect x="610" y="282" width="280" height="56" rx="8" fill="#FBFBF7" stroke="#D9DED2"/>
+  <text x="634" y="306" fill="#667065" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13">Click a node in the UI to inspect its</text>
+  <text x="634" y="326" fill="#667065" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13">source reflection_result JSON.</text>
+</svg>

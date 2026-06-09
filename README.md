@@ -169,6 +169,12 @@ samples stay on the main path for RL dataset review.
 
 ![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
 
+The trajectory branch map uses this legend: failed samples fork left as red
+side branches, uncertain samples fork left as amber side branches, and reusable
+successful samples stay on the green main path.
+
+![Trajectory branch map legend](docs/assets/trajectory-branch-map-legend.svg)
+
 For a more convincing local demo, seed representative history items across
 pages, sessions, reflections, trajectory results, and index files:
 
