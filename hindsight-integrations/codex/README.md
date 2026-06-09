@@ -62,9 +62,23 @@ When memories match, the hook prints Codex `hookSpecificOutput` JSON with
 
 ## Install Hooks
 
-Codex needs the hook commands from `hooks/hooks.json`, with the
-`__SCRIPTS_DIR__` placeholder replaced by this checkout's absolute scripts path.
-Generate the concrete hooks JSON from the repository root:
+This repository includes Codex plugin metadata in `.codex-plugin/plugin.json`
+and a relocatable hook payload at `hooks/plugin-hooks.json`. The plugin hook
+commands resolve `HINDSIGHT_LITE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`,
+`PLUGIN_ROOT`, or the current checkout, then set `PYTHONPATH` before calling
+`codex_hook.py`. That keeps the same checkout usable after installation or on a
+different machine without editing absolute script paths.
+
+If your Codex plugin runtime accepts an external hook payload, use:
+
+```text
+hindsight-integrations/codex/hooks/plugin-hooks.json
+```
+
+The legacy manual hook file is still available for direct Codex hook config.
+It uses the same hook events but requires replacing the `__SCRIPTS_DIR__`
+placeholder with this checkout's absolute scripts path. Generate the concrete
+hooks JSON from the repository root:
 
 ```bash
 scripts_dir="$PWD/hindsight-integrations/codex/scripts"
@@ -135,9 +149,11 @@ Defaults live in `settings.json`. User overrides can be written to
 | `autoFileContext` | `true` | Inject compact memory before file-reading tools |
 | `autoRetain` | `true` | Store conversations after each turn |
 | `retainMode` | `full-session` | `full-session` or `chunked` |
-| `retainEveryNTurns` | `10` | Retain every N turns |
+| `retainEveryNTurns` | `1` | Retain every N turns |
 | `recallMaxResults` | `5` | Maximum local recall results |
+| `recallMaxExcerptChars` | `160` | Maximum prompt-recall excerpt characters per result |
 | `fileContextMaxResults` | `3` | Maximum file-context recall results |
+| `fileContextMaxExcerptChars` | `140` | Maximum file-context excerpt characters per result |
 | `recallContextTurns` | `1` | Prior transcript turns used for recall query |
 | `recallMaxQueryChars` | `800` | Maximum recall query length |
 | `dynamicBankId` | `false` | Separate banks by project/session/user fields |
@@ -150,7 +166,9 @@ Environment overrides:
 export HINDSIGHT_LITE_HOME=~/.hindsight-lite
 export HINDSIGHT_BANK_ID=codex
 export HINDSIGHT_RECALL_MAX_RESULTS=5
+export HINDSIGHT_RECALL_MAX_EXCERPT_CHARS=160
 export HINDSIGHT_FILE_CONTEXT_MAX_RESULTS=3
+export HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS=140
 export HINDSIGHT_DEBUG=true
 ```
 
@@ -158,7 +176,9 @@ export HINDSIGHT_DEBUG=true
 
 Recall reads local pages and session events, ranks them with lightweight lexical
 matching, and emits Codex `additionalContext` wrapped in
-`<hindsight_lite_memories>`.
+`<hindsight_lite_memories>`. The hook output uses compact excerpts with stable
+source labels, so Codex gets a small memory index first instead of full session
+transcripts.
 
 Retain strips injected memory blocks before writing session JSONL, preventing
 memory feedback loops.

@@ -13,6 +13,7 @@ import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -179,6 +180,29 @@ class TestRecallHook:
         context = data["hookSpecificOutput"]["additionalContext"]
         assert context.count(" [page] ") == 1
 
+    def test_recall_excerpt_budget_is_configurable(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(
+            page_id="compact",
+            title="Compact",
+            content=" ".join(["compact"] * 60),
+        )
+
+        hook_input = make_hook_input(prompt="compact memory please")
+        output = _run_hook(
+            "recall",
+            hook_input,
+            monkeypatch,
+            tmp_path,
+            user_config={"recallMaxExcerptChars": 48},
+        )
+
+        data = json.loads(output)
+        context = data["hookSpecificOutput"]["additionalContext"]
+        memory_line = next(line for line in context.splitlines() if line.startswith("- "))
+        assert "..." in memory_line
+        assert len(memory_line.split(" [page] ")[0]) <= 50
+
     def test_disabled_auto_recall_produces_no_output(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is the capital of France?")
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False})
@@ -297,6 +321,16 @@ class TestFileContextHook:
 
 
 class TestRetainHook:
+    def test_packaged_defaults_retain_on_each_stop(self, monkeypatch, tmp_path):
+        from lib.config import load_config
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        for key in list(os.environ):
+            if key.startswith("HINDSIGHT_"):
+                monkeypatch.delenv(key, raising=False)
+
+        assert load_config()["retainEveryNTurns"] == 1
+
     def test_writes_transcript_to_local_store(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
@@ -428,3 +462,22 @@ class TestRetainHook:
         assert "jack" in context
         assert "rust" in context
         assert "[page] (user-profile)" in context
+
+
+class TestCodexPluginConfig:
+    def test_plugin_manifest_and_hooks_are_relocatable(self):
+        root_dir = Path(__file__).resolve().parents[3]
+        manifest_path = root_dir / ".codex-plugin" / "plugin.json"
+        hook_path = root_dir / "hindsight-integrations" / "codex" / "hooks" / "plugin-hooks.json"
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        hooks = json.loads(hook_path.read_text(encoding="utf-8"))
+        serialized_hooks = json.dumps(hooks)
+
+        assert manifest["name"] == "hindsight-lite"
+        assert "__SCRIPTS_DIR__" not in serialized_hooks
+        for event_name in ("SessionStart", "UserPromptSubmit", "PreToolUse", "Stop"):
+            command = hooks["hooks"][event_name][0]["hooks"][0]["command"]
+            assert "HINDSIGHT_LITE_PLUGIN_ROOT" in command
+            assert "PYTHONPATH" in command
+            assert f'codex_hook.py" {event_name}' in command

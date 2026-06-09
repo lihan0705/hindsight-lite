@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from hindsight_lite.models import SessionMemoryEvent
+from hindsight_lite.models import RecallResult, SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.store import LocalMemoryStore
 
@@ -150,3 +150,26 @@ def test_format_recall_for_codex_keeps_context_compact(tmp_path: Path) -> None:
     assert "Current time - 2026-05-10 12:00" in context
     assert "- Keep this fork subtractive and Codex-first. [page] (project-rules)" in context
     assert context.endswith("</hindsight_lite_memories>")
+
+
+def test_format_recall_for_codex_trims_excerpts_to_injection_budget() -> None:
+    result = RecallResult(
+        id="long-session",
+        source="session",
+        path="sessions/session-1.jsonl#long-session",
+        score=5.0,
+        title="session-1",
+        excerpt=" ".join(["token"] * 40),
+    )
+
+    context = format_recall_for_codex(
+        [result],
+        preamble="Relevant hindsight-lite memory:",
+        current_time="2026-05-10 12:00",
+        excerpt_max_chars=48,
+    )
+
+    memory_line = next(line for line in context.splitlines() if line.startswith("- "))
+    assert memory_line.endswith("[session] (session-1)")
+    assert "..." in memory_line
+    assert len(memory_line.split(" [session] ")[0]) <= 50

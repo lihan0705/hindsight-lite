@@ -14,7 +14,7 @@ from lib.bank import derive_bank_id
 from lib.config import debug_log, load_config
 
 from hindsight_lite.models import RecallResult
-from hindsight_lite.recall import recall
+from hindsight_lite.recall import format_recall_result_line, recall
 from hindsight_lite.store import LocalMemoryStore
 
 _PATH_KEYS = ("file_path", "path", "filename")
@@ -43,6 +43,7 @@ def main() -> None:
     bank_id = derive_bank_id(hook_input, config)
     store = LocalMemoryStore(bank_id=bank_id)
     max_results = int(config.get("fileContextMaxResults", 3))
+    excerpt_max_chars = int(config.get("fileContextMaxExcerptChars", config.get("recallMaxExcerptChars", 140)))
     query = " ".join(file_paths)
     results = recall(store, query=query, max_results=max_results)
     if not results:
@@ -53,6 +54,7 @@ def main() -> None:
         file_paths=file_paths,
         preamble=config.get("fileContextPromptPreamble", ""),
         results=results,
+        excerpt_max_chars=excerpt_max_chars,
     )
     output = {
         "hookSpecificOutput": {
@@ -128,11 +130,15 @@ def _dedupe_paths(paths: list[str]) -> list[str]:
     return deduped[:10]
 
 
-def _format_file_context(file_paths: list[str], preamble: str, results: list[RecallResult]) -> str:
+def _format_file_context(
+    file_paths: list[str],
+    preamble: str,
+    results: list[RecallResult],
+    excerpt_max_chars: int,
+) -> str:
     lines = ["<hindsight_lite_file_context>", preamble, f"FILES: {', '.join(file_paths)}", ""]
     for result in results:
-        label = result.id if result.source == "page" else result.title
-        lines.append(f"- {result.excerpt} [{result.source}] ({label})")
+        lines.append(format_recall_result_line(result, excerpt_max_chars))
     lines.append("</hindsight_lite_file_context>")
     return "\n".join(lines)
 

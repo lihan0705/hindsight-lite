@@ -94,6 +94,7 @@ def main():
 
     preamble = config.get("recallPromptPreamble", "")
     max_results = config.get("recallMaxResults", 5)
+    excerpt_max_chars = config.get("recallMaxExcerptChars", 160)
 
     debug_log(config, f"Recalling from local bank '{bank_id}', query length: {len(query)}")
     try:
@@ -108,7 +109,11 @@ def main():
 
     debug_log(config, f"Injecting {len(results)} memories")
 
-    context_message = format_recall_for_codex(results, preamble=preamble)
+    context_message = format_recall_for_codex(
+        results,
+        preamble=preamble,
+        excerpt_max_chars=excerpt_max_chars,
+    )
 
     write_state(
         LAST_RECALL_STATE,
