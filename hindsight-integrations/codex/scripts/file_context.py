@@ -60,7 +60,6 @@ def main() -> None:
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "additionalContext": context_message,
-            "permissionDecision": "allow",
         }
     }
     json.dump(output, sys.stdout)
