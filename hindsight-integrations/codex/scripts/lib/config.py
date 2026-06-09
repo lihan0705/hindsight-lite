@@ -12,6 +12,7 @@ DEFAULTS = {
     # Recall
     "autoRecall": True,
     "recallMaxResults": 5,
+    "recallMaxExcerptChars": 160,
     "recallContextTurns": 1,
     "recallMaxQueryChars": 800,
     "recallRoles": ["user", "assistant"],
@@ -23,6 +24,7 @@ DEFAULTS = {
     # File context
     "autoFileContext": True,
     "fileContextMaxResults": 3,
+    "fileContextMaxExcerptChars": 140,
     "fileContextPromptPreamble": (
         "Relevant hindsight-lite memory for the file about to be read. Use only if it changes the next action:"
     ),
@@ -30,7 +32,7 @@ DEFAULTS = {
     "autoRetain": True,
     "retainMode": "full-session",
     "retainRoles": ["user", "assistant"],
-    "retainEveryNTurns": 10,
+    "retainEveryNTurns": 1,
     "retainOverlapTurns": 2,
     "retainContext": "codex",
     "retainTags": [],
@@ -55,10 +57,12 @@ ENV_OVERRIDES = {
     "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
     "HINDSIGHT_RETAIN_MODE": ("retainMode", str),
     "HINDSIGHT_RECALL_MAX_RESULTS": ("recallMaxResults", int),
+    "HINDSIGHT_RECALL_MAX_EXCERPT_CHARS": ("recallMaxExcerptChars", int),
     "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
     "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
     "HINDSIGHT_AUTO_FILE_CONTEXT": ("autoFileContext", bool),
     "HINDSIGHT_FILE_CONTEXT_MAX_RESULTS": ("fileContextMaxResults", int),
+    "HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS": ("fileContextMaxExcerptChars", int),
     "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
     "HINDSIGHT_BANK_MISSION": ("bankMission", str),
     "HINDSIGHT_DEBUG": ("debug", bool),

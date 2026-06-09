@@ -1,0 +1,50 @@
+{
+  "description": "hindsight-lite Codex CLI hook integration with relocatable plugin-root resolution.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "_R=\"${HINDSIGHT_LITE_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-}}}\"; [ -n \"$_R\" ] || _R=\"$PWD\"; if [ ! -f \"$_R/hindsight-integrations/codex/scripts/codex_hook.py\" ] && [ -f \"$_R/../hindsight-integrations/codex/scripts/codex_hook.py\" ]; then _R=$(cd \"$_R/..\" && pwd); fi; _S=\"$_R/hindsight-integrations/codex/scripts\"; [ -f \"$_S/codex_hook.py\" ] || { echo \"hindsight-lite: codex_hook.py not found under $_R\" >&2; exit 1; }; PYTHONPATH=\"$_R${PYTHONPATH:+:$PYTHONPATH}\" python3 \"$_S/codex_hook.py\" SessionStart",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "_R=\"${HINDSIGHT_LITE_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-}}}\"; [ -n \"$_R\" ] || _R=\"$PWD\"; if [ ! -f \"$_R/hindsight-integrations/codex/scripts/codex_hook.py\" ] && [ -f \"$_R/../hindsight-integrations/codex/scripts/codex_hook.py\" ]; then _R=$(cd \"$_R/..\" && pwd); fi; _S=\"$_R/hindsight-integrations/codex/scripts\"; [ -f \"$_S/codex_hook.py\" ] || { echo \"hindsight-lite: codex_hook.py not found under $_R\" >&2; exit 1; }; PYTHONPATH=\"$_R${PYTHONPATH:+:$PYTHONPATH}\" python3 \"$_S/codex_hook.py\" UserPromptSubmit",
+            "timeout": 12
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Read$|^Bash$|^mcp__.+__(read|view|cat)(_file|_files)?$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "_R=\"${HINDSIGHT_LITE_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-}}}\"; [ -n \"$_R\" ] || _R=\"$PWD\"; if [ ! -f \"$_R/hindsight-integrations/codex/scripts/codex_hook.py\" ] && [ -f \"$_R/../hindsight-integrations/codex/scripts/codex_hook.py\" ]; then _R=$(cd \"$_R/..\" && pwd); fi; _S=\"$_R/hindsight-integrations/codex/scripts\"; [ -f \"$_S/codex_hook.py\" ] || { echo \"hindsight-lite: codex_hook.py not found under $_R\" >&2; exit 1; }; PYTHONPATH=\"$_R${PYTHONPATH:+:$PYTHONPATH}\" python3 \"$_S/codex_hook.py\" PreToolUse",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "_R=\"${HINDSIGHT_LITE_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-}}}\"; [ -n \"$_R\" ] || _R=\"$PWD\"; if [ ! -f \"$_R/hindsight-integrations/codex/scripts/codex_hook.py\" ] && [ -f \"$_R/../hindsight-integrations/codex/scripts/codex_hook.py\" ]; then _R=$(cd \"$_R/..\" && pwd); fi; _S=\"$_R/hindsight-integrations/codex/scripts\"; [ -f \"$_S/codex_hook.py\" ] || { echo \"hindsight-lite: codex_hook.py not found under $_R\" >&2; exit 1; }; PYTHONPATH=\"$_R${PYTHONPATH:+:$PYTHONPATH}\" python3 \"$_S/codex_hook.py\" Stop",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

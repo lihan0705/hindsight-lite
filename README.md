@@ -163,9 +163,9 @@ files without starting a server. Markdown pages can be edited in the browser and
 downloaded as complete `.md` files with their frontmatter preserved.
 Reflection request/result files are labeled separately and surface request
 links, confidence, and lesson previews for quick eval review. The `Graph` view
-adds a deterministic tree over the same local files, including trajectory
-samples grouped as success, error/negative candidates, or uncertain records for
-RL dataset review.
+adds a deterministic tree over the same local files plus a trajectory branch
+map: failed or uncertain samples split into side branches, while successful
+samples stay on the main path for RL dataset review.
 
 ![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
 
@@ -209,7 +209,9 @@ full historical transcripts.
 
 Recall scoring is intentionally lightweight and local. It uses body text plus
 titles, tags, metadata, and session identifiers, then excerpts near matching
-query terms so injected context stays small and relevant.
+query terms. Hook injection applies a separate excerpt character budget so the
+agent sees a compact index of relevant memories instead of full historical
+transcripts.
 
 ---
 

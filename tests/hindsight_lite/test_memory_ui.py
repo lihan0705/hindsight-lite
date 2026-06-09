@@ -107,6 +107,12 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"parent_id": "trajectory-success"' in html
     assert '"label": "outcome"' in html
     assert "Task failed because the trajectory skipped validation." in html
+    assert "Trajectory Branch Map" in html
+    assert "side branches /" in html
+    assert "failed branch" in html
+    assert "correct path" in html
+    assert ".branch-row.branch-side" in html
+    assert ".branch-row.branch-main" in html
     assert "Graph" in html
 
 

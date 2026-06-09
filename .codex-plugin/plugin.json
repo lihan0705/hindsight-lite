@@ -1,0 +1,39 @@
+{
+  "name": "hindsight-lite",
+  "version": "0.3.0",
+  "description": "Local-first memory runtime for Codex CLI using Markdown, JSONL, and static inspection tools.",
+  "author": {
+    "name": "hindsight-lite contributors",
+    "url": "https://github.com/lihan0705/hindsight-lite"
+  },
+  "homepage": "https://github.com/lihan0705/hindsight-lite#readme",
+  "repository": "https://github.com/lihan0705/hindsight-lite",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "memory",
+    "hooks",
+    "local-first",
+    "reflection",
+    "markdown",
+    "jsonl"
+  ],
+  "interface": {
+    "displayName": "hindsight-lite",
+    "shortDescription": "Local editable memory for Codex CLI sessions.",
+    "longDescription": "hindsight-lite retains Codex CLI sessions as local JSONL, recalls compact context into future prompts, and renders editable Markdown memory plus reflection trajectories in a static UI.",
+    "developerName": "hindsight-lite contributors",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/lihan0705/hindsight-lite",
+    "defaultPrompt": [
+      "Recall useful context before continuing this repo task.",
+      "Show my local memory tree for this Codex bank.",
+      "Retain the important lesson from this debugging session."
+    ],
+    "brandColor": "#1F7A4C"
+  }
+}

@@ -642,6 +642,124 @@ _HTML_TEMPLATE = """<!doctype html>
       padding: 22px;
       background: #fffefb;
     }
+    .branch-map {
+      min-width: 760px;
+      margin-bottom: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 4px 14px rgba(24, 32, 27, 0.05);
+      overflow: hidden;
+    }
+    .branch-map-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .branch-map-title {
+      font-weight: 700;
+    }
+    .branch-flow {
+      position: relative;
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+    .branch-flow::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      bottom: 18px;
+      left: 50%;
+      width: 2px;
+      background: #cbd8c4;
+    }
+    .branch-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 48px minmax(220px, 1fr);
+      gap: 12px;
+      align-items: center;
+      min-height: 76px;
+    }
+    .branch-row::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      height: 2px;
+      background: var(--line);
+      transform: translateY(-50%);
+    }
+    .branch-row.branch-side::after {
+      left: 16%;
+      right: 50%;
+    }
+    .branch-row.branch-main::after {
+      left: 50%;
+      right: 16%;
+    }
+    .branch-slot {
+      min-width: 0;
+      z-index: 1;
+    }
+    .branch-dot {
+      z-index: 2;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid var(--panel);
+      background: var(--green);
+      box-shadow: 0 0 0 1px var(--line);
+      justify-self: center;
+    }
+    .branch-dot.status-negative { background: var(--red); }
+    .branch-dot.status-uncertain { background: var(--gold); }
+    .branch-card {
+      width: 100%;
+      border: 1px solid rgba(31, 122, 76, 0.35);
+      border-radius: 8px;
+      background: #f8fbf5;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      padding: 10px 12px;
+      text-align: left;
+      box-shadow: 0 3px 10px rgba(24, 32, 27, 0.05);
+    }
+    .branch-card:hover { background: #eef6eb; }
+    .branch-card.status-negative {
+      border-color: rgba(162, 59, 59, 0.42);
+      background: #fff8f6;
+    }
+    .branch-card.status-negative:hover { background: #fff0eb; }
+    .branch-card.status-uncertain {
+      border-color: rgba(155, 107, 18, 0.42);
+      background: #fffaf0;
+    }
+    .branch-card.status-uncertain:hover { background: #fff4db; }
+    .branch-card-label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 650;
+      min-width: 0;
+    }
+    .branch-card-label span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .branch-card-body {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
     .graph-tree {
       min-width: 760px;
     }
@@ -724,6 +842,8 @@ _HTML_TEMPLATE = """<!doctype html>
       .viewer { min-height: 70vh; }
       .viewer-title-row { display: block; }
       .view-switch { margin-top: 12px; }
+      .branch-map { min-width: 560px; }
+      .branch-row { grid-template-columns: minmax(180px, 1fr) 40px minmax(180px, 1fr); }
       .graph-tree { min-width: 560px; }
     }
   </style>
@@ -887,11 +1007,91 @@ _HTML_TEMPLATE = """<!doctype html>
 
       const view = document.createElement("div");
       view.className = "graph-view";
+      const branchMap = renderTrajectoryBranchMap(graph);
+      if (branchMap) {
+        view.append(branchMap);
+      }
       const tree = document.createElement("div");
       tree.className = "graph-tree";
       tree.append(graphRow(graph.root_id, graphNodesByParent(graph.nodes)));
       view.append(tree);
       content.append(view);
+    }
+
+    function renderTrajectoryBranchMap(graph) {
+      const samples = graph.nodes.filter((node) => node.kind === "trajectory-sample");
+      if (!samples.length) return null;
+
+      const branchMap = document.createElement("section");
+      branchMap.className = "branch-map";
+
+      const failures = samples.filter((node) => node.sample_status !== "success");
+      const successes = samples.filter((node) => node.sample_status === "success");
+      const head = document.createElement("div");
+      head.className = "branch-map-head";
+      const title = document.createElement("div");
+      title.className = "branch-map-title";
+      title.textContent = "Trajectory Branch Map";
+      const count = document.createElement("span");
+      count.className = "meta";
+      count.textContent = `${failures.length} side branches / ${successes.length} correct path nodes`;
+      head.append(title, count);
+      branchMap.append(head);
+
+      const flow = document.createElement("div");
+      flow.className = "branch-flow";
+      failures.forEach((sample) => flow.append(branchRow(sample, "side")));
+      successes.forEach((sample) => flow.append(branchRow(sample, "main")));
+      branchMap.append(flow);
+      return branchMap;
+    }
+
+    function branchRow(sample, branchType) {
+      const row = document.createElement("div");
+      row.className = `branch-row branch-${branchType}`;
+      const left = document.createElement("div");
+      left.className = "branch-slot";
+      const dot = document.createElement("span");
+      dot.className = `branch-dot status-${sample.sample_status || "success"}`;
+      const right = document.createElement("div");
+      right.className = "branch-slot";
+
+      if (branchType === "side") {
+        left.append(branchCard(sample, "failed branch"));
+      } else {
+        right.append(branchCard(sample, "correct path"));
+      }
+      row.append(left, dot, right);
+      return row;
+    }
+
+    function branchCard(sample, laneLabel) {
+      const card = document.createElement("button");
+      card.className = `branch-card status-${sample.sample_status || "success"}`;
+      card.type = "button";
+      card.addEventListener("click", () => {
+        activeId = sample.file_id;
+        activeView = "file";
+        renderTree();
+        renderViewSwitch();
+        renderActiveView();
+      });
+      const label = document.createElement("div");
+      label.className = "branch-card-label";
+      const name = document.createElement("span");
+      name.textContent = sample.label;
+      const status = document.createElement("span");
+      status.className = "pill";
+      status.textContent = laneLabel;
+      label.append(name, status);
+      card.append(label);
+      if (sample.content) {
+        const body = document.createElement("div");
+        body.className = "branch-card-body";
+        body.textContent = sample.content;
+        card.append(body);
+      }
+      return card;
     }
 
     function renderGraphMetadata(graph) {

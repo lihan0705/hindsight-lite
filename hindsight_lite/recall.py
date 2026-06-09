@@ -9,6 +9,7 @@ from hindsight_lite.store import LocalMemoryStore
 from hindsight_lite.user_profile import expand_user_profile_query
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
+DEFAULT_RECALL_EXCERPT_MAX_CHARS = 160
 
 
 @dataclass(frozen=True)
@@ -56,12 +57,22 @@ def format_recall_for_codex(
     results: list[RecallResult],
     preamble: str,
     current_time: str | None = None,
+    excerpt_max_chars: int = DEFAULT_RECALL_EXCERPT_MAX_CHARS,
 ) -> str:
     timestamp = current_time or format_current_time()
     lines = ["<hindsight_lite_memories>", preamble, f"Current time - {timestamp}", ""]
-    lines.extend(_format_result(result) for result in results)
+    lines.extend(format_recall_result_line(result, excerpt_max_chars) for result in results)
     lines.append("</hindsight_lite_memories>")
     return "\n".join(lines)
+
+
+def format_recall_result_line(
+    result: RecallResult,
+    excerpt_max_chars: int = DEFAULT_RECALL_EXCERPT_MAX_CHARS,
+) -> str:
+    label = result.id if result.source == "page" else result.title
+    excerpt = _trim_excerpt(result.excerpt, excerpt_max_chars)
+    return f"- {excerpt} [{result.source}] ({label})"
 
 
 def format_current_time() -> str:
@@ -123,9 +134,12 @@ def _score_candidate(candidate: SearchCandidate, query_terms: set[str], query_ph
     )
 
 
-def _format_result(result: RecallResult) -> str:
-    label = result.id if result.source == "page" else result.title
-    return f"- {result.excerpt} [{result.source}] ({label})"
+def _trim_excerpt(excerpt: str, max_chars: int) -> str:
+    budget = max(40, max_chars)
+    compact = " ".join(excerpt.split())
+    if len(compact) <= budget:
+        return compact
+    return compact[: budget - 3].rstrip() + "..."
 
 
 def _tokenize(text: str) -> set[str]:
