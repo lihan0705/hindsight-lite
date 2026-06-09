@@ -274,7 +274,7 @@ class TestFileContextHook:
         data = json.loads(output)
         context = data["hookSpecificOutput"]["additionalContext"]
         assert data["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
-        assert data["hookSpecificOutput"]["permissionDecision"] == "allow"
+        assert "permissionDecision" not in data["hookSpecificOutput"]
         assert "<hindsight_lite_file_context>" in context
         assert "hindsight_lite/cli.py keeps user-facing memory commands" in context
 
