@@ -135,7 +135,10 @@ in page metadata, and never writes back to Codex-owned files. Pass
 
 `memory-ui` writes a static `memory-tree.html` file into the selected bank
 directory. Open that file locally to inspect pages, sessions, reflections, and
-index files in a tree-shaped view.
+index files in a tree-shaped view. When the Codex hooks are installed, the
+Stop hook refreshes this file after each successful retain. You can also send
+`/memorytree` in Codex CLI to regenerate the file and get the local HTML path
+back in the assistant response.
 
 ## Configuration
 
@@ -148,6 +151,7 @@ Defaults live in `settings.json`. User overrides can be written to
 | `autoRecall` | `true` | Inject memory before each prompt |
 | `autoFileContext` | `true` | Inject compact memory before file-reading tools |
 | `autoRetain` | `true` | Store conversations after each turn |
+| `autoMemoryUi` | `true` | Refresh `memory-tree.html` after each successful retain |
 | `retainMode` | `full-session` | `full-session` or `chunked` |
 | `retainEveryNTurns` | `1` | Retain every N turns |
 | `recallMaxResults` | `5` | Maximum local recall results |
@@ -169,6 +173,7 @@ export HINDSIGHT_RECALL_MAX_RESULTS=5
 export HINDSIGHT_RECALL_MAX_EXCERPT_CHARS=160
 export HINDSIGHT_FILE_CONTEXT_MAX_RESULTS=3
 export HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS=140
+export HINDSIGHT_AUTO_MEMORY_UI=true
 export HINDSIGHT_DEBUG=true
 ```
 

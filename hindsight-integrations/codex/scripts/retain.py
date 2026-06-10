@@ -32,6 +32,7 @@ from lib.content import (
 )
 from lib.state import increment_turn_count
 
+from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore
 from hindsight_lite.user_profile import promote_user_profile_from_messages
@@ -156,6 +157,14 @@ def main():
         promote_user_profile_from_messages(store, messages_to_retain)
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+        return
+
+    if config.get("autoMemoryUi"):
+        try:
+            output_path = write_memory_ui(store)
+            debug_log(config, f"Updated memory tree UI: {output_path}")
+        except Exception as e:
+            print(f"[Hindsight] Memory tree UI update failed: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":

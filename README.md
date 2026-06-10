@@ -161,6 +161,11 @@ The command writes `memory-tree.html` inside the selected bank directory. It is
 a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
 files without starting a server. Markdown pages can be edited in the browser and
 downloaded as complete `.md` files with their frontmatter preserved.
+When the Codex hook integration is installed, the Stop hook refreshes this file
+after each successful retain, so newly promoted pages such as user preferences
+show up the next time the HTML is opened or reloaded. In Codex CLI, send
+`/memorytree` to regenerate the same file and get the local path back in the
+assistant response.
 Reflection request/result files are labeled separately and surface request
 links, confidence, and lesson previews for quick eval review. The `Graph` view
 adds a deterministic tree over the same local files plus a trajectory branch

@@ -128,6 +128,20 @@ class TestRecallHook:
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
         assert output.strip() == ""
 
+    def test_memorytree_prompt_generates_static_ui(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(page_id="drink", title="Drink", content="User likes lemon water.")
+
+        hook_input = make_hook_input(prompt="/memorytree")
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
+
+        data = json.loads(output)
+        context = data["hookSpecificOutput"]["additionalContext"]
+        ui_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "memory-tree.html"
+        assert str(ui_path) in context
+        assert ui_path.exists()
+        assert "User likes lemon water." in ui_path.read_text(encoding="utf-8")
+
     def test_graceful_when_local_store_has_no_matches(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is my project about?")
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
@@ -361,6 +375,27 @@ class TestRetainHook:
         events = _retained_events(tmp_path)
         assert len(events) == 1
         assert "hello" in events[0].content
+
+    def test_retain_refreshes_memory_tree_ui(self, monkeypatch, tmp_path):
+        messages = [{"role": "user", "content": "我喜欢喝柠檬水"}, {"role": "assistant", "content": "记住了。"}]
+        transcript = make_transcript_file(tmp_path, messages)
+
+        hook_input = make_hook_input(transcript_path=transcript)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
+
+        ui_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "memory-tree.html"
+        assert ui_path.exists()
+        assert "柠檬水" in ui_path.read_text(encoding="utf-8")
+
+    def test_retain_can_skip_memory_tree_ui_refresh(self, monkeypatch, tmp_path):
+        messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
+        transcript = make_transcript_file(tmp_path, messages)
+
+        hook_input = make_hook_input(transcript_path=transcript)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path, user_config={"autoMemoryUi": False})
+
+        ui_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "memory-tree.html"
+        assert not ui_path.exists()
 
     def test_no_retain_on_empty_transcript(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(transcript_path="/nonexistent/transcript.jsonl")
