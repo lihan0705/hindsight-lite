@@ -292,6 +292,26 @@ class TestFileContextHook:
 
         assert output.strip() == ""
 
+    def test_file_context_skips_memory_store_paths(self, monkeypatch, tmp_path):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.write_page(
+            page_id="memory-path",
+            title="Memory Path",
+            content="Reading memory files should not recursively inject file context.",
+        )
+        hook_input = make_hook_input()
+        hook_input.update(
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "Read",
+                "tool_input": {"file_path": str(tmp_path / ".codex" / "memories")},
+            }
+        )
+
+        output = _run_hook("file_context", hook_input, monkeypatch, tmp_path)
+
+        assert output.strip() == ""
+
     def test_dispatcher_routes_pre_tool_use_to_file_context(self, monkeypatch, tmp_path):
         store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
         store.write_page(
@@ -436,7 +456,7 @@ class TestRetainHook:
 
     def test_promotes_user_profile_and_recalls_across_sessions(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "我是jack 我爱rust"},
+            {"role": "user", "content": "我是jack 我爱rust 我喜欢喝柠檬水"},
             {"role": "assistant", "content": "记住了。"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
@@ -448,11 +468,13 @@ class TestRetainHook:
         profile = store.get_page("user-profile")
         assert "jack" in profile.content
         assert "rust" in profile.content
+        assert "柠檬水" in profile.content
         assert "user" in profile.tags
         assert "programming-language" in profile.tags
+        assert "drink" in profile.tags
 
         recall_input = make_hook_input(
-            prompt="我是谁 我喜欢什么编程语言",
+            prompt="我是谁 我喜欢什么编程语言 我喜欢喝什么",
             session_id="sess-profile-question",
         )
         output = _run_hook("recall", recall_input, monkeypatch, tmp_path)
@@ -461,6 +483,7 @@ class TestRetainHook:
         context = data["hookSpecificOutput"]["additionalContext"]
         assert "jack" in context
         assert "rust" in context
+        assert "柠檬水" in context
         assert "[page] (user-profile)" in context
 
 

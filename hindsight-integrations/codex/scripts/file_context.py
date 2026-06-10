@@ -39,6 +39,10 @@ def main() -> None:
     if not file_paths:
         debug_log(config, "No readable file path in PreToolUse input")
         return
+    file_paths = [path for path in file_paths if not _is_memory_path(path)]
+    if not file_paths:
+        debug_log(config, "Skipping file context for memory store paths")
+        return
 
     bank_id = derive_bank_id(hook_input, config)
     store = LocalMemoryStore(bank_id=bank_id)
@@ -127,6 +131,27 @@ def _dedupe_paths(paths: list[str]) -> list[str]:
             seen.add(normalized)
             deduped.append(normalized)
     return deduped[:10]
+
+
+def _is_memory_path(value: str) -> bool:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        return False
+    normalized = path.resolve(strict=False)
+    memory_roots = [
+        Path(os.environ.get("HINDSIGHT_LITE_HOME", "~/.hindsight-lite")).expanduser(),
+        Path("~/.codex/memories").expanduser(),
+        Path("~/.hindsight/codex").expanduser(),
+    ]
+    return any(_is_path_relative_to(normalized, root.resolve(strict=False)) for root in memory_roots)
+
+
+def _is_path_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return path == root
+    return True
 
 
 def _format_file_context(

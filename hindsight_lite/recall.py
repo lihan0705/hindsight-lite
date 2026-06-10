@@ -50,7 +50,7 @@ def recall(
     candidates = _filter_temporal_bug_candidates(_iter_candidates(store), temporal_bug_query)
     results = [_score_candidate(candidate, query_terms, query_phrase) for candidate in candidates]
     ranked = sorted((result for result in results if result.score > 0), key=lambda result: (-result.score, result.id))
-    return ranked[:max_results]
+    return _dedupe_ranked_results(ranked)[:max_results]
 
 
 def format_recall_for_codex(
@@ -132,6 +132,25 @@ def _score_candidate(candidate: SearchCandidate, query_terms: set[str], query_ph
         timestamp=candidate.timestamp,
         metadata=candidate.metadata,
     )
+
+
+def _dedupe_ranked_results(results: list[RecallResult]) -> list[RecallResult]:
+    seen: set[str] = set()
+    deduped: list[RecallResult] = []
+    for result in results:
+        key = _recall_dedupe_key(result)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(result)
+    return deduped
+
+
+def _recall_dedupe_key(result: RecallResult) -> str:
+    if result.source == "page":
+        return f"page:{result.id}"
+    document = result.title or result.path.split("#", 1)[0]
+    return f"session:{document}"
 
 
 def _trim_excerpt(excerpt: str, max_chars: int) -> str:

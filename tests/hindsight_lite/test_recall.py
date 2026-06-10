@@ -130,6 +130,29 @@ def test_recall_filters_solved_bugs_by_past_day_window(tmp_path: Path) -> None:
     assert "auth redirect loop bug" in results[0].excerpt
 
 
+def test_recall_dedupes_multiple_events_from_same_session_document(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    for index in range(3):
+        store.append_session_event(
+            SessionMemoryEvent(
+                type="session_memory",
+                id=f"evt-drink-{index}",
+                timestamp=f"2026-05-31T12:0{index}:00Z",
+                bank_id="codex",
+                session_id="drink-session",
+                source="codex",
+                document_id="codex-drink-session",
+                content=f"User preference: likes lemon water. duplicate event {index}",
+                tags=["preference", "drink"],
+            )
+        )
+
+    results = recall(store, "lemon water drink preference", max_results=5)
+
+    assert len(results) == 1
+    assert results[0].title == "codex-drink-session"
+
+
 def test_format_recall_for_codex_keeps_context_compact(tmp_path: Path) -> None:
     store = LocalMemoryStore(home=tmp_path, bank_id="codex")
     store.write_page(
