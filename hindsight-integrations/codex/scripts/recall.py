@@ -34,12 +34,10 @@ from lib.content import (
 )
 from lib.state import write_state
 
-from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.store import LocalMemoryStore
 
 LAST_RECALL_STATE = "last_recall.json"
-MEMORY_TREE_COMMANDS = {"/memorytree", "/memory-tree", "/memory_ui", "/memory-ui"}
 
 
 def main():
@@ -74,10 +72,6 @@ def main():
 
     bank_id = derive_bank_id(hook_input, config)
     store = LocalMemoryStore(bank_id=bank_id)
-
-    if prompt.lower() in MEMORY_TREE_COMMANDS:
-        _output_memory_tree_context(store, bank_id)
-        return
 
     # Multi-turn query composition
     recall_context_turns = config.get("recallContextTurns", 1)
@@ -132,28 +126,6 @@ def main():
     )
 
     # Output JSON for Codex hook system
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "UserPromptSubmit",
-            "additionalContext": context_message,
-        }
-    }
-    json.dump(output, sys.stdout)
-
-
-def _output_memory_tree_context(store: LocalMemoryStore, bank_id: str) -> None:
-    try:
-        output_path = write_memory_ui(store)
-    except Exception as e:
-        print(f"[Hindsight] Memory tree UI update failed: {e}", file=sys.stderr)
-        return
-
-    context_message = (
-        "<hindsight_lite_memory_tree>\n"
-        f"Generated latest memory tree UI for bank '{bank_id}': {output_path}\n"
-        "Open this local HTML file to inspect pages, sessions, reflections, index files, and trajectory graph.\n"
-        "</hindsight_lite_memory_tree>"
-    )
     output = {
         "hookSpecificOutput": {
             "hookEventName": "UserPromptSubmit",

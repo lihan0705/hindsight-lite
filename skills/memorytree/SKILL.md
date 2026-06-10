@@ -5,16 +5,18 @@ description: Open the editable hindsight-lite memory tree in a local browser. Us
 
 # Memory Tree
 
-1. Resolve the plugin root as the directory two levels above this `SKILL.md`.
-2. Use `codex` as the bank unless the user names another bank.
-3. Start this command in a long-running background terminal:
+1. Use `codex` as the bank unless the user names another bank.
+2. Start the bundled launcher in a long-running background terminal:
 
    ```bash
-   PYTHONPATH="<plugin-root>${PYTHONPATH:+:$PYTHONPATH}" python3 -m hindsight_lite memory-ui --bank codex --serve --open
+   python3 <skill-directory>/scripts/open_memorytree.py --bank codex
    ```
 
-4. Read the printed `http://127.0.0.1:<port>/` URL and report it to the user.
-5. Keep the terminal running while the user inspects or edits memory. Stop it only when requested.
+3. Read the printed `http://127.0.0.1:<port>/` URL and report it to the user.
+4. Keep the terminal running while the user inspects or edits memory. Stop it only when requested.
 
-If automatic browser opening fails, restart without `--open`, keep the server running, and give the
-localhost URL to the user. Do not fall back to a WSL UNC file path.
+The editable UI must use an `http://127.0.0.1` URL. A `memory-tree.html` path is a read-only static
+snapshot and is not a successful result for this skill.
+
+If automatic browser opening fails, restart the launcher with `--no-open`, keep the server running,
+and give the localhost URL to the user. Do not fall back to a WSL UNC file path.
