@@ -150,7 +150,10 @@ python3 -m hindsight_lite codex-prompts install
 
 Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
 or type `/` and search for `memorytree`. The prompt regenerates the memory tree
-and opens the local HTML file.
+and opens the local HTML file with the platform-native launcher. On Windows,
+this uses `os.startfile` instead of Python's browser registry. After updating
+hindsight-lite, run `python3 -m hindsight_lite codex-prompts install --force`
+and restart Codex to replace an older prompt.
 
 ## Configuration
 

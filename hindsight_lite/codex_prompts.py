@@ -12,14 +12,19 @@ argument-hint: [BANK=codex]
 Generate the latest hindsight-lite memory tree UI for the Codex bank and open it locally.
 
 Use `codex` as the bank unless the arguments include a different `BANK=` value.
-Run:
+First run:
 
 ```bash
 PYTHONPATH={plugin_root}${{PYTHONPATH:+:$PYTHONPATH}} python3 -m hindsight_lite memory-ui --bank codex --open
 ```
 
 If a different `BANK=` value was provided, replace `codex` with that bank name.
-After running the command, report the generated `memory-tree.html` path.
+The CLI uses the platform-native opener: Windows `os.startfile`, macOS `open`,
+or Linux `xdg-open`. If the automatic opener fails on Windows, capture the
+generated path and retry with
+`powershell.exe -NoProfile -Command "Start-Process -FilePath '<path>'"`.
+If opening the GUI requires approval, request approval and retry. Finally,
+report the generated path.
 """
 
 

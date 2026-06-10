@@ -198,7 +198,10 @@ python3 -m hindsight_lite codex-prompts install
 
 Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
 or type `/` and search for `memorytree`. The prompt runs `memory-ui --open`,
-which regenerates the HTML and opens it locally.
+which regenerates the HTML and opens it with the platform-native launcher
+(`os.startfile` on Windows, `open` on macOS, or `xdg-open` on Linux). After
+updating hindsight-lite, refresh an existing prompt with
+`python3 -m hindsight_lite codex-prompts install --force`, then restart Codex.
 
 ---
 

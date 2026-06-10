@@ -336,15 +336,33 @@ def test_cli_generates_memory_ui(tmp_path: Path, capsys) -> None:
 
 
 def test_cli_memory_ui_can_open_generated_file(tmp_path: Path, capsys, monkeypatch) -> None:
-    opened: list[str] = []
-    monkeypatch.setattr("hindsight_lite.cli.webbrowser.open", opened.append)
+    opened: list[list[str]] = []
+
+    def fake_run(command: list[str], check: bool) -> None:
+        assert check is True
+        opened.append(command)
+
+    monkeypatch.setattr("hindsight_lite.cli.subprocess.run", fake_run)
+    monkeypatch.setattr("hindsight_lite.cli.sys.platform", "darwin")
 
     assert main(["--home", str(tmp_path), "memory-ui", "--bank", "codex", "--open"]) == 0
 
     output = capsys.readouterr().out
     output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
     assert str(output_path) in output
-    assert opened == [output_path.resolve().as_uri()]
+    assert opened == [["open", str(output_path.resolve())]]
+
+
+def test_cli_memory_ui_uses_startfile_on_windows(tmp_path: Path, capsys, monkeypatch) -> None:
+    opened: list[Path] = []
+    monkeypatch.setattr("hindsight_lite.cli.sys.platform", "win32")
+    monkeypatch.setattr("hindsight_lite.cli.os.startfile", opened.append, raising=False)
+
+    assert main(["--home", str(tmp_path), "memory-ui", "--bank", "codex", "--open"]) == 0
+
+    output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
+    assert str(output_path) in capsys.readouterr().out
+    assert opened == [output_path.resolve()]
 
 
 def test_cli_installs_codex_memorytree_prompt(tmp_path: Path, capsys) -> None:
@@ -359,6 +377,8 @@ def test_cli_installs_codex_memorytree_prompt(tmp_path: Path, capsys) -> None:
     assert "description: Generate and open the hindsight-lite memory tree UI" in content
     assert "PYTHONPATH=" in content
     assert "python3 -m hindsight_lite memory-ui --bank codex --open" in content
+    assert "Windows `os.startfile`" in content
+    assert "Start-Process" in content
 
 
 def test_cli_refuses_to_overwrite_codex_prompt_without_force(tmp_path: Path, capsys) -> None:
