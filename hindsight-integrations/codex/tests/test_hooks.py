@@ -128,19 +128,14 @@ class TestRecallHook:
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
         assert output.strip() == ""
 
-    def test_memorytree_prompt_generates_static_ui(self, monkeypatch, tmp_path):
-        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
-        store.write_page(page_id="drink", title="Drink", content="User likes lemon water.")
+    def test_memorytree_prompt_does_not_generate_static_ui(self, monkeypatch, tmp_path):
+        hook_input = make_hook_input(prompt="memorytree")
 
-        hook_input = make_hook_input(prompt="/memorytree")
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
 
-        data = json.loads(output)
-        context = data["hookSpecificOutput"]["additionalContext"]
         ui_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "memory-tree.html"
-        assert str(ui_path) in context
-        assert ui_path.exists()
-        assert "User likes lemon water." in ui_path.read_text(encoding="utf-8")
+        assert output.strip() == ""
+        assert not ui_path.exists()
 
     def test_graceful_when_local_store_has_no_matches(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is my project about?")
