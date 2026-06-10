@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 import sys
-import webbrowser
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -268,8 +269,22 @@ def _cmd_memory_ui(args: argparse.Namespace) -> int:
     output_path = write_memory_ui(store=_store(args), output_path=args.output)
     print(output_path)
     if args.open:
-        webbrowser.open(output_path.resolve().as_uri())
+        try:
+            _open_local_file(output_path)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            print(f"could not open memory tree UI: {exc}", file=sys.stderr)
+            return 1
     return 0
+
+
+def _open_local_file(path: Path) -> None:
+    resolved = path.resolve()
+    if sys.platform == "win32":
+        os.startfile(resolved)  # type: ignore[attr-defined]
+        return
+
+    command = ["open", str(resolved)] if sys.platform == "darwin" else ["xdg-open", str(resolved)]
+    subprocess.run(command, check=True)
 
 
 def _cmd_codex_prompts_install(args: argparse.Namespace) -> int:
