@@ -116,7 +116,8 @@ python3 -m hindsight_lite agent_knowledge_recall --bank codex "project rules"
 python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test --content "Important session note"
 python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
 python3 -m hindsight_lite agent_knowledge_import_codex_memory --bank codex --dry-run
-python3 -m hindsight_lite memory-ui --bank codex
+python3 -m hindsight_lite memory-ui --bank codex --open
+python3 -m hindsight_lite codex-prompts install
 ```
 
 Short commands such as `recall`, `retain`, `reflect`, and `knowledge list/get`
@@ -136,9 +137,20 @@ in page metadata, and never writes back to Codex-owned files. Pass
 `memory-ui` writes a static `memory-tree.html` file into the selected bank
 directory. Open that file locally to inspect pages, sessions, reflections, and
 index files in a tree-shaped view. When the Codex hooks are installed, the
-Stop hook refreshes this file after each successful retain. You can also send
-`/memorytree` in Codex CLI to regenerate the file and get the local HTML path
-back in the assistant response.
+Stop hook refreshes this file after each successful retain. The UI renders
+session JSONL as readable event summaries so retained conversations are easier
+to inspect.
+
+Codex CLI custom prompts live under `~/.codex/prompts`. Install the bundled
+memory tree prompt with:
+
+```bash
+python3 -m hindsight_lite codex-prompts install
+```
+
+Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
+or type `/` and search for `memorytree`. The prompt regenerates the memory tree
+and opens the local HTML file.
 
 ## Configuration
 

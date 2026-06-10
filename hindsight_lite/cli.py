@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import webbrowser
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
 from hindsight_lite.codex_memory import import_codex_memories
+from hindsight_lite.codex_prompts import install_codex_prompts
 from hindsight_lite.demo_memory import DemoMemoryExistsError, seed_demo_memory
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
@@ -144,7 +146,18 @@ def _build_parser() -> argparse.ArgumentParser:
     memory_ui_parser = subparsers.add_parser("memory-ui", help="Generate a static local memory tree UI.")
     _add_bank_arg(memory_ui_parser)
     memory_ui_parser.add_argument("--output", type=Path, default=None)
+    memory_ui_parser.add_argument("--open", action="store_true", help="Open the generated HTML file in a browser.")
     memory_ui_parser.set_defaults(handler=_cmd_memory_ui)
+
+    codex_prompts_parser = subparsers.add_parser("codex-prompts", help="Install Codex custom prompts.")
+    codex_prompts_subparsers = codex_prompts_parser.add_subparsers(required=True)
+    codex_prompts_install_parser = codex_prompts_subparsers.add_parser(
+        "install",
+        help="Install hindsight-lite prompts under ~/.codex/prompts.",
+    )
+    codex_prompts_install_parser.add_argument("--prompt-dir", type=Path, default=None)
+    codex_prompts_install_parser.add_argument("--force", action="store_true")
+    codex_prompts_install_parser.set_defaults(handler=_cmd_codex_prompts_install)
 
     demo_memory_parser = subparsers.add_parser("demo-memory", help="Generate demo memory for UI inspection.")
     demo_memory_subparsers = demo_memory_parser.add_subparsers(required=True)
@@ -254,6 +267,20 @@ def _cmd_codex_memory_import(args: argparse.Namespace) -> int:
 def _cmd_memory_ui(args: argparse.Namespace) -> int:
     output_path = write_memory_ui(store=_store(args), output_path=args.output)
     print(output_path)
+    if args.open:
+        webbrowser.open(output_path.resolve().as_uri())
+    return 0
+
+
+def _cmd_codex_prompts_install(args: argparse.Namespace) -> int:
+    try:
+        result = install_codex_prompts(prompt_dir=args.prompt_dir, force=args.force)
+    except FileExistsError as exc:
+        print(f"prompt already exists; pass --force to replace: {exc}", file=sys.stderr)
+        return 1
+
+    for path in result.installed_paths:
+        print(path)
     return 0
 
 

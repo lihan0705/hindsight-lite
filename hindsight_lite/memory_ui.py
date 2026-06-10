@@ -115,13 +115,14 @@ def _jsonl_section(section_id: str, label: str, directory: Path) -> MemoryUiSect
     files: list[MemoryUiFile] = []
     for path in sorted(directory.glob("*.jsonl")):
         content = path.read_text(encoding="utf-8")
+        rendered_content = _format_session_jsonl(content) if section_id == "sessions" else content
         files.append(
             MemoryUiFile(
                 id=f"{section_id}:{path.name}",
                 label=path.name,
-                kind="jsonl",
+                kind="session" if section_id == "sessions" else "jsonl",
                 path=str(path),
-                content=content,
+                content=rendered_content,
                 metadata={"events": str(_count_jsonl_lines(content))},
             )
         )
@@ -162,6 +163,41 @@ def _raw_section(section_id: str, label: str, directory: Path) -> MemoryUiSectio
 
 def _count_jsonl_lines(content: str) -> int:
     return sum(1 for line in content.splitlines() if line.strip())
+
+
+def _format_session_jsonl(content: str) -> str:
+    rendered_events: list[str] = []
+    for index, line in enumerate((line for line in content.splitlines() if line.strip()), start=1):
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            rendered_events.append(f"Event {index}\nraw: {line}")
+            continue
+        if not isinstance(data, Mapping):
+            rendered_events.append(f"Event {index}\nraw: {_format_json_value(data)}")
+            continue
+        rendered_events.append(_format_session_event(index, data))
+    return "\n\n---\n\n".join(rendered_events)
+
+
+def _format_session_event(index: int, data: Mapping[str, object]) -> str:
+    title = _string_value(data.get("id")) or f"event-{index}"
+    lines = [f"Event {index}: {title}"]
+    for key in ("timestamp", "session_id", "source", "document_id"):
+        value = _string_value(data.get(key))
+        if value:
+            lines.append(f"{key}: {value}")
+    tags = data.get("tags")
+    if isinstance(tags, list) and tags:
+        lines.append("tags: " + ", ".join(str(tag) for tag in tags))
+    metadata = data.get("metadata")
+    if isinstance(metadata, Mapping) and metadata:
+        lines.append("metadata: " + json.dumps(metadata, ensure_ascii=False, sort_keys=True))
+    content = _string_value(data.get("content")).strip()
+    if content:
+        lines.append("")
+        lines.append(content)
+    return "\n".join(lines)
 
 
 def _format_json_value(value: object) -> str:

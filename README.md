@@ -154,7 +154,7 @@ different Codex memory export or fixture directory.
 Generate a local memory tree inspector:
 
 ```bash
-python3 -m hindsight_lite memory-ui --bank codex
+python3 -m hindsight_lite memory-ui --bank codex --open
 ```
 
 The command writes `memory-tree.html` inside the selected bank directory. It is
@@ -163,9 +163,8 @@ files without starting a server. Markdown pages can be edited in the browser and
 downloaded as complete `.md` files with their frontmatter preserved.
 When the Codex hook integration is installed, the Stop hook refreshes this file
 after each successful retain, so newly promoted pages such as user preferences
-show up the next time the HTML is opened or reloaded. In Codex CLI, send
-`/memorytree` to regenerate the same file and get the local path back in the
-assistant response.
+show up the next time the HTML is opened or reloaded. Sessions are rendered as
+readable event summaries in the UI instead of raw JSONL lines.
 Reflection request/result files are labeled separately and surface request
 links, confidence, and lesson previews for quick eval review. The `Graph` view
 adds a deterministic tree over the same local files plus a trajectory branch
@@ -189,6 +188,17 @@ python3 -m hindsight_lite demo-memory seed --bank codex --write-ui
 
 The command refuses to overwrite existing demo files unless `--overwrite` is
 provided.
+
+To call the memory tree from Codex CLI's slash menu, install the bundled custom
+prompt:
+
+```bash
+python3 -m hindsight_lite codex-prompts install
+```
+
+Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
+or type `/` and search for `memorytree`. The prompt runs `memory-ui --open`,
+which regenerates the HTML and opens it locally.
 
 ---
 
