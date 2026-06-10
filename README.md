@@ -154,13 +154,23 @@ different Codex memory export or fixture directory.
 Generate a local memory tree inspector:
 
 ```bash
+python3 -m hindsight_lite memory-ui --bank codex --serve --open
+```
+
+The command starts an editor bound only to `127.0.0.1`, prints its localhost
+URL, and opens it in the platform browser. This avoids WSL UNC file paths on
+Windows. Existing Markdown pages can be edited and saved back to `pages/*.md`;
+sessions, reflections, and index files remain read-only.
+
+For a server-free snapshot, omit `--serve`:
+
+```bash
 python3 -m hindsight_lite memory-ui --bank codex --open
 ```
 
-The command writes `memory-tree.html` inside the selected bank directory. It is
-a static page for inspecting `pages`, `sessions`, `reflections`, and `index`
-files without starting a server. Markdown pages can be edited in the browser and
-downloaded as complete `.md` files with their frontmatter preserved.
+This writes `memory-tree.html` inside the selected bank directory. The static
+page can inspect all memory types and download edited Markdown, but browsers
+cannot save those edits directly back to disk.
 When the Codex hook integration is installed, the Stop hook refreshes this file
 after each successful retain, so newly promoted pages such as user preferences
 show up the next time the HTML is opened or reloaded. Sessions are rendered as
@@ -197,9 +207,10 @@ python3 -m hindsight_lite codex-prompts install
 ```
 
 Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
-or type `/` and search for `memorytree`. The prompt runs `memory-ui --open`,
-which regenerates the HTML and opens it with the platform-native launcher
-(`os.startfile` on Windows, `open` on macOS, or `xdg-open` on Linux). After
+or type `/` and search for `memorytree`. The prompt runs
+`memory-ui --serve --open` as a long-running localhost editor. Under WSL it
+opens the URL in the Windows browser instead of exposing a
+`\\wsl.localhost` HTML path. Keep the command running while editing. After
 updating hindsight-lite, refresh an existing prompt with
 `python3 -m hindsight_lite codex-prompts install --force`, then restart Codex.
 

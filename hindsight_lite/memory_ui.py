@@ -52,6 +52,7 @@ class MemoryUiSnapshot:
     bank_path: str
     sections: list[MemoryUiSection]
     graph: MemoryUiGraph | None = None
+    save_url: str = ""
 
 
 def write_memory_ui(store: LocalMemoryStore, output_path: Path | None = None) -> Path:
@@ -61,8 +62,8 @@ def write_memory_ui(store: LocalMemoryStore, output_path: Path | None = None) ->
     return path
 
 
-def render_memory_ui(store: LocalMemoryStore) -> str:
-    snapshot = _build_snapshot(store)
+def render_memory_ui(store: LocalMemoryStore, save_url: str = "") -> str:
+    snapshot = _build_snapshot(store, save_url=save_url)
     payload = _script_safe_json(snapshot)
     return _HTML_TEMPLATE.replace("__MEMORY_SNAPSHOT__", payload)
 
@@ -72,7 +73,7 @@ def _script_safe_json(snapshot: MemoryUiSnapshot) -> str:
     return payload.replace("</", "<\\/")
 
 
-def _build_snapshot(store: LocalMemoryStore) -> MemoryUiSnapshot:
+def _build_snapshot(store: LocalMemoryStore, save_url: str = "") -> MemoryUiSnapshot:
     sections = [
         _pages_section(store),
         _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
@@ -84,6 +85,7 @@ def _build_snapshot(store: LocalMemoryStore) -> MemoryUiSnapshot:
         bank_path=str(store.paths.bank_dir),
         sections=sections,
         graph=_build_graph(store.paths.bank_id, sections),
+        save_url=save_url,
     )
 
 
@@ -1235,6 +1237,16 @@ _HTML_TEMPLATE = """<!doctype html>
       toolbar.innerHTML = "";
       if (!file || !file.editable) return;
 
+      if (snapshot.save_url) {
+        const save = document.createElement("button");
+        save.className = "action";
+        save.type = "button";
+        save.textContent = "Save page";
+        save.disabled = !hasDraft(file);
+        save.addEventListener("click", () => savePage(file, save));
+        toolbar.append(save);
+      }
+
       const download = document.createElement("button");
       download.className = "action";
       download.type = "button";
@@ -1268,6 +1280,30 @@ _HTML_TEMPLATE = """<!doctype html>
 
     function currentContent(file) {
       return drafts.has(file.id) ? drafts.get(file.id) : file.content;
+    }
+
+    async function savePage(file, button) {
+      button.disabled = true;
+      button.textContent = "Saving...";
+      try {
+        const pageId = file.id.replace(/^page:/, "");
+        const response = await fetch(`${snapshot.save_url}/${encodeURIComponent(pageId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: currentContent(file) }),
+        });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        file.content = currentContent(file);
+        drafts.delete(file.id);
+        renderTree();
+        button.textContent = "Saved";
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = "Save failed";
+        button.title = String(error);
+      }
     }
 
     function downloadMarkdown(file) {
