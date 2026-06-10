@@ -1,0 +1,4 @@
+interface:
+  display_name: "Memory Tree"
+  short_description: "Open and edit local hindsight-lite memory"
+  default_prompt: "Use $memorytree to open my editable local memory tree."

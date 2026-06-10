@@ -142,19 +142,24 @@ file into the selected bank directory; browser edits can then be downloaded
 but not written directly back to disk. When the Codex hooks are installed, the
 Stop hook refreshes this static file after each successful retain.
 
-Codex CLI custom prompts live under `~/.codex/prompts`. Install the bundled
-memory tree prompt with:
+The installed plugin includes a `memorytree` skill. Start a new Codex thread
+and invoke `$memorytree`, or type `/skills` and select **Memory Tree**. The
+skill starts the localhost editor and keeps it running while you inspect or
+edit memory. Under WSL, Windows PowerShell opens the localhost URL in the
+Windows browser.
+
+Codex does not expose third-party top-level slash command registration, so
+`/memorytree` cannot be added by this plugin. For compatibility, the deprecated
+custom prompt can still be installed with:
 
 ```bash
 python3 -m hindsight_lite codex-prompts install
 ```
 
-Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
-or type `/` and search for `memorytree`. The prompt starts the localhost editor
-and keeps it running while you inspect or edit memory. Under WSL, Windows
-PowerShell opens the localhost URL in the Windows browser. After updating
-hindsight-lite, run `python3 -m hindsight_lite codex-prompts install --force`
-and restart Codex to replace an older prompt.
+Restart Codex after installing it, then invoke `/prompts:memorytree`. After
+updating hindsight-lite, run
+`python3 -m hindsight_lite codex-prompts install --force` and restart Codex to
+replace an older prompt.
 
 ## Configuration
 

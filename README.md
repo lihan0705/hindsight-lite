@@ -199,20 +199,22 @@ python3 -m hindsight_lite demo-memory seed --bank codex --write-ui
 The command refuses to overwrite existing demo files unless `--overwrite` is
 provided.
 
-To call the memory tree from Codex CLI's slash menu, install the bundled custom
-prompt:
+The installed plugin includes a `memorytree` skill. Start a new Codex thread,
+then invoke it explicitly:
 
-```bash
-python3 -m hindsight_lite codex-prompts install
+```text
+$memorytree
 ```
 
-Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
-or type `/` and search for `memorytree`. The prompt runs
+You can also type `/skills` and select **Memory Tree**. The skill runs
 `memory-ui --serve --open` as a long-running localhost editor. Under WSL it
 opens the URL in the Windows browser instead of exposing a
-`\\wsl.localhost` HTML path. Keep the command running while editing. After
-updating hindsight-lite, refresh an existing prompt with
-`python3 -m hindsight_lite codex-prompts install --force`, then restart Codex.
+`\\wsl.localhost` HTML path. Keep the command running while editing.
+
+Codex does not let third-party plugins register a top-level `/memorytree`
+command. The older `/prompts:memorytree` custom prompt remains available for
+compatibility after running `python3 -m hindsight_lite codex-prompts install`,
+but custom prompts are deprecated by Codex.
 
 ---
 

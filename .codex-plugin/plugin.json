@@ -18,6 +18,7 @@
     "markdown",
     "jsonl"
   ],
+  "skills": "./skills/",
   "interface": {
     "displayName": "hindsight-lite",
     "shortDescription": "Local editable memory for Codex CLI sessions.",
