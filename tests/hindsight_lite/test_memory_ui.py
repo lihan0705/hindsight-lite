@@ -95,6 +95,29 @@ def test_memory_ui_renders_session_jsonl_as_readable_events(tmp_path: Path) -> N
     assert "Session memory for UI tree." in html
 
 
+def test_memory_ui_limits_oversized_session_preview(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    store.append_session_event(
+        SessionMemoryEvent(
+            type="session_memory",
+            id="large-event",
+            timestamp="2026-06-10T12:00:00Z",
+            bank_id="codex",
+            session_id="large-session",
+            source="codex",
+            document_id="codex-large-session",
+            content="x" * 400_000,
+        )
+    )
+
+    html = render_memory_ui(store)
+
+    assert "Session preview truncated to keep the memory tree responsive." in html
+    assert '"preview": "truncated"' in html
+    assert '"size": "390.9 KiB"' in html
+    assert len(html) < 200_000
+
+
 def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None:
     store = _store_with_memory(tmp_path)
     store.write_reflection_result(
