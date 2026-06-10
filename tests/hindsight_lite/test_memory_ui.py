@@ -71,6 +71,18 @@ def test_memory_ui_pages_include_downloadable_markdown_frontmatter(tmp_path: Pat
     assert '"download_prefix": "---\\nid: \\"project-rules\\"' in html
 
 
+def test_memory_ui_renders_session_jsonl_as_readable_events(tmp_path: Path) -> None:
+    store = _store_with_memory(tmp_path)
+
+    html = render_memory_ui(store)
+
+    assert '"kind": "session"' in html
+    assert "Event 1: event-1" in html
+    assert "timestamp: 2026-05-24T12:00:00Z" in html
+    assert "session_id: session-1" in html
+    assert "Session memory for UI tree." in html
+
+
 def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None:
     store = _store_with_memory(tmp_path)
     store.write_reflection_result(
