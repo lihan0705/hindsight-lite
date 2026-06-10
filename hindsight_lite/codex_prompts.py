@@ -5,26 +5,25 @@ from dataclasses import dataclass
 from pathlib import Path
 
 MEMORYTREE_PROMPT_TEMPLATE = """---
-description: Generate and open the hindsight-lite memory tree UI
+description: Open the editable hindsight-lite memory tree UI
 argument-hint: [BANK=codex]
 ---
 
-Generate the latest hindsight-lite memory tree UI for the Codex bank and open it locally.
+Start the editable hindsight-lite memory tree UI for the Codex bank and open it locally.
 
 Use `codex` as the bank unless the arguments include a different `BANK=` value.
-First run:
+Run this as a long-running command and keep it alive while the user edits memory:
 
 ```bash
-PYTHONPATH={plugin_root}${{PYTHONPATH:+:$PYTHONPATH}} python3 -m hindsight_lite memory-ui --bank codex --open
+PYTHONPATH={plugin_root}${{PYTHONPATH:+:$PYTHONPATH}} python3 -m hindsight_lite memory-ui --bank codex --serve --open
 ```
 
 If a different `BANK=` value was provided, replace `codex` with that bank name.
-The CLI uses the platform-native opener: Windows `os.startfile`, macOS `open`,
-or Linux `xdg-open`. If the automatic opener fails on Windows, capture the
-generated path and retry with
-`powershell.exe -NoProfile -Command "Start-Process -FilePath '<path>'"`.
-If opening the GUI requires approval, request approval and retry. Finally,
-report the generated path.
+The command prints a `http://127.0.0.1:<port>/` URL and opens it with the
+platform-native launcher. Under WSL it asks Windows PowerShell to open the
+localhost URL, avoiding `\\\\wsl.localhost` file paths. If opening the GUI
+requires approval, request approval and retry. Report the localhost URL and
+leave the server running until the user asks to stop it.
 """
 
 

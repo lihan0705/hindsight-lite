@@ -354,7 +354,7 @@ def test_cli_memory_ui_can_open_generated_file(tmp_path: Path, capsys, monkeypat
 
 
 def test_cli_memory_ui_uses_startfile_on_windows(tmp_path: Path, capsys, monkeypatch) -> None:
-    opened: list[Path] = []
+    opened: list[str] = []
     monkeypatch.setattr("hindsight_lite.cli.sys.platform", "win32")
     monkeypatch.setattr("hindsight_lite.cli.os.startfile", opened.append, raising=False)
 
@@ -362,7 +362,32 @@ def test_cli_memory_ui_uses_startfile_on_windows(tmp_path: Path, capsys, monkeyp
 
     output_path = tmp_path / "banks" / "codex" / "memory-tree.html"
     assert str(output_path) in capsys.readouterr().out
-    assert opened == [output_path.resolve()]
+    assert opened == [str(output_path.resolve())]
+
+
+def test_cli_memory_ui_opens_localhost_with_windows_browser_under_wsl(monkeypatch) -> None:
+    opened: list[list[str]] = []
+
+    def fake_run(command: list[str], check: bool) -> None:
+        assert check is True
+        opened.append(command)
+
+    monkeypatch.setattr("hindsight_lite.cli.subprocess.run", fake_run)
+    monkeypatch.setattr("hindsight_lite.cli.sys.platform", "linux")
+    monkeypatch.setenv("WSL_DISTRO_NAME", "Ubuntu")
+
+    from hindsight_lite.cli import _open_target
+
+    _open_target("http://127.0.0.1:4321/")
+
+    assert opened == [
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-Command",
+            "Start-Process -FilePath 'http://127.0.0.1:4321/'",
+        ]
+    ]
 
 
 def test_cli_installs_codex_memorytree_prompt(tmp_path: Path, capsys) -> None:
@@ -374,11 +399,11 @@ def test_cli_installs_codex_memorytree_prompt(tmp_path: Path, capsys) -> None:
     prompt_path = prompt_dir / "memorytree.md"
     assert str(prompt_path) in output
     content = prompt_path.read_text(encoding="utf-8")
-    assert "description: Generate and open the hindsight-lite memory tree UI" in content
+    assert "description: Open the editable hindsight-lite memory tree UI" in content
     assert "PYTHONPATH=" in content
-    assert "python3 -m hindsight_lite memory-ui --bank codex --open" in content
-    assert "Windows `os.startfile`" in content
-    assert "Start-Process" in content
+    assert "python3 -m hindsight_lite memory-ui --bank codex --serve --open" in content
+    assert "http://127.0.0.1:<port>/" in content
+    assert "\\\\wsl.localhost" in content
 
 
 def test_cli_refuses_to_overwrite_codex_prompt_without_force(tmp_path: Path, capsys) -> None:

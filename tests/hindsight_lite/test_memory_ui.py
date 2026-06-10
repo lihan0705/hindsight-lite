@@ -29,6 +29,7 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert "Download Markdown" in html
     assert "Reset changes" in html
     assert "Unsaved draft" in html
+    assert '"save_url": ""' in html
 
 
 def test_render_memory_ui_escapes_script_closing_tags(tmp_path: Path) -> None:
@@ -58,6 +59,7 @@ def test_memory_ui_snapshot_is_structured_for_json_payload() -> None:
         "bank_path": "/tmp/bank",
         "sections": [],
         "graph": None,
+        "save_url": "",
     }
 
 
@@ -69,6 +71,16 @@ def test_memory_ui_pages_include_downloadable_markdown_frontmatter(tmp_path: Pat
     assert '"editable": true' in html
     assert '"download_name": "project-rules.md"' in html
     assert '"download_prefix": "---\\nid: \\"project-rules\\"' in html
+
+
+def test_memory_ui_can_enable_page_saving_for_local_server(tmp_path: Path) -> None:
+    store = _store_with_memory(tmp_path)
+
+    html = render_memory_ui(store, save_url="/api/pages")
+
+    assert '"save_url": "/api/pages"' in html
+    assert "Save page" in html
+    assert 'button.textContent = "Saved"' in html
 
 
 def test_memory_ui_renders_session_jsonl_as_readable_events(tmp_path: Path) -> None:

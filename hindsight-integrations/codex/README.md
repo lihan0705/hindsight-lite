@@ -116,7 +116,7 @@ python3 -m hindsight_lite agent_knowledge_recall --bank codex "project rules"
 python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test --content "Important session note"
 python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
 python3 -m hindsight_lite agent_knowledge_import_codex_memory --bank codex --dry-run
-python3 -m hindsight_lite memory-ui --bank codex --open
+python3 -m hindsight_lite memory-ui --bank codex --serve --open
 python3 -m hindsight_lite codex-prompts install
 ```
 
@@ -134,12 +134,13 @@ The importer reads `~/.codex/memories` by default, preserves source provenance
 in page metadata, and never writes back to Codex-owned files. Pass
 `--source-dir /path/to/memories` when testing with exported or fixture data.
 
-`memory-ui` writes a static `memory-tree.html` file into the selected bank
-directory. Open that file locally to inspect pages, sessions, reflections, and
-index files in a tree-shaped view. When the Codex hooks are installed, the
-Stop hook refreshes this file after each successful retain. The UI renders
-session JSONL as readable event summaries so retained conversations are easier
-to inspect.
+`memory-ui --serve` starts an editor bound only to `127.0.0.1`. It opens a
+localhost URL, avoiding WSL UNC paths, and allows existing Markdown pages to be
+saved back to `pages/*.md`. Sessions, reflections, and index files remain
+read-only. Without `--serve`, the command writes a static `memory-tree.html`
+file into the selected bank directory; browser edits can then be downloaded
+but not written directly back to disk. When the Codex hooks are installed, the
+Stop hook refreshes this static file after each successful retain.
 
 Codex CLI custom prompts live under `~/.codex/prompts`. Install the bundled
 memory tree prompt with:
@@ -149,9 +150,9 @@ python3 -m hindsight_lite codex-prompts install
 ```
 
 Restart Codex after installing the prompt, then invoke `/prompts:memorytree`
-or type `/` and search for `memorytree`. The prompt regenerates the memory tree
-and opens the local HTML file with the platform-native launcher. On Windows,
-this uses `os.startfile` instead of Python's browser registry. After updating
+or type `/` and search for `memorytree`. The prompt starts the localhost editor
+and keeps it running while you inspect or edit memory. Under WSL, Windows
+PowerShell opens the localhost URL in the Windows browser. After updating
 hindsight-lite, run `python3 -m hindsight_lite codex-prompts install --force`
 and restart Codex to replace an older prompt.
 

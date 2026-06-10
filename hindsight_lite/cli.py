@@ -14,6 +14,7 @@ from hindsight_lite.codex_memory import import_codex_memories
 from hindsight_lite.codex_prompts import install_codex_prompts
 from hindsight_lite.demo_memory import DemoMemoryExistsError, seed_demo_memory
 from hindsight_lite.memory_ui import write_memory_ui
+from hindsight_lite.memory_ui_server import create_memory_ui_server, memory_ui_server_url
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, write_reflection_result_from_file
@@ -148,6 +149,8 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_bank_arg(memory_ui_parser)
     memory_ui_parser.add_argument("--output", type=Path, default=None)
     memory_ui_parser.add_argument("--open", action="store_true", help="Open the generated HTML file in a browser.")
+    memory_ui_parser.add_argument("--serve", action="store_true", help="Serve an editable UI on localhost.")
+    memory_ui_parser.add_argument("--port", type=int, default=0, help="Local server port; 0 selects a free port.")
     memory_ui_parser.set_defaults(handler=_cmd_memory_ui)
 
     codex_prompts_parser = subparsers.add_parser("codex-prompts", help="Install Codex custom prompts.")
@@ -266,6 +269,9 @@ def _cmd_codex_memory_import(args: argparse.Namespace) -> int:
 
 
 def _cmd_memory_ui(args: argparse.Namespace) -> int:
+    if args.serve:
+        return _serve_memory_ui(args)
+
     output_path = write_memory_ui(store=_store(args), output_path=args.output)
     print(output_path)
     if args.open:
@@ -277,14 +283,53 @@ def _cmd_memory_ui(args: argparse.Namespace) -> int:
     return 0
 
 
+def _serve_memory_ui(args: argparse.Namespace) -> int:
+    server = create_memory_ui_server(store=_store(args), port=args.port)
+    url = memory_ui_server_url(server)
+    print(url, flush=True)
+    if args.open:
+        try:
+            _open_target(url)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            server.server_close()
+            print(f"could not open memory tree UI: {exc}", file=sys.stderr)
+            return 1
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+    return 0
+
+
 def _open_local_file(path: Path) -> None:
-    resolved = path.resolve()
+    _open_target(str(path.resolve()))
+
+
+def _open_target(target: str) -> None:
     if sys.platform == "win32":
-        os.startfile(resolved)  # type: ignore[attr-defined]
+        os.startfile(target)  # type: ignore[attr-defined]
         return
 
-    command = ["open", str(resolved)] if sys.platform == "darwin" else ["xdg-open", str(resolved)]
+    if sys.platform == "darwin":
+        command = ["open", target]
+    elif _is_wsl():
+        # Windows browsers can reach WSL localhost without exposing the HTML through a UNC file path.
+        command = ["powershell.exe", "-NoProfile", "-Command", f"Start-Process -FilePath '{target}'"]
+    else:
+        command = ["xdg-open", target]
     subprocess.run(command, check=True)
+
+
+def _is_wsl() -> bool:
+    if os.environ.get("WSL_DISTRO_NAME"):
+        return True
+    try:
+        return "microsoft" in Path("/proc/sys/kernel/osrelease").read_text(encoding="utf-8").lower()
+    except OSError:
+        return False
 
 
 def _cmd_codex_prompts_install(args: argparse.Namespace) -> int:
