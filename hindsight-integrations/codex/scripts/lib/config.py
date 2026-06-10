@@ -37,6 +37,7 @@ DEFAULTS = {
     "retainContext": "codex",
     "retainTags": [],
     "retainMetadata": {},
+    "autoMemoryUi": True,
     # Bank
     "bankId": None,
     "bankIdPrefix": "",
@@ -55,6 +56,7 @@ ENV_OVERRIDES = {
     "HINDSIGHT_AGENT_NAME": ("agentName", str),
     "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
     "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
+    "HINDSIGHT_AUTO_MEMORY_UI": ("autoMemoryUi", bool),
     "HINDSIGHT_RETAIN_MODE": ("retainMode", str),
     "HINDSIGHT_RECALL_MAX_RESULTS": ("recallMaxResults", int),
     "HINDSIGHT_RECALL_MAX_EXCERPT_CHARS": ("recallMaxExcerptChars", int),

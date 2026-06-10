@@ -5,6 +5,7 @@
   "retainMission": "Extract technical decisions, code patterns, debugging solutions, user preferences, project context, and architectural choices. Ignore routine greetings and transient operational details.",
   "autoRecall": true,
   "autoRetain": true,
+  "autoMemoryUi": true,
   "retainMode": "full-session",
   "recallMaxResults": 5,
   "recallMaxExcerptChars": 160,
