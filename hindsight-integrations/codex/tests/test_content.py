@@ -57,6 +57,13 @@ class TestStripMemoryTags:
         raw = "<hindsight_memories>\n- mem1\n- mem2\n</hindsight_memories>"
         assert strip_memory_tags(raw).strip() == ""
 
+    def test_strips_codex_environment_context_block(self):
+        raw = "<environment_context>\n<cwd>/Users/gongping</cwd>\n</environment_context>\nactual user memory"
+        result = strip_memory_tags(raw)
+        assert "environment_context" not in result
+        assert "cwd" not in result
+        assert "actual user memory" in result
+
 
 class TestSyntheticCodexUserMessage:
     def test_detects_agents_startup_instructions(self):
@@ -394,6 +401,18 @@ class TestPrepareRetentionTranscript:
         transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True)
         assert "leaked" not in transcript
         assert "actual question" in transcript
+
+    def test_strips_environment_context(self):
+        msgs = _msgs(
+            (
+                "user",
+                "<environment_context>\n<cwd>/Users/gongping</cwd>\n</environment_context>\n我喜欢喝柠檬水",
+            )
+        )
+        transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True)
+        assert "environment_context" not in transcript
+        assert "cwd" not in transcript
+        assert "柠檬水" in transcript
 
     def test_filters_by_retain_roles(self):
         msgs = _msgs(("user", "user msg"), ("assistant", "assistant msg"))
@@ -785,6 +804,34 @@ class TestPrepareRetentionTranscriptJson:
         assert "hindsight_memories" not in transcript
         assert "secret" not in transcript
         assert "real question" in transcript
+
+    def test_json_format_strips_environment_context_from_tool_results(self):
+        msgs = [
+            {"role": "user", "content": [{"type": "text", "text": "read memory"}]},
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "name": "Read", "input": {"file_path": "/Users/gongping/.codex/memories"}},
+                    {
+                        "type": "tool_result",
+                        "content": (
+                            "<environment_context>\n<cwd>/Users/gongping</cwd>\n</environment_context>\n"
+                            "preference: 柠檬水"
+                        ),
+                    },
+                ],
+            },
+        ]
+        transcript, _ = prepare_retention_transcript(
+            msgs,
+            retain_full_window=True,
+            include_tool_calls=True,
+        )
+        parsed = json.loads(transcript)
+        tool_result = parsed[1]["content"][1]["content"]
+        assert "environment_context" not in tool_result
+        assert "cwd" not in tool_result
+        assert "柠檬水" in tool_result
 
     def test_json_format_filters_roles(self):
         msgs = [

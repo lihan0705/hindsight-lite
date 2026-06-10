@@ -35,14 +35,15 @@ _MAX_TOOL_OUTPUT_CHARS = 2000
 
 
 def strip_memory_tags(content: str) -> str:
-    """Remove injected memory blocks.
+    """Remove injected memory and runtime-only context blocks.
 
-    Prevents retain feedback loop — these were injected during recall and
-    should not be re-stored.
+    Prevents retain feedback loops and avoids storing Codex environment
+    scaffolding as user memory.
     """
     content = re.sub(r"<hindsight_lite_memories>[\s\S]*?</hindsight_lite_memories>", "", content)
     content = re.sub(r"<hindsight_memories>[\s\S]*?</hindsight_memories>", "", content)
     content = re.sub(r"<relevant_memories>[\s\S]*?</relevant_memories>", "", content)
+    content = re.sub(r"<environment_context>[\s\S]*?</environment_context>", "", content)
     return content
 
 
@@ -696,8 +697,17 @@ def _strip_memory_tags_from_blocks(content) -> list:
             text = strip_memory_tags(block.get("text", "")).strip()
             if text:
                 blocks.append({"type": "text", "text": text})
-        elif block_type in ("tool_use", "tool_result"):
-            # Pass through tool blocks as-is
+        elif block_type == "tool_use":
             blocks.append(block)
+        elif block_type == "tool_result":
+            content_value = block.get("content", "")
+            if isinstance(content_value, str):
+                cleaned = strip_memory_tags(content_value).strip()
+                if cleaned:
+                    next_block = dict(block)
+                    next_block["content"] = cleaned
+                    blocks.append(next_block)
+            else:
+                blocks.append(block)
 
     return blocks
