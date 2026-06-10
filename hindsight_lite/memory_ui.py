@@ -7,6 +7,10 @@ from pathlib import Path
 
 from hindsight_lite.store import LocalMemoryStore
 
+_SESSION_EVENT_SOURCE_LIMIT_BYTES = 256 * 1024
+_SESSION_EVENT_CONTENT_LIMIT = 12_000
+_SESSION_FILE_CONTENT_LIMIT = 80_000
+
 
 @dataclass(frozen=True)
 class MemoryUiFile:
@@ -53,6 +57,14 @@ class MemoryUiSnapshot:
     sections: list[MemoryUiSection]
     graph: MemoryUiGraph | None = None
     save_url: str = ""
+
+
+@dataclass(frozen=True)
+class SessionUiPreview:
+    content: str
+    events: int
+    source_bytes: int
+    truncated: bool
 
 
 def write_memory_ui(store: LocalMemoryStore, output_path: Path | None = None) -> Path:
@@ -116,8 +128,19 @@ def _pages_section(store: LocalMemoryStore) -> MemoryUiSection:
 def _jsonl_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
     files: list[MemoryUiFile] = []
     for path in sorted(directory.glob("*.jsonl")):
-        content = path.read_text(encoding="utf-8")
-        rendered_content = _format_session_jsonl(content) if section_id == "sessions" else content
+        if section_id == "sessions":
+            preview = _session_ui_preview(path)
+            rendered_content = preview.content
+            metadata = {
+                "events": str(preview.events),
+                "size": _format_file_size(preview.source_bytes),
+            }
+            if preview.truncated:
+                metadata["preview"] = "truncated"
+        else:
+            content = path.read_text(encoding="utf-8")
+            rendered_content = content
+            metadata = {"events": str(_count_jsonl_lines(content))}
         files.append(
             MemoryUiFile(
                 id=f"{section_id}:{path.name}",
@@ -125,7 +148,7 @@ def _jsonl_section(section_id: str, label: str, directory: Path) -> MemoryUiSect
                 kind="session" if section_id == "sessions" else "jsonl",
                 path=str(path),
                 content=rendered_content,
-                metadata={"events": str(_count_jsonl_lines(content))},
+                metadata=metadata,
             )
         )
     return MemoryUiSection(id=section_id, label=label, files=files)
@@ -167,19 +190,65 @@ def _count_jsonl_lines(content: str) -> int:
     return sum(1 for line in content.splitlines() if line.strip())
 
 
-def _format_session_jsonl(content: str) -> str:
+def _session_ui_preview(path: Path) -> SessionUiPreview:
     rendered_events: list[str] = []
-    for index, line in enumerate((line for line in content.splitlines() if line.strip()), start=1):
-        try:
-            data = json.loads(line)
-        except json.JSONDecodeError:
-            rendered_events.append(f"Event {index}\nraw: {line}")
-            continue
-        if not isinstance(data, Mapping):
-            rendered_events.append(f"Event {index}\nraw: {_format_json_value(data)}")
-            continue
-        rendered_events.append(_format_session_event(index, data))
-    return "\n\n---\n\n".join(rendered_events)
+    rendered_size = 0
+    event_count = 0
+    truncated = False
+
+    # Read bounded chunks because Codex tool output can make one JSONL event tens of MiB.
+    # Embedding those events in the snapshot previously froze the browser when selected.
+    with path.open("rb") as source:
+        while line := source.readline(_SESSION_EVENT_SOURCE_LIMIT_BYTES + 1):
+            if not line.strip():
+                continue
+            event_count += 1
+            if len(line) > _SESSION_EVENT_SOURCE_LIMIT_BYTES and not line.endswith(b"\n"):
+                while line and not line.endswith(b"\n"):
+                    line = source.readline(_SESSION_EVENT_SOURCE_LIMIT_BYTES + 1)
+                rendered = (
+                    f"Event {event_count}\n[event omitted from UI preview because its serialized JSON exceeds 256 KiB]"
+                )
+                truncated = True
+            else:
+                rendered = _format_session_line(event_count, line.decode("utf-8", errors="replace"))
+
+            separator_size = 7 if rendered_events else 0
+            remaining = _SESSION_FILE_CONTENT_LIMIT - rendered_size - separator_size
+            if remaining <= 0:
+                truncated = True
+                continue
+            if len(rendered) > remaining:
+                rendered_events.append(_truncate_preview(rendered, remaining))
+                rendered_size = _SESSION_FILE_CONTENT_LIMIT
+                truncated = True
+                continue
+            rendered_events.append(rendered)
+            rendered_size += separator_size + len(rendered)
+
+    content = "\n\n---\n\n".join(rendered_events)
+    if truncated:
+        content += (
+            "\n\n---\n\n"
+            "[Session preview truncated to keep the memory tree responsive. "
+            "Open the source JSONL file for the complete record.]"
+        )
+    return SessionUiPreview(
+        content=content,
+        events=event_count,
+        source_bytes=path.stat().st_size,
+        truncated=truncated,
+    )
+
+
+def _format_session_line(index: int, line: str) -> str:
+    try:
+        data = json.loads(line)
+    except json.JSONDecodeError:
+        return f"Event {index}\nraw: {_truncate_preview(line, _SESSION_EVENT_CONTENT_LIMIT)}"
+    if not isinstance(data, Mapping):
+        return f"Event {index}\nraw: {_format_json_value(data)}"
+    return _format_session_event(index, data)
 
 
 def _format_session_event(index: int, data: Mapping[str, object]) -> str:
@@ -198,8 +267,23 @@ def _format_session_event(index: int, data: Mapping[str, object]) -> str:
     content = _string_value(data.get("content")).strip()
     if content:
         lines.append("")
-        lines.append(content)
+        lines.append(_truncate_preview(content, _SESSION_EVENT_CONTENT_LIMIT))
     return "\n".join(lines)
+
+
+def _truncate_preview(content: str, limit: int) -> str:
+    if len(content) <= limit:
+        return content
+    omitted = len(content) - limit
+    return f"{content[:limit]}\n\n[... {omitted} characters omitted from UI preview]"
+
+
+def _format_file_size(size: int) -> str:
+    if size < 1024:
+        return f"{size} B"
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f} KiB"
+    return f"{size / (1024 * 1024):.1f} MiB"
 
 
 def _format_json_value(value: object) -> str:
