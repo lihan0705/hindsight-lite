@@ -153,6 +153,76 @@ def test_recall_dedupes_multiple_events_from_same_session_document(tmp_path: Pat
     assert results[0].title == "codex-drink-session"
 
 
+def test_recall_uses_only_compact_profile_field_for_personal_preference_query(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    store.write_page(
+        page_id="user-profile",
+        title="User Profile",
+        content=(
+            "# User Profile\n\n"
+            "Name: jack\n"
+            "Preferred programming language: rust\n"
+            "Preferred drink: 柠檬水、奶茶\n"
+            "Preference (food): 火锅"
+        ),
+        tags=["user", "preference", "drink", "food"],
+    )
+    store.append_session_event(
+        SessionMemoryEvent(
+            type="session_memory",
+            id="evt-drink-history",
+            timestamp="2026-06-10T12:00:00Z",
+            bank_id="codex",
+            session_id="drink-history",
+            source="codex",
+            document_id="codex-drink-history",
+            content='[{"role":"user","content":"我喜欢喝什么"},{"role":"assistant","content":"不知道"}]',
+            tags=["user", "preference", "drink"],
+        )
+    )
+
+    results = recall(store, "我喜欢喝什么", max_results=5)
+
+    assert len(results) == 1
+    assert results[0].id == "user-profile"
+    assert results[0].excerpt == "Preferred drink: 柠檬水、奶茶"
+
+
+def test_recall_profile_query_falls_back_to_sessions_without_profile_page(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    store.append_session_event(
+        SessionMemoryEvent(
+            type="session_memory",
+            id="evt-drink-history",
+            timestamp="2026-06-10T12:00:00Z",
+            bank_id="codex",
+            session_id="drink-history",
+            source="codex",
+            document_id="codex-drink-history",
+            content="User preference drink beverage: likes lemon water.",
+            tags=["user", "preference", "drink"],
+        )
+    )
+
+    results = recall(store, "我喜欢喝什么", max_results=5)
+
+    assert [result.id for result in results] == ["evt-drink-history"]
+
+
+def test_recall_compacts_multiple_requested_profile_fields(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    store.write_page(
+        page_id="user-profile",
+        title="User Profile",
+        content=("# User Profile\n\nName: jack\nPreferred programming language: rust\nPreferred drink: 柠檬水"),
+        tags=["user", "identity", "preference", "programming-language", "drink"],
+    )
+
+    results = recall(store, "我是谁 我喜欢什么编程语言 我喜欢喝什么", max_results=5)
+
+    assert results[0].excerpt == "Name: jack | Preferred programming language: rust | Preferred drink: 柠檬水"
+
+
 def test_format_recall_for_codex_keeps_context_compact(tmp_path: Path) -> None:
     store = LocalMemoryStore(home=tmp_path, bank_id="codex")
     store.write_page(

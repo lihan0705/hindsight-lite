@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 
 from hindsight_lite.models import KnowledgePage, RecallResult, SessionMemoryEvent
@@ -50,7 +50,11 @@ def recall(
     candidates = _filter_temporal_bug_candidates(_iter_candidates(store), temporal_bug_query)
     results = [_score_candidate(candidate, query_terms, query_phrase) for candidate in candidates]
     ranked = sorted((result for result in results if result.score > 0), key=lambda result: (-result.score, result.id))
-    return _dedupe_ranked_results(ranked)[:max_results]
+    deduped = _dedupe_ranked_results(ranked)
+    profile_result = _authoritative_profile_result(deduped, candidates, query)
+    if profile_result is not None:
+        return [profile_result]
+    return deduped[:max_results]
 
 
 def format_recall_for_codex(
@@ -151,6 +155,72 @@ def _recall_dedupe_key(result: RecallResult) -> str:
         return f"page:{result.id}"
     document = result.title or result.path.split("#", 1)[0]
     return f"session:{document}"
+
+
+def _authoritative_profile_result(
+    results: list[RecallResult],
+    candidates: list[SearchCandidate],
+    query: str,
+) -> RecallResult | None:
+    labels = _profile_query_labels(query)
+    if not labels:
+        return None
+
+    profile = next((result for result in results if result.source == "page" and result.id == "user-profile"), None)
+    if profile is None:
+        return None
+
+    profile_candidate = next(
+        (candidate for candidate in candidates if candidate.source == "page" and candidate.id == "user-profile"),
+        None,
+    )
+    if profile_candidate is None:
+        return None
+
+    excerpt = _profile_excerpt(profile_candidate.body, labels)
+    if not excerpt:
+        return None
+
+    # Promoted profile fields are the compact source of truth for personal facts.
+    # Replaying source sessions here previously added duplicate and stale dialogue.
+    return replace(profile, excerpt=excerpt)
+
+
+def _profile_query_labels(query: str) -> set[str]:
+    normalized = query.lower()
+    labels: set[str] = set()
+    if "我是谁" in query or "我的名字" in query or any(marker in normalized for marker in ("who am i", "my name")):
+        labels.add("Name")
+    if "编程语言" in query or "programming language" in normalized:
+        labels.add("Preferred programming language")
+    if (
+        "喜欢喝" in query
+        or "喝什么" in query
+        or any(marker in normalized for marker in ("like to drink", "like drinking", "preferred drink"))
+    ):
+        labels.add("Preferred drink")
+    if (
+        "喜欢吃" in query
+        or "吃什么" in query
+        or any(marker in normalized for marker in ("like to eat", "like eating", "preferred food"))
+    ):
+        labels.add("Preference (food)")
+    if not labels and (
+        "我喜欢什么" in query
+        or "我的偏好" in query
+        or any(marker in normalized for marker in ("what do i like", "my preferences"))
+    ):
+        labels.add("Preference")
+    return labels
+
+
+def _profile_excerpt(content: str, labels: set[str]) -> str:
+    profile_lines = [line.strip() for line in content.splitlines() if ":" in line]
+    if "Preference" in labels:
+        return " | ".join(
+            line for line in profile_lines if line.startswith("Preferred ") or line.startswith("Preference (")
+        )
+    return " | ".join(line for line in profile_lines if any(line.startswith(f"{label}:") for label in labels))
 
 
 def _trim_excerpt(excerpt: str, max_chars: int) -> str:
