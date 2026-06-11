@@ -29,3 +29,17 @@ def test_plugin_packages_memorytree_skill() -> None:
         "0",
         "--open",
     ]
+
+
+def test_memorytree_launcher_reports_stale_install_without_traceback(monkeypatch, capsys) -> None:
+    root_dir = Path(__file__).resolve().parents[2]
+    launcher_path = root_dir / "skills" / "memorytree" / "scripts" / "open_memorytree.py"
+    launcher = runpy.run_path(str(launcher_path), run_name="memorytree_launcher")
+
+    def raise_missing_package():
+        raise ModuleNotFoundError
+
+    monkeypatch.setitem(launcher["main"].__globals__, "_load_hindsight_main", raise_missing_package)
+
+    assert launcher["main"](["--bank", "codex"]) == 1
+    assert "reinstall the hindsight-lite Codex plugin" in capsys.readouterr().err

@@ -38,6 +38,17 @@ from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.store import LocalMemoryStore
 
 LAST_RECALL_STATE = "last_recall.json"
+_MEMORYTREE_COMMANDS = {
+    "memorytree",
+    "/memorytree",
+    "$memorytree",
+    "$hindsight-lite:memorytree",
+    "$hindsight-lite-memorytree",
+}
+
+
+def _is_memorytree_command(prompt: str) -> bool:
+    return prompt.strip().lower() in _MEMORYTREE_COMMANDS
 
 
 def main():
@@ -65,6 +76,9 @@ def main():
     prompt = (hook_input.get("prompt") or hook_input.get("user_prompt") or "").strip()
     if not prompt or len(prompt) < 5:
         debug_log(config, "Prompt too short for recall, skipping")
+        return
+    if _is_memorytree_command(prompt):
+        debug_log(config, "Memory tree command does not need recalled conversation context")
         return
 
     def _dbg(*a):

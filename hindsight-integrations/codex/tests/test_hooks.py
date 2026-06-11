@@ -128,14 +128,29 @@ class TestRecallHook:
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
         assert output.strip() == ""
 
-    def test_memorytree_prompt_does_not_generate_static_ui(self, monkeypatch, tmp_path):
-        hook_input = make_hook_input(prompt="memorytree")
+    @pytest.mark.parametrize(
+        "prompt",
+        ["memorytree", "/memorytree", "$memorytree", "$hindsight-lite:memorytree"],
+    )
+    def test_memorytree_prompt_skips_recall_context(self, monkeypatch, tmp_path, prompt):
+        store = LocalMemoryStore(home=tmp_path / ".hindsight-lite", bank_id="codex")
+        store.append_session_event(
+            SessionMemoryEvent(
+                type="session_memory",
+                id="evt-memorytree-history",
+                timestamp="2026-06-11T07:00:00Z",
+                bank_id="codex",
+                session_id="memorytree-history",
+                source="codex",
+                document_id="memorytree-history",
+                content="Previously opened memorytree with verbose tool output.",
+                tags=["memorytree"],
+            )
+        )
 
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
+        output = _run_hook("recall", make_hook_input(prompt=prompt), monkeypatch, tmp_path)
 
-        ui_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "memory-tree.html"
         assert output.strip() == ""
-        assert not ui_path.exists()
 
     def test_graceful_when_local_store_has_no_matches(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is my project about?")
