@@ -1187,9 +1187,13 @@ _HTML_TEMPLATE = """<!doctype html>
     }
 
     function renderGraph() {
-      const graph = snapshot.graph;
-      document.getElementById("file-title").textContent = "Memory Graph";
-      document.getElementById("file-path").textContent = snapshot.bank_path;
+      const graph = graphForActiveFile(snapshot.graph);
+      const activeFile = files.find((item) => item.id === activeId);
+      const focusedSample = graph?.nodes.find((node) => node.kind === "trajectory-sample" && node.file_id === activeId);
+      document.getElementById("file-title").textContent = focusedSample
+        ? `Reflection: ${activeFile?.label || focusedSample.label}`
+        : "Reflection Graph";
+      document.getElementById("file-path").textContent = focusedSample ? activeFile?.path || "" : snapshot.bank_path;
       renderGraphMetadata(graph);
       document.getElementById("toolbar").innerHTML = "";
 
@@ -1208,6 +1212,8 @@ _HTML_TEMPLATE = """<!doctype html>
       const branchMap = renderTrajectoryBranchMap(graph);
       if (branchMap) {
         view.append(branchMap);
+        content.append(view);
+        return;
       }
       const tree = document.createElement("div");
       tree.className = "graph-tree";
@@ -1216,59 +1222,114 @@ _HTML_TEMPLATE = """<!doctype html>
       content.append(view);
     }
 
+    function graphForActiveFile(graph) {
+      if (!graph) return null;
+      const sample = graph.nodes.find((node) => node.kind === "trajectory-sample" && node.file_id === activeId);
+      if (!sample) {
+        return {
+          root_id: graph.root_id,
+          nodes: graph.nodes.filter(
+            (node) =>
+              node.kind === "bank" ||
+              node.id === "trajectory-samples" ||
+              node.kind === "sample-group" ||
+              node.kind === "trajectory-sample",
+          ),
+        };
+      }
+
+      const childIds = new Map();
+      graph.nodes.forEach((node) => {
+        if (!childIds.has(node.parent_id)) childIds.set(node.parent_id, []);
+        childIds.get(node.parent_id).push(node.id);
+      });
+      const visibleIds = new Set([sample.id]);
+      const pending = [sample.id];
+      while (pending.length) {
+        const parentId = pending.pop();
+        (childIds.get(parentId) || []).forEach((childId) => {
+          visibleIds.add(childId);
+          pending.push(childId);
+        });
+      }
+      const focusedNodes = graph.nodes.filter((node) => visibleIds.has(node.id));
+      return {
+        root_id: sample.id,
+        nodes: [sample, ...relevantTrajectorySteps(focusedNodes)],
+      };
+    }
+
+    function relevantTrajectorySteps(nodes) {
+      const allSteps = nodes.filter((node) => node.kind === "trajectory-step");
+      const correctionIds = new Set(allSteps.filter((node) => node.metadata?.correction_of).map((node) => node.id));
+      return allSteps.filter(
+        (node) =>
+          node.sample_status === "negative" ||
+          node.metadata?.correction_of ||
+          correctionIds.has(node.parent_id) ||
+          node.label === "outcome" ||
+          (node.label === "state" && !node.content.includes("<environment_context>")),
+      );
+    }
+
     function renderTrajectoryBranchMap(graph) {
-      const samples = graph.nodes.filter((node) => node.kind === "trajectory-sample");
-      if (!samples.length) return null;
+      const sample = graph.nodes.find((node) => node.kind === "trajectory-sample" && node.file_id === activeId);
+      const steps = graph.nodes
+        .filter((node) => node.kind === "trajectory-step")
+        .sort((left, right) => Number(left.metadata?.sequence || 0) - Number(right.metadata?.sequence || 0));
+      if (!sample || !steps.length) return null;
 
       const branchMap = document.createElement("section");
       branchMap.className = "branch-map";
 
-      const failures = samples.filter((node) => node.sample_status !== "success");
-      const successes = samples.filter((node) => node.sample_status === "success");
+      const failures = steps.filter((node) => node.sample_status === "negative");
+      const corrections = steps.filter((node) => node.metadata?.correction_of);
       const head = document.createElement("div");
       head.className = "branch-map-head";
       const title = document.createElement("div");
       title.className = "branch-map-title";
-      title.textContent = "Trajectory Branch Map";
+      title.textContent = "Reflection Branch";
       const count = document.createElement("span");
       count.className = "meta";
-      count.textContent = `${failures.length} side branches / ${successes.length} correct path nodes`;
+      count.textContent = `${failures.length} failed nodes / ${corrections.length} corrections`;
       head.append(title, count);
       branchMap.append(head);
 
       const flow = document.createElement("div");
       flow.className = "branch-flow";
-      failures.forEach((sample) => flow.append(branchRow(sample, "side")));
-      successes.forEach((sample) => flow.append(branchRow(sample, "main")));
+      steps.forEach((step) => {
+        const branchType = step.sample_status === "negative" ? "side" : "main";
+        flow.append(branchRow(step, branchType));
+      });
       branchMap.append(flow);
       return branchMap;
     }
 
-    function branchRow(sample, branchType) {
+    function branchRow(node, branchType) {
       const row = document.createElement("div");
       row.className = `branch-row branch-${branchType}`;
       const left = document.createElement("div");
       left.className = "branch-slot";
       const dot = document.createElement("span");
-      dot.className = `branch-dot status-${sample.sample_status || "success"}`;
+      dot.className = `branch-dot status-${node.sample_status || "success"}`;
       const right = document.createElement("div");
       right.className = "branch-slot";
 
       if (branchType === "side") {
-        left.append(branchCard(sample, "failed branch"));
+        left.append(branchCard(node, "failed branch"));
       } else {
-        right.append(branchCard(sample, "correct path"));
+        right.append(branchCard(node, node.metadata?.correction_of ? "correction" : "correct path"));
       }
       row.append(left, dot, right);
       return row;
     }
 
-    function branchCard(sample, laneLabel) {
+    function branchCard(node, laneLabel) {
       const card = document.createElement("button");
-      card.className = `branch-card status-${sample.sample_status || "success"}`;
+      card.className = `branch-card status-${node.sample_status || "success"}`;
       card.type = "button";
       card.addEventListener("click", () => {
-        activeId = sample.file_id;
+        activeId = node.file_id;
         activeView = "file";
         renderTree();
         renderViewSwitch();
@@ -1277,29 +1338,62 @@ _HTML_TEMPLATE = """<!doctype html>
       const label = document.createElement("div");
       label.className = "branch-card-label";
       const name = document.createElement("span");
-      name.textContent = sample.label;
+      name.textContent =
+        node.metadata?.tool_name ||
+        (node.label === "observation" ? (node.sample_status === "negative" ? "failure" : "result") : node.label);
       const status = document.createElement("span");
       status.className = "pill";
       status.textContent = laneLabel;
       label.append(name, status);
       card.append(label);
-      if (sample.content) {
+      if (node.content) {
         const body = document.createElement("div");
         body.className = "branch-card-body";
-        body.textContent = sample.content;
+        body.textContent = branchContent(node.content);
         card.append(body);
       }
       return card;
+    }
+
+    function branchContent(content) {
+      let text = content;
+      try {
+        const parsed = JSON.parse(text);
+        text = parsed.cmd || parsed.file || parsed.path || text;
+      } catch (_error) {
+        const commandMatch = text.match(/"cmd":\\s*"([^"]+)"/);
+        if (commandMatch) text = commandMatch[1];
+      }
+      text = text
+        .replace(/^Chunk ID:.*$/gm, "")
+        .replace(/^Wall time:.*$/gm, "")
+        .replace(/^Process (?:exited|running).*$/gm, "")
+        .replace(/^Original token count:.*$/gm, "")
+        .replace(/^Output:\\s*$/gm, "")
+        .split("\\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .join("\\n");
+      if (text.length <= 260) return text;
+      return `${text.slice(0, 257)}...`;
     }
 
     function renderGraphMetadata(graph) {
       const metadata = document.getElementById("metadata");
       metadata.innerHTML = "";
       if (!graph) return;
+      const focused = graph.nodes.some((node) => node.kind === "trajectory-step");
       const counts = [
         ["nodes", graph.nodes.length],
         ["trajectories", graph.nodes.filter((node) => node.kind === "trajectory-sample").length],
-        ["negative", graph.nodes.filter((node) => node.sample_status === "negative" && node.kind === "trajectory-sample").length],
+        [
+          focused ? "failed" : "negative",
+          graph.nodes.filter(
+            (node) =>
+              node.sample_status === "negative" &&
+              node.kind === (focused ? "trajectory-step" : "trajectory-sample"),
+          ).length,
+        ],
       ];
       counts.forEach(([key, value]) => {
         const item = document.createElement("span");

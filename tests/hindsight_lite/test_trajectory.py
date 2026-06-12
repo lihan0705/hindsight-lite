@@ -87,3 +87,53 @@ def test_extract_reflection_candidate_skips_unrecovered_failure() -> None:
     )
 
     assert candidate is None
+
+
+def test_extract_reflection_candidate_keeps_only_the_corrected_failure_window() -> None:
+    candidate = extract_reflection_candidate(
+        [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": ("<environment_context>\n <cwd>/tmp/project</cwd>\n</environment_context>"),
+                    }
+                ],
+            },
+            {"role": "user", "content": [{"type": "text", "text": "Sync the repository."}]},
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "name": "exec_command", "input": {"cmd": "git status --short"}},
+                    {"type": "tool_result", "content": "Chunk ID: ok\nProcess exited with code 0\nOutput:\nclean"},
+                    {"type": "tool_use", "name": "exec_command", "input": {"cmd": "git fetch origin"}},
+                    {
+                        "type": "tool_result",
+                        "content": (
+                            "Chunk ID: failed\n"
+                            "Wall time: 0.1 seconds\n"
+                            "Process exited with code 128\n"
+                            "Output:\n"
+                            "fatal: unable to access remote"
+                        ),
+                    },
+                    {"type": "tool_use", "name": "exec_command", "input": {"cmd": "git fetch origin --retry"}},
+                    {
+                        "type": "tool_result",
+                        "content": "Chunk ID: fixed\nProcess exited with code 0\nOutput:\nFetched origin/main",
+                    },
+                    {"type": "text", "text": "The repository is synced."},
+                ],
+            },
+        ]
+    )
+
+    assert candidate is not None
+    assert candidate.query == "Sync the repository."
+    assert len(candidate.trajectory.steps) == 6
+    rendered_steps = "\n".join(step.content for step in candidate.trajectory.steps)
+    assert "git status --short" not in rendered_steps
+    assert "Chunk ID" not in rendered_steps
+    assert "fatal: unable to access remote" in rendered_steps
+    assert "Fetched origin/main" in rendered_steps
