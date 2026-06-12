@@ -16,6 +16,7 @@ Exit codes:
   0 — always (graceful degradation on any error)
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -34,7 +35,9 @@ from lib.state import increment_turn_count
 
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
+from hindsight_lite.reflection import create_reflection_packet
 from hindsight_lite.store import LocalMemoryStore
+from hindsight_lite.trajectory import extract_reflection_candidate
 from hindsight_lite.user_profile import promote_user_profile_from_messages
 
 
@@ -158,6 +161,27 @@ def main():
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
         return
+
+    if config.get("autoReflect"):
+        try:
+            candidate = extract_reflection_candidate(messages_to_retain)
+            if candidate is not None:
+                candidate_key = hashlib.sha256(f"{bank_id}:{session_id}".encode()).hexdigest()[:16]
+                packet = create_reflection_packet(
+                    store=store,
+                    session_id=session_id,
+                    query=candidate.query,
+                    task_context={
+                        "cwd": str(hook_input.get("cwd", "")),
+                        "source": "codex-stop-hook",
+                    },
+                    reflection_id=f"reflect-auto-{candidate_key}",
+                    trigger_reason=candidate.trigger_reason,
+                    candidate_trajectory=candidate.trajectory,
+                )
+                debug_log(config, f"Updated reflection candidate: {packet.id}")
+        except Exception as e:
+            print(f"[Hindsight] Reflection candidate update failed: {e}", file=sys.stderr)
 
     if config.get("autoMemoryUi"):
         try:

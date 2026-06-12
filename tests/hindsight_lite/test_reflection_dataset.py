@@ -14,6 +14,27 @@ from hindsight_lite.store import LocalMemoryStore
 
 def test_build_reflection_dataset_examples_pairs_requests_and_results(tmp_path: Path) -> None:
     store = _store_with_reflection_pair(tmp_path)
+    store.write_reflection_packet(
+        ReflectionPacket(
+            type="reflection_request",
+            id="candidate-only",
+            timestamp="2026-05-30T10:02:00Z",
+            bank_id="codex",
+            session_id="session-2",
+            query="Review this corrected attempt.",
+            retrieved_context=[],
+            task_context={"source": "codex-stop-hook"},
+            reflection_prompt="Return a reflection_result.",
+            trigger_reason="tool_failure",
+            candidate_trajectory=ReflectionTrajectory(
+                state="A tool failed.",
+                action="The agent tried a corrected action.",
+                observation="The corrected action completed.",
+                outcome="The task continued.",
+                lesson="Review before promoting this candidate.",
+            ),
+        )
+    )
     store.write_reflection_result(
         ReflectionResult(
             type="reflection_result",

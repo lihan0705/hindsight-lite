@@ -180,6 +180,7 @@ Defaults live in `settings.json`. User overrides can be written to
 | `autoFileContext` | `true` | Inject compact memory before file-reading tools |
 | `autoRetain` | `true` | Store conversations after each turn |
 | `autoMemoryUi` | `true` | Refresh `memory-tree.html` after each successful retain |
+| `autoReflect` | `true` | Write review-only trajectory candidates after corrected failures |
 | `retainMode` | `full-session` | `full-session` or `chunked` |
 | `retainEveryNTurns` | `1` | Retain every N turns |
 | `recallMaxResults` | `5` | Maximum local recall results |
@@ -202,6 +203,7 @@ export HINDSIGHT_RECALL_MAX_EXCERPT_CHARS=160
 export HINDSIGHT_FILE_CONTEXT_MAX_RESULTS=3
 export HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS=140
 export HINDSIGHT_AUTO_MEMORY_UI=true
+export HINDSIGHT_AUTO_REFLECT=true
 export HINDSIGHT_DEBUG=true
 ```
 

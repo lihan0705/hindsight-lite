@@ -138,4 +138,6 @@ class ReflectionPacket:
     retrieved_context: list[RecallResult]
     task_context: dict[str, str]
     reflection_prompt: str
+    trigger_reason: str | None = None
+    candidate_trajectory: ReflectionTrajectory | None = None
     result_schema: ReflectionResultSchema = field(default_factory=default_reflection_result_schema)

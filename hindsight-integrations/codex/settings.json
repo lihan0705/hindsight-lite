@@ -4,6 +4,7 @@
   "autoRecall": true,
   "autoRetain": true,
   "autoMemoryUi": true,
+  "autoReflect": true,
   "retainMode": "full-session",
   "recallMaxResults": 5,
   "recallMaxExcerptChars": 160,

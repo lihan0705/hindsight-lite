@@ -345,6 +345,19 @@ successful outcome. The graph is currently shown inside the memory tree's
 Graph view, but it renders reflection data and can later move to a dedicated
 reflection page without changing the stored JSON.
 
+When `autoReflect` is enabled, the Codex Stop hook applies conservative local
+rules to the retained rich transcript. It writes or updates one automatic
+`reflection_request` for a session only after a failed tool result or explicit
+user correction is followed by a successful tool action. Ordinary chat,
+straight-through successful work, and unresolved failures do not create a
+candidate.
+
+The automatic request stores a `candidate_trajectory` for immediate review in
+the Reflection Graph. It is not a `reflection_result` and is not exported as
+RL/eval data. A later evaluator or human reviewer must still produce the
+validated result, which keeps heuristic extraction separate from training
+labels.
+
 Evaluator or human-reviewed outputs can be written back as explicit
 `reflection_result` JSON files:
 
