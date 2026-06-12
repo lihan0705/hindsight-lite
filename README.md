@@ -192,10 +192,12 @@ Generate a local memory tree inspector:
 python3 -m hindsight_lite memory-ui --bank codex --serve --open
 ```
 
-The command starts an editor bound only to `127.0.0.1`, prints its localhost
-URL, and opens it in the platform browser. This avoids WSL UNC file paths on
-Windows. Existing Markdown pages can be edited and saved back to `pages/*.md`;
-sessions, reflections, and index files remain read-only.
+The command starts a local editor, prints its HTTP URL, and opens it in the
+platform browser. It binds to `127.0.0.1` normally. Under WSL it binds to the
+distro's private IPv4 so the Windows browser can still connect when localhost
+forwarding is disabled. This avoids WSL UNC file paths. Existing Markdown pages
+can be edited and saved back to `pages/*.md`; sessions, reflections, and index
+files remain read-only. Use `--host` only when a custom bind address is needed.
 
 For a server-free snapshot, omit `--serve`:
 
@@ -242,8 +244,8 @@ $memorytree
 ```
 
 You can also type `/skills` and select **Memory Tree**. The skill runs
-`memory-ui --serve --open` as a long-running localhost editor. Under WSL it
-opens the URL in the Windows browser instead of exposing a
+`memory-ui --serve --open` as a long-running local editor. Under WSL it opens
+the distro IPv4 URL in the Windows browser instead of exposing a
 `\\wsl.localhost` HTML path. Keep the command running while editing.
 
 Codex does not let third-party plugins register a top-level `/memorytree`

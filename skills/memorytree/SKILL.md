@@ -12,11 +12,13 @@ description: Open the editable hindsight-lite memory tree in a local browser. Us
    python3 <skill-directory>/scripts/open_memorytree.py --bank codex
    ```
 
-3. Read the printed `http://127.0.0.1:<port>/` URL and report it to the user.
+3. Read the printed HTTP URL and report it to the user. On WSL this uses the
+   distro's private IPv4 so the Windows browser can reach the editor even when
+   WSL localhost forwarding is disabled.
 4. Keep the terminal running while the user inspects or edits memory. Stop it only when requested.
 
-The editable UI must use an `http://127.0.0.1` URL. A `memory-tree.html` path is a read-only static
-snapshot and is not a successful result for this skill.
+The editable UI must use the printed HTTP URL. A `memory-tree.html` path is a
+read-only static snapshot and is not a successful result for this skill.
 
 If automatic browser opening fails, restart the launcher with `--no-open`, keep the server running,
-and give the localhost URL to the user. Do not fall back to a WSL UNC file path.
+and give the printed URL to the user. Do not fall back to a WSL UNC file path.

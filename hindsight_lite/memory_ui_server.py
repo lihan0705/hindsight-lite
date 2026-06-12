@@ -24,10 +24,15 @@ class PageUpdateResponse:
     updated_at: str | None
 
 
-def create_memory_ui_server(store: LocalMemoryStore, port: int = 0) -> ThreadingHTTPServer:
+def create_memory_ui_server(
+    store: LocalMemoryStore,
+    host: str = "127.0.0.1",
+    port: int = 0,
+) -> ThreadingHTTPServer:
     handler = _handler_for_store(store)
-    # The UI can rewrite memory pages, so it must never listen beyond the local machine.
-    return ThreadingHTTPServer(("127.0.0.1", port), handler)
+    # WSL uses its private interface because Windows localhost forwarding is not
+    # enabled reliably on every installation. Other platforms keep loopback.
+    return ThreadingHTTPServer((host, port), handler)
 
 
 def memory_ui_server_url(server: ThreadingHTTPServer) -> str:
