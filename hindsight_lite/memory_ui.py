@@ -1123,7 +1123,6 @@ _HTML_TEMPLATE = """<!doctype html>
       }
       button.addEventListener("click", () => {
         activeId = file.id;
-        activeView = "file";
         renderTree();
         renderActiveView();
       });
