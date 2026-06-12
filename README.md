@@ -56,6 +56,12 @@ from the first conversation to verify cross-session recall. To inspect the
 local files visually, run `$memorytree` or select **Memory Tree** from
 `/skills`.
 
+Use either the plugin installation above or the legacy manual hook setup, not
+both. If `~/.codex/hooks.json` already contains hindsight-lite commands from an
+older manual installation, remove those entries before enabling the plugin.
+Otherwise every lifecycle event can run twice and Codex can print duplicate
+hook output or failures.
+
 If you are asking Codex to install the repository for you, use:
 
 ```text
@@ -71,6 +77,11 @@ codex plugin marketplace upgrade hindsight-lite
 codex plugin remove hindsight-lite@hindsight-lite
 codex plugin add hindsight-lite@hindsight-lite
 ```
+
+Plugin updates are versioned so Codex creates a fresh cache instead of reusing
+an older launcher or UI. Restart Codex and open a new thread after updating. If
+`$memorytree` reports a missing versioned script path, confirm `/plugins` shows
+`hindsight-lite@hindsight-lite`, then repeat the remove/add commands above.
 
 Memory remains under `~/.hindsight-lite/` when the plugin is updated or
 removed. See the [Codex integration guide](hindsight-integrations/codex/README.md)

@@ -17,6 +17,8 @@ def test_plugin_packages_memorytree_skill() -> None:
     assert manifest["skills"] == "./skills/"
     assert "name: memorytree" in skill
     assert "scripts/open_memorytree.py --bank codex" in skill
+    assert "Do not construct" in skill
+    assert "do not search older cache directories" in skill
     assert "memory-tree.html" in skill
     assert "Use $memorytree" in metadata
     assert launcher["plugin_root"]() == root_dir
