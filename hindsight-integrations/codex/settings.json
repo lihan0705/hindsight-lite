@@ -1,8 +1,6 @@
 {
   "version": "0.3.0",
   "bankId": "codex",
-  "bankMission": "You are a Codex AI coding assistant. Focus on technical decisions, code changes, debugging sessions, and project context relevant to the user's work.",
-  "retainMission": "Extract technical decisions, code patterns, debugging solutions, user preferences, project context, and architectural choices. Ignore routine greetings and transient operational details.",
   "autoRecall": true,
   "autoRetain": true,
   "autoMemoryUi": true,

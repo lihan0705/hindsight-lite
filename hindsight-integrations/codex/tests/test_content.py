@@ -7,7 +7,6 @@ import sys
 import pytest
 from lib.content import (
     compose_recall_query,
-    format_memories,
     is_synthetic_codex_user_message,
     prepare_retention_transcript,
     read_transcript,
@@ -343,37 +342,6 @@ class TestTruncateRecallQuery:
     def test_zero_max_returns_query_unchanged(self):
         q = "anything"
         assert truncate_recall_query(q, q, max_chars=0) == q
-
-
-# ---------------------------------------------------------------------------
-# format_memories
-# ---------------------------------------------------------------------------
-
-
-class TestFormatMemories:
-    def test_formats_single_memory(self):
-        mems = [{"text": "Paris is the capital", "type": "world", "mentioned_at": "2024-01-01"}]
-        result = format_memories(mems)
-        assert "Paris is the capital" in result
-        assert "[world]" in result
-        assert "(2024-01-01)" in result
-
-    def test_formats_multiple_memories(self):
-        mems = [
-            {"text": "mem1", "type": "experience", "mentioned_at": "2024-01-01"},
-            {"text": "mem2", "type": "world", "mentioned_at": "2024-02-01"},
-        ]
-        result = format_memories(mems)
-        assert "mem1" in result
-        assert "mem2" in result
-
-    def test_empty_list_returns_empty_string(self):
-        assert format_memories([]) == ""
-
-    def test_missing_optional_fields_graceful(self):
-        mems = [{"text": "bare memory"}]
-        result = format_memories(mems)
-        assert "bare memory" in result
 
 
 # ---------------------------------------------------------------------------

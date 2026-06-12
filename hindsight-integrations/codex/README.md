@@ -29,13 +29,29 @@ Memory layout:
 
 - OpenAI Codex CLI with hook support
 - Python 3.11+
-- This repository available on the local machine
+
+## Install The Plugin
+
+The repository includes a Codex marketplace entry, plugin manifest, hooks, and
+the `memorytree` skill. Install the marketplace and plugin from any shell:
+
+```bash
+codex plugin marketplace add lihan0705/hindsight-lite --ref main
+codex plugin add hindsight-lite@hindsight-lite
+```
+
+Restart Codex and start a new thread after installation. Run `/plugins` to
+confirm that `hindsight-lite` is installed and enabled. End one short session,
+start another, and ask about a fact from the first session to verify retain and
+recall. Use `$memorytree` or `/skills` -> **Memory Tree** to inspect the local
+memory files.
 
 ## Quickstart
 
-Run these commands from the repository root. They keep memory in a temporary
-directory so you can verify the local runtime without touching existing
-`~/.hindsight-lite` data:
+These developer smoke tests are optional; normal users should install the
+plugin above. Run the commands from a repository checkout. They keep memory in
+a temporary directory so you can verify the local runtime without touching
+existing `~/.hindsight-lite` data:
 
 ```bash
 export HINDSIGHT_LITE_HOME="$(mktemp -d)"
@@ -60,7 +76,7 @@ printf '{"prompt":"local-first project rules","session_id":"smoke","cwd":"%s"}' 
 When memories match, the hook prints Codex `hookSpecificOutput` JSON with
 `additionalContext`. No output means recall found no matching local memory.
 
-## Install Hooks
+## Manual Hook Installation
 
 This repository includes Codex plugin metadata in `.codex-plugin/plugin.json`
 and a relocatable hook payload at `hooks/plugin-hooks.json`. The plugin hook
@@ -69,7 +85,8 @@ commands resolve `HINDSIGHT_LITE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`,
 `codex_hook.py`. That keeps the same checkout usable after installation or on a
 different machine without editing absolute script paths.
 
-If your Codex plugin runtime accepts an external hook payload, use:
+Use this section only when the marketplace installation is unavailable. If
+your Codex runtime accepts an external hook payload, use:
 
 ```text
 hindsight-integrations/codex/hooks/plugin-hooks.json
@@ -117,7 +134,6 @@ python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test 
 python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
 python3 -m hindsight_lite agent_knowledge_import_codex_memory --bank codex --dry-run
 python3 -m hindsight_lite memory-ui --bank codex --serve --open
-python3 -m hindsight_lite codex-prompts install
 ```
 
 Short commands such as `recall`, `retain`, `reflect`, and `knowledge list/get`
@@ -149,17 +165,8 @@ edit memory. Under WSL, Windows PowerShell opens the localhost URL in the
 Windows browser.
 
 Codex does not expose third-party top-level slash command registration, so
-`/memorytree` cannot be added by this plugin. For compatibility, the deprecated
-custom prompt can still be installed with:
-
-```bash
-python3 -m hindsight_lite codex-prompts install
-```
-
-Restart Codex after installing it, then invoke `/prompts:memorytree`. After
-updating hindsight-lite, run
-`python3 -m hindsight_lite codex-prompts install --force` and restart Codex to
-replace an older prompt.
+`/memorytree` cannot be added by this plugin. Use the bundled skill instead of
+the deprecated custom prompt system.
 
 ## Configuration
 

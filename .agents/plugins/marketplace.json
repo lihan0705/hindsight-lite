@@ -1,0 +1,21 @@
+{
+  "name": "hindsight-lite",
+  "interface": {
+    "displayName": "hindsight-lite"
+  },
+  "plugins": [
+    {
+      "name": "hindsight-lite",
+      "source": {
+        "source": "url",
+        "url": "lihan0705/hindsight-lite",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -23,7 +23,6 @@ Codex rollout format (JSONL):
 import json
 import os
 import re
-from datetime import datetime, timezone
 
 # Maximum length for tool output content in JSON format.
 _MAX_TOOL_OUTPUT_CHARS = 2000
@@ -544,32 +543,6 @@ def slice_last_turns_by_user_boundary(messages: list, turns: int) -> list:
         return list(messages)
 
     return messages[start_index:]
-
-
-# ---------------------------------------------------------------------------
-# Memory formatting (recall results → context string)
-# ---------------------------------------------------------------------------
-
-
-def format_memories(results: list) -> str:
-    """Format recall results into human-readable text."""
-    if not results:
-        return ""
-    lines = []
-    for r in results:
-        text = r.get("text", "")
-        mem_type = r.get("type", "")
-        mentioned_at = r.get("mentioned_at", "")
-        type_str = f" [{mem_type}]" if mem_type else ""
-        date_str = f" ({mentioned_at})" if mentioned_at else ""
-        lines.append(f"- {text}{type_str}{date_str}")
-    return "\n\n".join(lines)
-
-
-def format_current_time() -> str:
-    """Format current UTC time for recall context."""
-    now = datetime.now(timezone.utc)
-    return now.strftime("%Y-%m-%d %H:%M")
 
 
 # ---------------------------------------------------------------------------

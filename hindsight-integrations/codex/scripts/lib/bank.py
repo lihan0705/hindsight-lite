@@ -13,8 +13,6 @@ routing like Telegram/Discord agents.
 import os
 import sys
 
-from .state import read_state, write_state
-
 DEFAULT_BANK_NAME = "codex"
 
 # Valid granularity fields for Codex
@@ -63,29 +61,3 @@ def derive_bank_id(hook_input: dict, config: dict) -> str:
     base_bank_id = "::".join(segments)
 
     return f"{prefix}-{base_bank_id}" if prefix else base_bank_id
-
-
-def ensure_bank_mission(client, bank_id: str, config: dict, debug_fn=None):
-    """Set bank mission on first use, skip if already set."""
-    mission = config.get("bankMission", "")
-    if not mission or not mission.strip():
-        return
-
-    missions_set = read_state("bank_missions.json", {})
-    if bank_id in missions_set:
-        return
-
-    try:
-        retain_mission = config.get("retainMission")
-        client.set_bank_mission(bank_id, mission, retain_mission=retain_mission, timeout=10)
-        missions_set[bank_id] = True
-        if len(missions_set) > 10000:
-            keys = sorted(missions_set.keys())
-            for k in keys[: len(keys) // 2]:
-                del missions_set[k]
-        write_state("bank_missions.json", missions_set)
-        if debug_fn:
-            debug_fn(f"Set mission for bank: {bank_id}")
-    except Exception as e:
-        if debug_fn:
-            debug_fn(f"Could not set bank mission for {bank_id}: {e}")
