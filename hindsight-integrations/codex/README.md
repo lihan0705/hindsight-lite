@@ -46,6 +46,24 @@ start another, and ask about a fact from the first session to verify retain and
 recall. Use `$memorytree` or `/skills` -> **Memory Tree** to inspect the local
 memory files.
 
+Do not keep an older manual hindsight-lite registration in
+`~/.codex/hooks.json` at the same time. The plugin already registers
+SessionStart, UserPromptSubmit, PreToolUse, and Stop; registering both copies
+makes each lifecycle event run twice and can duplicate hook output or errors.
+
+To update the plugin, refresh the marketplace, remove the installed copy, add
+it again, then restart Codex:
+
+```bash
+codex plugin marketplace upgrade hindsight-lite
+codex plugin remove hindsight-lite@hindsight-lite
+codex plugin add hindsight-lite@hindsight-lite
+```
+
+Each plugin release uses a new manifest version so Codex creates a fresh cache.
+If `$memorytree` names a launcher path that does not exist, reinstall as above
+instead of searching an older versioned cache directory.
+
 ## Quickstart
 
 These developer smoke tests are optional; normal users should install the
@@ -85,8 +103,9 @@ commands resolve `HINDSIGHT_LITE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`,
 `codex_hook.py`. That keeps the same checkout usable after installation or on a
 different machine without editing absolute script paths.
 
-Use this section only when the marketplace installation is unavailable. If
-your Codex runtime accepts an external hook payload, use:
+Use this section only when the marketplace installation is unavailable, and
+remove these manual entries before later enabling the plugin. If your Codex
+runtime accepts an external hook payload, use:
 
 ```text
 hindsight-integrations/codex/hooks/plugin-hooks.json
