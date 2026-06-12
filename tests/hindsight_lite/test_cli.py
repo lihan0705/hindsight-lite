@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from subprocess import CompletedProcess
 
 from hindsight_lite.cli import main
 
@@ -388,6 +389,27 @@ def test_cli_memory_ui_opens_localhost_with_windows_browser_under_wsl(monkeypatc
             "Start-Process -FilePath 'http://127.0.0.1:4321/'",
         ]
     ]
+
+
+def test_cli_memory_ui_uses_wsl_private_ipv4_for_windows_access(monkeypatch) -> None:
+    monkeypatch.setenv("WSL_DISTRO_NAME", "Ubuntu")
+    monkeypatch.setattr(
+        "hindsight_lite.cli.subprocess.run",
+        lambda *args, **kwargs: CompletedProcess(args[0], 0, stdout="172.29.64.5 172.18.0.1\n"),
+    )
+
+    from hindsight_lite.cli import _default_memory_ui_host
+
+    assert _default_memory_ui_host() == "172.29.64.5"
+
+
+def test_cli_memory_ui_defaults_to_loopback_outside_wsl(monkeypatch) -> None:
+    monkeypatch.delenv("WSL_DISTRO_NAME", raising=False)
+    monkeypatch.setattr("hindsight_lite.cli.Path.read_text", lambda *args, **kwargs: "linux")
+
+    from hindsight_lite.cli import _default_memory_ui_host
+
+    assert _default_memory_ui_host() == "127.0.0.1"
 
 
 def test_cli_seeds_demo_memory_and_generates_ui(tmp_path: Path, capsys) -> None:

@@ -150,8 +150,9 @@ The importer reads `~/.codex/memories` by default, preserves source provenance
 in page metadata, and never writes back to Codex-owned files. Pass
 `--source-dir /path/to/memories` when testing with exported or fixture data.
 
-`memory-ui --serve` starts an editor bound only to `127.0.0.1`. It opens a
-localhost URL, avoiding WSL UNC paths, and allows existing Markdown pages to be
+`memory-ui --serve` starts a local editor. It uses `127.0.0.1` normally and the
+WSL distro's private IPv4 when the Windows browser cannot rely on localhost
+forwarding. This avoids WSL UNC paths and allows existing Markdown pages to be
 saved back to `pages/*.md`. Sessions, reflections, and index files remain
 read-only. Without `--serve`, the command writes a static `memory-tree.html`
 file into the selected bank directory; browser edits can then be downloaded
@@ -160,9 +161,8 @@ Stop hook refreshes this static file after each successful retain.
 
 The installed plugin includes a `memorytree` skill. Start a new Codex thread
 and invoke `$memorytree`, or type `/skills` and select **Memory Tree**. The
-skill starts the localhost editor and keeps it running while you inspect or
-edit memory. Under WSL, Windows PowerShell opens the localhost URL in the
-Windows browser.
+skill starts the editor and keeps it running while you inspect or edit memory.
+Under WSL, Windows PowerShell opens the distro IPv4 URL in the Windows browser.
 
 Codex does not expose third-party top-level slash command registration, so
 `/memorytree` cannot be added by this plugin. Use the bundled skill instead of

@@ -50,6 +50,15 @@ def test_memory_ui_server_serves_editable_ui_and_saves_existing_page(tmp_path: P
         thread.join()
 
 
+def test_memory_ui_server_uses_explicit_bind_host(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    server = create_memory_ui_server(store, host="127.0.0.1")
+    try:
+        assert memory_ui_server_url(server).startswith("http://127.0.0.1:")
+    finally:
+        server.server_close()
+
+
 def test_memory_ui_server_refuses_to_create_or_escape_pages(tmp_path: Path) -> None:
     store = LocalMemoryStore(home=tmp_path, bank_id="codex")
     server = create_memory_ui_server(store)

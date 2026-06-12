@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 import subprocess
@@ -148,7 +149,8 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_bank_arg(memory_ui_parser)
     memory_ui_parser.add_argument("--output", type=Path, default=None)
     memory_ui_parser.add_argument("--open", action="store_true", help="Open the generated HTML file in a browser.")
-    memory_ui_parser.add_argument("--serve", action="store_true", help="Serve an editable UI on localhost.")
+    memory_ui_parser.add_argument("--serve", action="store_true", help="Serve an editable UI over local HTTP.")
+    memory_ui_parser.add_argument("--host", default=None, help="Server bind address; WSL defaults to its private IPv4.")
     memory_ui_parser.add_argument("--port", type=int, default=0, help="Local server port; 0 selects a free port.")
     memory_ui_parser.set_defaults(handler=_cmd_memory_ui)
 
@@ -273,7 +275,7 @@ def _cmd_memory_ui(args: argparse.Namespace) -> int:
 
 
 def _serve_memory_ui(args: argparse.Namespace) -> int:
-    server = create_memory_ui_server(store=_store(args), port=args.port)
+    server = create_memory_ui_server(store=_store(args), host=args.host or _default_memory_ui_host(), port=args.port)
     url = memory_ui_server_url(server)
     print(url, flush=True)
     if args.open:
@@ -319,6 +321,30 @@ def _is_wsl() -> bool:
         return "microsoft" in Path("/proc/sys/kernel/osrelease").read_text(encoding="utf-8").lower()
     except OSError:
         return False
+
+
+def _default_memory_ui_host() -> str:
+    if not _is_wsl():
+        return "127.0.0.1"
+
+    try:
+        result = subprocess.run(
+            ["hostname", "-I"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return "127.0.0.1"
+
+    for value in result.stdout.split():
+        try:
+            address = ipaddress.ip_address(value)
+        except ValueError:
+            continue
+        if address.version == 4 and address.is_private and not address.is_loopback:
+            return str(address)
+    return "127.0.0.1"
 
 
 def _cmd_demo_memory_seed(args: argparse.Namespace) -> int:
