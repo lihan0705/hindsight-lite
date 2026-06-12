@@ -9,6 +9,7 @@ from hindsight_lite.models import ReflectionTrajectory, ReflectionTrajectoryStep
 
 _FAILURE_PATTERNS = (
     re.compile(r"\bexit_code:\s*[1-9]\d*\b", re.IGNORECASE),
+    re.compile(r"\bprocess exited with code [1-9]\d*\b", re.IGNORECASE),
     re.compile(r"\bstatus:\s*(failed|error|cancelled|timed[_ -]?out)\b", re.IGNORECASE),
     re.compile(r"(?:^|\n)FAILED\b"),
     re.compile(r"\b[1-9]\d*\s+failed\b", re.IGNORECASE),
@@ -18,6 +19,17 @@ _FAILURE_PATTERNS = (
 _CORRECTION_PATTERNS = (
     re.compile(r"^(不对|不是这样|错了|你弄错了|重新来|应该是|我说的是)"),
     re.compile(r"\b(that(?:'s| is) wrong|not what i meant|try again|you misunderstood)\b", re.IGNORECASE),
+)
+_ENVIRONMENT_CONTEXT_PATTERN = re.compile(
+    r"<environment_context>.*?</environment_context>",
+    re.IGNORECASE | re.DOTALL,
+)
+_RESULT_HEADER_PATTERNS = (
+    re.compile(r"^Chunk ID:.*$", re.MULTILINE),
+    re.compile(r"^Wall time:.*$", re.MULTILINE),
+    re.compile(r"^Process (?:exited|running).*$", re.MULTILINE),
+    re.compile(r"^Original token count:.*$", re.MULTILINE),
+    re.compile(r"^Output:\s*$", re.MULTILINE),
 )
 
 
@@ -83,6 +95,8 @@ def extract_reflection_candidate(messages: list[Mapping[str, object]]) -> Reflec
 
         attempts = _tool_attempts(message.get("content"))
         for attempt in attempts:
+            if not attempt.failed and pending_failure is None:
+                continue
             action_id = f"tool-{sequence}"
             action_parent = main_parent
             steps.append(
@@ -173,14 +187,14 @@ def _tool_attempt(tool: Mapping[str, object], result: str) -> ToolAttempt:
     name = str(tool.get("name") or "tool")
     raw_input = tool.get("input")
     if isinstance(raw_input, Mapping):
-        input_summary = json.dumps(dict(raw_input), ensure_ascii=False, sort_keys=True)
+        input_summary = _summarize_tool_input(name, raw_input)
     else:
         input_summary = str(raw_input or name)
-    input_summary = input_summary[:500]
+    summarized_result = _summarize_tool_result(result)
     return ToolAttempt(
         name=name,
-        input_summary=input_summary,
-        result=result[:1000],
+        input_summary=input_summary[:240],
+        result=summarized_result,
         failed=_is_failure(result),
     )
 
@@ -188,7 +202,7 @@ def _tool_attempt(tool: Mapping[str, object], result: str) -> ToolAttempt:
 def _first_user_text(messages: list[Mapping[str, object]]) -> str:
     for message in messages:
         if message.get("role") == "user":
-            text = _content_text(message.get("content"))
+            text = _strip_internal_context(_content_text(message.get("content")))
             if text:
                 return text[:500]
     return ""
@@ -229,5 +243,32 @@ def _is_failure(text: str) -> bool:
 
 
 def _is_user_correction(text: str) -> bool:
-    stripped = text.strip()
+    stripped = _strip_internal_context(text)
     return bool(stripped) and any(pattern.search(stripped) for pattern in _CORRECTION_PATTERNS)
+
+
+def _strip_internal_context(text: str) -> str:
+    return _ENVIRONMENT_CONTEXT_PATTERN.sub("", text).strip()
+
+
+def _summarize_tool_input(name: str, raw_input: Mapping[str, object]) -> str:
+    command = raw_input.get("cmd")
+    if isinstance(command, str) and command.strip():
+        return command.strip()
+    file_path = raw_input.get("file") or raw_input.get("path")
+    if isinstance(file_path, str) and file_path.strip():
+        return f"{name}: {file_path.strip()}"
+    return json.dumps(dict(raw_input), ensure_ascii=False, sort_keys=True)
+
+
+def _summarize_tool_result(result: str) -> str:
+    summary = result
+    for pattern in _RESULT_HEADER_PATTERNS:
+        summary = pattern.sub("", summary)
+    lines = [line.strip() for line in summary.splitlines() if line.strip()]
+    if not lines:
+        return "Tool completed."
+    compact = "\n".join(lines)
+    if len(compact) <= 320:
+        return compact
+    return f"{compact[:317]}..."

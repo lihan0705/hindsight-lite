@@ -192,12 +192,21 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"tool_name": "pytest"' in html
     assert "Changed code before checking the failing case." in html
     assert "Checked the failure and corrected the implementation." in html
-    assert "Trajectory Branch Map" in html
-    assert "side branches /" in html
+    assert "Reflection Branch" in html
+    assert "failed nodes /" in html
     assert "failed branch" in html
     assert "correct path" in html
+    assert "correction" in html
     assert ".branch-row.branch-side" in html
     assert ".branch-row.branch-main" in html
+    assert "graphForActiveFile" in html
+    assert "relevantTrajectorySteps" in html
+    assert "branchContent" in html
+    assert "parsed.cmd || parsed.file || parsed.path" in html
+    assert "commandMatch" in html
+    assert 'node.kind === "trajectory-step"' in html
+    assert 'node.label === "outcome"' in html
+    assert 'node.content.includes("<environment_context>")' in html
     assert "Graph" in html
 
 
