@@ -181,7 +181,8 @@ Bank layout:
 
 V1 memory types:
 
-- `sessions/*.jsonl` stores retained Codex conversation snapshots.
+- `sessions/*.jsonl` stores the latest full-session snapshot, or append-only
+  windows when chunked retention is enabled.
 - `pages/*.md` stores user-readable knowledge pages.
 - `reflections/*.json` stores reflection requests for later analysis.
 

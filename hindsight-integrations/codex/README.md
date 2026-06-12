@@ -200,7 +200,7 @@ Defaults live in `settings.json`. User overrides can be written to
 | `autoRetain` | `true` | Store conversations after each turn |
 | `autoMemoryUi` | `true` | Refresh `memory-tree.html` after each successful retain |
 | `autoReflect` | `true` | Write review-only trajectory candidates after corrected failures |
-| `retainMode` | `full-session` | `full-session` or `chunked` |
+| `retainMode` | `full-session` | Replace the latest session snapshot, or append retained `chunked` windows |
 | `retainEveryNTurns` | `1` | Retain every N turns |
 | `recallMaxResults` | `5` | Maximum local recall results |
 | `recallMaxExcerptChars` | `160` | Maximum prompt-recall excerpt characters per result |
