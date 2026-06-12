@@ -58,13 +58,13 @@ class ReflectionResultSchema:
 
 def default_reflection_result_schema() -> ReflectionResultSchema:
     return ReflectionResultSchema(
-        version="1.0",
+        version="1.1",
         result_type="reflection_result",
         fields=[
             ReflectionResultField(
                 name="trajectory",
                 value_type="object",
-                description="State, action, observation, outcome, and lesson for one agent work trajectory.",
+                description=("State, action, observation, outcome, and lesson summary plus ordered branchable steps."),
             ),
             ReflectionResultField(
                 name="durable_facts",
@@ -91,12 +91,25 @@ def default_reflection_result_schema() -> ReflectionResultSchema:
 
 
 @dataclass(frozen=True)
+class ReflectionTrajectoryStep:
+    id: str
+    sequence: int
+    kind: Literal["state", "action", "tool", "observation", "outcome", "lesson"]
+    status: Literal["neutral", "success", "failed", "uncertain"]
+    content: str
+    parent_id: str | None = None
+    tool_name: str | None = None
+    correction_of: str | None = None
+
+
+@dataclass(frozen=True)
 class ReflectionTrajectory:
     state: str
     action: str
     observation: str
     outcome: str
     lesson: str
+    steps: list[ReflectionTrajectoryStep] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

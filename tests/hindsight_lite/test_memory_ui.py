@@ -3,7 +3,13 @@ from dataclasses import asdict
 from pathlib import Path
 
 from hindsight_lite.memory_ui import MemoryUiSnapshot, render_memory_ui, write_memory_ui
-from hindsight_lite.models import ReflectionPacket, ReflectionResult, ReflectionTrajectory, SessionMemoryEvent
+from hindsight_lite.models import (
+    ReflectionPacket,
+    ReflectionResult,
+    ReflectionTrajectory,
+    ReflectionTrajectoryStep,
+    SessionMemoryEvent,
+)
 from hindsight_lite.store import LocalMemoryStore
 
 
@@ -134,6 +140,33 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
                 observation="The task still failed and the output was wrong.",
                 outcome="Task failed because the trajectory skipped validation.",
                 lesson="Treat this as a negative RL trajectory sample.",
+                steps=[
+                    ReflectionTrajectoryStep(
+                        id="start",
+                        sequence=0,
+                        kind="state",
+                        status="neutral",
+                        content="Need to update the implementation.",
+                    ),
+                    ReflectionTrajectoryStep(
+                        id="failed-attempt",
+                        parent_id="start",
+                        sequence=1,
+                        kind="action",
+                        status="failed",
+                        content="Changed code before checking the failing case.",
+                    ),
+                    ReflectionTrajectoryStep(
+                        id="corrected-attempt",
+                        parent_id="start",
+                        sequence=2,
+                        kind="action",
+                        status="success",
+                        content="Checked the failure and corrected the implementation.",
+                        correction_of="failed-attempt",
+                        tool_name="pytest",
+                    ),
+                ],
             ),
             durable_facts=[],
             reusable_procedures=[],
@@ -144,7 +177,7 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
 
     html = render_memory_ui(store)
 
-    assert '"label": "Trajectory Samples"' in html
+    assert '"label": "Reflection Graph"' in html
     assert '"label": "Success"' in html
     assert '"label": "Error / Negative Candidates"' in html
     assert '"label": "Uncertain"' in html
@@ -154,6 +187,11 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"parent_id": "trajectory-success"' in html
     assert '"label": "outcome"' in html
     assert "Task failed because the trajectory skipped validation." in html
+    assert '"parent_id": "trajectory-result-error-step-start"' in html
+    assert '"correction_of": "failed-attempt"' in html
+    assert '"tool_name": "pytest"' in html
+    assert "Changed code before checking the failing case." in html
+    assert "Checked the failure and corrected the implementation." in html
     assert "Trajectory Branch Map" in html
     assert "side branches /" in html
     assert "failed branch" in html

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from hindsight_lite.models import ReflectionResult, ReflectionTrajectory
+from hindsight_lite.models import ReflectionResult, ReflectionTrajectory, ReflectionTrajectoryStep
 from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, parse_reflection_result
 from hindsight_lite.store import LocalMemoryStore, UnsafeReflectionIdError
 
@@ -26,7 +26,7 @@ def test_create_reflection_packet_retrieves_context_and_writes_json(tmp_path: Pa
     assert packet.session_id == "session-1"
     assert packet.retrieved_context[0].id == "rl-trajectory"
     assert "trajectory: state -> action -> observation -> outcome -> lesson" in packet.reflection_prompt
-    assert packet.result_schema.version == "1.0"
+    assert packet.result_schema.version == "1.1"
     assert packet.result_schema.result_type == "reflection_result"
     assert [field.name for field in packet.result_schema.fields] == [
         "trajectory",
@@ -58,6 +58,16 @@ def test_reflection_result_schema_matches_result_model() -> None:
             observation="Pages can be edited and downloaded while sessions remain read-only.",
             outcome="The agent has a cleaner review loop for long-term memory.",
             lesson="Keep mutable knowledge pages separate from audit-style event logs.",
+            steps=[
+                ReflectionTrajectoryStep(
+                    id="inspect",
+                    sequence=0,
+                    kind="action",
+                    status="success",
+                    content="Inspect the memory tree.",
+                    tool_name="read_file",
+                )
+            ],
         ),
         durable_facts=["Pages are user-editable long-term memory."],
         reusable_procedures=["Review pages in the memory tree before promoting new facts."],
@@ -66,6 +76,7 @@ def test_reflection_result_schema_matches_result_model() -> None:
     )
 
     assert result.trajectory.lesson == "Keep mutable knowledge pages separate from audit-style event logs."
+    assert result.trajectory.steps[0].tool_name == "read_file"
     assert result.durable_facts == ["Pages are user-editable long-term memory."]
     assert result.confidence == 0.82
 
@@ -86,6 +97,24 @@ def test_parse_reflection_result_validates_and_writes_json(tmp_path: Path) -> No
                 "observation": "The result is a local JSON file.",
                 "outcome": "Future eval tooling can inspect it.",
                 "lesson": "Keep request and result records explicit.",
+                "steps": [
+                    {
+                        "id": "attempt",
+                        "sequence": 0,
+                        "kind": "action",
+                        "status": "failed",
+                        "content": "Tried an incomplete implementation.",
+                    },
+                    {
+                        "id": "correction",
+                        "parent_id": "attempt",
+                        "sequence": 1,
+                        "kind": "action",
+                        "status": "success",
+                        "content": "Corrected the implementation after validation.",
+                        "correction_of": "attempt",
+                    },
+                ],
             },
             "durable_facts": ["Reflection results are stored locally."],
             "reusable_procedures": ["Validate evaluator output before writing memory."],
@@ -100,6 +129,87 @@ def test_parse_reflection_result_validates_and_writes_json(tmp_path: Path) -> No
     assert saved["type"] == "reflection_result"
     assert saved["request_id"] == "reflect-1"
     assert saved["trajectory"]["lesson"] == "Keep request and result records explicit."
+    assert saved["trajectory"]["steps"][1]["correction_of"] == "attempt"
+
+
+def test_parse_reflection_result_rejects_unknown_trajectory_parent() -> None:
+    try:
+        parse_reflection_result(
+            {
+                "type": "reflection_result",
+                "id": "result-1",
+                "request_id": "reflect-1",
+                "timestamp": "2026-05-30T10:00:00Z",
+                "bank_id": "codex",
+                "session_id": "session-1",
+                "trajectory": {
+                    "state": "state",
+                    "action": "action",
+                    "observation": "observation",
+                    "outcome": "outcome",
+                    "lesson": "lesson",
+                    "steps": [
+                        {
+                            "id": "correction",
+                            "parent_id": "missing",
+                            "sequence": 1,
+                            "kind": "action",
+                            "status": "success",
+                            "content": "corrected action",
+                        }
+                    ],
+                },
+                "confidence": 0.8,
+            }
+        )
+    except ReflectionResultError as exc:
+        assert "unknown parent_id" in str(exc)
+    else:
+        raise AssertionError("expected unknown trajectory parent to be rejected")
+
+
+def test_parse_reflection_result_rejects_trajectory_parent_cycle() -> None:
+    try:
+        parse_reflection_result(
+            {
+                "type": "reflection_result",
+                "id": "result-1",
+                "request_id": "reflect-1",
+                "timestamp": "2026-05-30T10:00:00Z",
+                "bank_id": "codex",
+                "session_id": "session-1",
+                "trajectory": {
+                    "state": "state",
+                    "action": "action",
+                    "observation": "observation",
+                    "outcome": "outcome",
+                    "lesson": "lesson",
+                    "steps": [
+                        {
+                            "id": "first",
+                            "parent_id": "second",
+                            "sequence": 0,
+                            "kind": "action",
+                            "status": "failed",
+                            "content": "first",
+                        },
+                        {
+                            "id": "second",
+                            "parent_id": "first",
+                            "sequence": 1,
+                            "kind": "action",
+                            "status": "success",
+                            "content": "second",
+                        },
+                    ],
+                },
+                "confidence": 0.8,
+            }
+        )
+    except ReflectionResultError as exc:
+        assert "cycle" in str(exc)
+    else:
+        raise AssertionError("expected cyclic trajectory parents to be rejected")
 
 
 def test_parse_reflection_result_rejects_invalid_confidence() -> None:
