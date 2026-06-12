@@ -374,6 +374,7 @@ class TestRetainHook:
                 monkeypatch.delenv(key, raising=False)
 
         assert load_config()["retainEveryNTurns"] == 1
+        assert load_config()["autoReflect"] is True
 
     def test_writes_transcript_to_local_store(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
@@ -406,6 +407,133 @@ class TestRetainHook:
 
         ui_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "memory-tree.html"
         assert not ui_path.exists()
+
+    def test_retain_writes_selective_reflection_candidate(self, monkeypatch, tmp_path):
+        messages = [
+            {"role": "user", "content": "Fix the failing authentication test."},
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "name": "pytest", "input": {"target": "test_auth.py"}},
+                    {"type": "tool_result", "content": "1 failed\nexit_code: 1"},
+                    {"type": "tool_use", "name": "apply_patch", "input": {"file": "auth.py"}},
+                    {"type": "tool_result", "content": "status: completed"},
+                    {"type": "text", "text": "Fixed the authentication test."},
+                ],
+            },
+        ]
+        transcript = make_transcript_file(tmp_path, messages)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-reflection-candidate")
+
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
+
+        bank_dir = tmp_path / ".hindsight-lite" / "banks" / "codex"
+        reflection_paths = sorted((bank_dir / "reflections").glob("reflect-auto-*.json"))
+        assert len(reflection_paths) == 1
+        candidate = json.loads(reflection_paths[0].read_text(encoding="utf-8"))
+        assert candidate["type"] == "reflection_request"
+        assert candidate["trigger_reason"] == "tool_failure"
+        assert candidate["candidate_trajectory"]["steps"][1]["tool_name"] == "pytest"
+        assert any(step["correction_of"] for step in candidate["candidate_trajectory"]["steps"])
+
+        html = (bank_dir / "memory-tree.html").read_text(encoding="utf-8")
+        assert '"stage": "candidate"' in html
+        assert '"trigger_reason": "tool_failure"' in html
+        assert "Fix the failing authentication test." in html
+
+    def test_retain_extracts_candidate_from_codex_event_messages(self, monkeypatch, tmp_path):
+        entries = [
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Fix the failing test."}],
+                },
+            },
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "exec_command_end",
+                    "command": ["pytest", "test_auth.py"],
+                    "aggregated_output": "1 failed",
+                    "exit_code": 1,
+                    "status": "failed",
+                },
+            },
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "patch_apply_end",
+                    "changes": [{"path": "auth.py"}],
+                    "status": "completed",
+                },
+            },
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "assistant",
+                    "phase": "final_answer",
+                    "content": [{"type": "output_text", "text": "Fixed the test."}],
+                },
+            },
+        ]
+        transcript = tmp_path / "rollout-events.jsonl"
+        transcript.write_text("\n".join(json.dumps(entry) for entry in entries), encoding="utf-8")
+
+        _run_hook(
+            "retain",
+            make_hook_input(transcript_path=str(transcript), session_id="sess-event-reflection"),
+            monkeypatch,
+            tmp_path,
+        )
+
+        reflections = tmp_path / ".hindsight-lite" / "banks" / "codex" / "reflections"
+        candidate_path = next(reflections.glob("reflect-auto-*.json"))
+        candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+        steps = candidate["candidate_trajectory"]["steps"]
+        assert any(step["tool_name"] == "shell" and step["status"] == "failed" for step in steps)
+        assert any(step["tool_name"] == "patch" and step["correction_of"] for step in steps)
+
+    def test_retain_skips_reflection_candidate_for_ordinary_chat(self, monkeypatch, tmp_path):
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi there."},
+        ]
+        transcript = make_transcript_file(tmp_path, messages)
+
+        _run_hook("retain", make_hook_input(transcript_path=transcript), monkeypatch, tmp_path)
+
+        reflections = tmp_path / ".hindsight-lite" / "banks" / "codex" / "reflections"
+        assert list(reflections.glob("reflect-auto-*.json")) == []
+
+    def test_retain_can_disable_auto_reflection(self, monkeypatch, tmp_path):
+        messages = [
+            {"role": "user", "content": "Fix the test."},
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "name": "pytest", "input": {}},
+                    {"type": "tool_result", "content": "exit_code: 1"},
+                    {"type": "tool_use", "name": "apply_patch", "input": {}},
+                    {"type": "tool_result", "content": "status: completed"},
+                ],
+            },
+        ]
+        transcript = make_transcript_file(tmp_path, messages)
+
+        _run_hook(
+            "retain",
+            make_hook_input(transcript_path=transcript),
+            monkeypatch,
+            tmp_path,
+            user_config={"autoReflect": False},
+        )
+
+        reflections = tmp_path / ".hindsight-lite" / "banks" / "codex" / "reflections"
+        assert list(reflections.glob("reflect-auto-*.json")) == []
 
     def test_no_retain_on_empty_transcript(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(transcript_path="/nonexistent/transcript.jsonl")

@@ -329,8 +329,13 @@ def _reflection_metadata(
     if confidence:
         metadata["confidence"] = confidence
     lesson = _trajectory_lesson(data.get("trajectory"))
+    if not lesson:
+        lesson = _trajectory_lesson(data.get("candidate_trajectory"))
     if lesson:
         metadata["lesson"] = lesson
+    trigger_reason = _string_value(data.get("trigger_reason"))
+    if trigger_reason:
+        metadata["trigger_reason"] = trigger_reason
     return metadata
 
 
@@ -412,13 +417,22 @@ def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph
 
 def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
     data = _json_object_from_content(file.content)
-    if data is None or data.get("type") != "reflection_result":
+    if data is None:
         return []
-    trajectory = data.get("trajectory")
+    record_type = data.get("type")
+    if record_type == "reflection_request":
+        if file.metadata.get("result_ids"):
+            return []
+        trajectory = data.get("candidate_trajectory")
+        sample_status = "uncertain"
+    elif record_type == "reflection_result":
+        trajectory = data.get("trajectory")
+        sample_status = _trajectory_sample_status(data)
+    else:
+        return []
     if not isinstance(trajectory, Mapping):
         return []
 
-    sample_status = _trajectory_sample_status(data)
     sample_id = f"trajectory-{_safe_graph_id(_string_value(data.get('id')) or file.id)}"
     nodes = [
         MemoryUiGraphNode(
@@ -433,6 +447,8 @@ def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
                 "request_id": _string_value(data.get("request_id")),
                 "session_id": _string_value(data.get("session_id")),
                 "confidence": _confidence_value(data.get("confidence")),
+                "stage": "candidate" if record_type == "reflection_request" else "evaluated",
+                "trigger_reason": _string_value(data.get("trigger_reason")),
             },
         )
     ]

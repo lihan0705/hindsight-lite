@@ -27,12 +27,15 @@ def create_reflection_packet(
     query: str,
     task_context: dict[str, str] | None = None,
     max_results: int = 5,
+    reflection_id: str | None = None,
+    trigger_reason: str | None = None,
+    candidate_trajectory: ReflectionTrajectory | None = None,
 ) -> ReflectionPacket:
     context = recall(store, query, max_results=max_results)
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     packet = ReflectionPacket(
         type="reflection_request",
-        id=f"reflect-{uuid4().hex}",
+        id=reflection_id or f"reflect-{uuid4().hex}",
         timestamp=timestamp,
         bank_id=store.paths.bank_id,
         session_id=session_id,
@@ -40,6 +43,8 @@ def create_reflection_packet(
         retrieved_context=context,
         task_context=task_context or {},
         reflection_prompt=_build_reflection_prompt(query),
+        trigger_reason=trigger_reason,
+        candidate_trajectory=candidate_trajectory,
     )
     store.write_reflection_packet(packet)
     return packet
