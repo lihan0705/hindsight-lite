@@ -3,7 +3,13 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 
-from hindsight_lite.models import ReflectionPacket, ReflectionResult, ReflectionTrajectory, SessionMemoryEvent
+from hindsight_lite.models import (
+    ReflectionPacket,
+    ReflectionResult,
+    ReflectionTrajectory,
+    ReflectionTrajectoryStep,
+    SessionMemoryEvent,
+)
 from hindsight_lite.store import LocalMemoryStore
 
 
@@ -163,6 +169,41 @@ def _write_demo_reflections(store: LocalMemoryStore) -> list[str]:
             observation="Editable pages remain separate from read-only audit records.",
             outcome="The UI made review faster while preserving local files as source of truth.",
             lesson="Keep the graph deterministic and tied to source files.",
+            steps=[
+                ReflectionTrajectoryStep(
+                    id="inspect-source",
+                    sequence=0,
+                    kind="state",
+                    status="neutral",
+                    content="Need to update the memory UI from the current generated output.",
+                ),
+                ReflectionTrajectoryStep(
+                    id="stale-preview",
+                    parent_id="inspect-source",
+                    sequence=1,
+                    kind="action",
+                    status="failed",
+                    content="Used a stale preview without checking the generated HTML.",
+                ),
+                ReflectionTrajectoryStep(
+                    id="verify-output",
+                    parent_id="inspect-source",
+                    sequence=2,
+                    kind="tool",
+                    status="success",
+                    content="Regenerated and inspected the current memory tree output.",
+                    tool_name="memory-ui",
+                    correction_of="stale-preview",
+                ),
+                ReflectionTrajectoryStep(
+                    id="final-result",
+                    parent_id="verify-output",
+                    sequence=3,
+                    kind="outcome",
+                    status="success",
+                    content="The final preview matched the source files and trajectory data.",
+                ),
+            ],
         ),
         durable_facts=["The memory UI can expose reflection results as local trajectory samples."],
         reusable_procedures=["Review graph branches before promoting reflection lessons into pages."],

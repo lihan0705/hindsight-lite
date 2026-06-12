@@ -10,6 +10,7 @@ from hindsight_lite.models import (
     ReflectionPacket,
     ReflectionResult,
     ReflectionTrajectory,
+    ReflectionTrajectoryStep,
     default_reflection_result_schema,
 )
 from hindsight_lite.recall import recall
@@ -59,6 +60,8 @@ def parse_reflection_result(value: object) -> ReflectionResult:
     confidence = _require_number(data.get("confidence"), "confidence")
     if confidence < 0.0 or confidence > 1.0:
         raise ReflectionResultError("confidence must be between 0.0 and 1.0")
+    steps = _parse_trajectory_steps(trajectory.get("steps"))
+    _validate_trajectory_steps(steps)
 
     return ReflectionResult(
         type=_require_literal(data.get("type"), "type", "reflection_result"),
@@ -73,6 +76,7 @@ def parse_reflection_result(value: object) -> ReflectionResult:
             observation=_require_string(trajectory.get("observation"), "trajectory.observation"),
             outcome=_require_string(trajectory.get("outcome"), "trajectory.outcome"),
             lesson=_require_string(trajectory.get("lesson"), "trajectory.lesson"),
+            steps=steps,
         ),
         durable_facts=_require_string_list(data.get("durable_facts"), "durable_facts"),
         reusable_procedures=_require_string_list(data.get("reusable_procedures"), "reusable_procedures"),
@@ -91,12 +95,72 @@ def _build_reflection_prompt(query: str) -> str:
             "Return a concise reflection_result object matching schema version "
             f"{default_reflection_result_schema().version}:",
             "- trajectory: state -> action -> observation -> outcome -> lesson",
+            "- trajectory.steps: ordered nodes with id, parent_id, sequence, kind, status, and content",
+            "- use correction_of to link a corrected step to the failed or uncertain step it replaces",
+            "- include tool_name for tool-call steps",
             "- durable facts worth promoting",
             "- procedures worth reusing",
             "- uncertainty or conflicts that should not be promoted yet",
             "- confidence from 0.0 to 1.0",
         ]
     )
+
+
+def _parse_trajectory_steps(value: object) -> list[ReflectionTrajectoryStep]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ReflectionResultError("trajectory.steps must be a list")
+
+    steps: list[ReflectionTrajectoryStep] = []
+    for index, raw_step in enumerate(value):
+        step = _require_mapping(raw_step, f"trajectory.steps[{index}]")
+        steps.append(
+            ReflectionTrajectoryStep(
+                id=_require_string(step.get("id"), f"trajectory.steps[{index}].id"),
+                parent_id=_optional_string(step.get("parent_id"), f"trajectory.steps[{index}].parent_id"),
+                sequence=_require_non_negative_int(step.get("sequence"), f"trajectory.steps[{index}].sequence"),
+                kind=_require_choice(
+                    step.get("kind"),
+                    f"trajectory.steps[{index}].kind",
+                    {"state", "action", "tool", "observation", "outcome", "lesson"},
+                ),
+                status=_require_choice(
+                    step.get("status"),
+                    f"trajectory.steps[{index}].status",
+                    {"neutral", "success", "failed", "uncertain"},
+                ),
+                content=_require_string(step.get("content"), f"trajectory.steps[{index}].content"),
+                tool_name=_optional_string(step.get("tool_name"), f"trajectory.steps[{index}].tool_name"),
+                correction_of=_optional_string(step.get("correction_of"), f"trajectory.steps[{index}].correction_of"),
+            )
+        )
+    return steps
+
+
+def _validate_trajectory_steps(steps: list[ReflectionTrajectoryStep]) -> None:
+    ids = {step.id for step in steps}
+    if len(ids) != len(steps):
+        raise ReflectionResultError("trajectory.steps ids must be unique")
+
+    parents = {step.id: step.parent_id for step in steps}
+    for step in steps:
+        if step.parent_id is not None and step.parent_id not in ids:
+            raise ReflectionResultError(f"trajectory step {step.id!r} has unknown parent_id {step.parent_id!r}")
+        if step.parent_id == step.id:
+            raise ReflectionResultError(f"trajectory step {step.id!r} cannot be its own parent")
+        if step.correction_of is not None and step.correction_of not in ids:
+            raise ReflectionResultError(f"trajectory step {step.id!r} has unknown correction_of {step.correction_of!r}")
+        if step.correction_of == step.id:
+            raise ReflectionResultError(f"trajectory step {step.id!r} cannot correct itself")
+
+        ancestors: set[str] = set()
+        parent_id = step.parent_id
+        while parent_id is not None:
+            if parent_id in ancestors:
+                raise ReflectionResultError("trajectory.steps parent links must not contain a cycle")
+            ancestors.add(parent_id)
+            parent_id = parents.get(parent_id)
 
 
 def _require_mapping(value: object, field: str) -> Mapping[str, object]:
@@ -109,6 +173,25 @@ def _require_string(value: object, field: str) -> str:
     if not isinstance(value, str) or not value:
         raise ReflectionResultError(f"{field} must be a non-empty string")
     return value
+
+
+def _optional_string(value: object, field: str) -> str | None:
+    if value is None:
+        return None
+    return _require_string(value, field)
+
+
+def _require_non_negative_int(value: object, field: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ReflectionResultError(f"{field} must be a non-negative integer")
+    return value
+
+
+def _require_choice(value: object, field: str, choices: set[str]) -> str:
+    text = _require_string(value, field)
+    if text not in choices:
+        raise ReflectionResultError(f"{field} must be one of {sorted(choices)}")
+    return text
 
 
 def _require_literal(value: object, field: str, expected: str) -> str:

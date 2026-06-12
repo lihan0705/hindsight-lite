@@ -1,7 +1,13 @@
 import json
 from pathlib import Path
 
-from hindsight_lite.models import RecallResult, ReflectionPacket, ReflectionResult, ReflectionTrajectory
+from hindsight_lite.models import (
+    RecallResult,
+    ReflectionPacket,
+    ReflectionResult,
+    ReflectionTrajectory,
+    ReflectionTrajectoryStep,
+)
 from hindsight_lite.reflection_dataset import build_reflection_dataset_examples, export_reflection_dataset
 from hindsight_lite.store import LocalMemoryStore
 
@@ -71,6 +77,7 @@ def test_export_reflection_dataset_writes_jsonl(tmp_path: Path) -> None:
     assert rows[0]["result_id"] == "result-1"
     assert rows[0]["retrieved_context"][0]["source"] == "page"
     assert rows[0]["trajectory"]["lesson"] == "Keep request/result pairs explicit for dataset export."
+    assert rows[0]["trajectory"]["steps"][1]["correction_of"] == "failed-export"
 
 
 def _store_with_reflection_pair(tmp_path: Path) -> LocalMemoryStore:
@@ -112,6 +119,24 @@ def _store_with_reflection_pair(tmp_path: Path) -> LocalMemoryStore:
                 observation="The request and result share an id link.",
                 outcome="A JSONL row can be consumed by later evaluation tooling.",
                 lesson="Keep request/result pairs explicit for dataset export.",
+                steps=[
+                    ReflectionTrajectoryStep(
+                        id="failed-export",
+                        sequence=0,
+                        kind="action",
+                        status="failed",
+                        content="Tried to export an unpaired result.",
+                    ),
+                    ReflectionTrajectoryStep(
+                        id="paired-export",
+                        parent_id="failed-export",
+                        sequence=1,
+                        kind="action",
+                        status="success",
+                        content="Paired the result with its request before export.",
+                        correction_of="failed-export",
+                    ),
+                ],
             ),
             durable_facts=["Reflection requests and results are local JSON files."],
             reusable_procedures=["Export only paired request/result records."],

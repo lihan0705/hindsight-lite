@@ -369,7 +369,7 @@ def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph
     nodes = [
         MemoryUiGraphNode(id=root_id, label=bank_id, kind="bank", parent_id=""),
         MemoryUiGraphNode(id="memory-files", label="Memory Files", kind="group", parent_id=root_id),
-        MemoryUiGraphNode(id="trajectory-samples", label="Trajectory Samples", kind="group", parent_id=root_id),
+        MemoryUiGraphNode(id="trajectory-samples", label="Reflection Graph", kind="group", parent_id=root_id),
         MemoryUiGraphNode(
             id="trajectory-success", label="Success", kind="sample-group", parent_id="trajectory-samples"
         ),
@@ -436,22 +436,82 @@ def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
             },
         )
     ]
+    raw_steps = trajectory.get("steps")
+    if isinstance(raw_steps, list) and raw_steps:
+        nodes.extend(_branching_trajectory_step_nodes(raw_steps, sample_id, file.id, sample_status))
+        return nodes
+
+    parent_id = sample_id
     for step in ("state", "action", "observation", "outcome", "lesson"):
         content = _string_value(trajectory.get(step))
         if not content:
             continue
+        node_id = f"{sample_id}-{step}"
         nodes.append(
             MemoryUiGraphNode(
-                id=f"{sample_id}-{step}",
+                id=node_id,
                 label=step,
                 kind="trajectory-step",
-                parent_id=sample_id,
+                parent_id=parent_id,
                 file_id=file.id,
                 content=content,
                 sample_status=sample_status,
             )
         )
+        parent_id = node_id
     return nodes
+
+
+def _branching_trajectory_step_nodes(
+    raw_steps: list[object],
+    sample_id: str,
+    file_id: str,
+    sample_status: str,
+) -> list[MemoryUiGraphNode]:
+    steps = [step for step in raw_steps if isinstance(step, Mapping)]
+    step_ids = {_string_value(step.get("id")) for step in steps}
+    nodes: list[MemoryUiGraphNode] = []
+    for step in sorted(steps, key=_trajectory_step_sequence):
+        step_id = _string_value(step.get("id"))
+        if not step_id:
+            continue
+        parent_step_id = _string_value(step.get("parent_id"))
+        parent_id = f"{sample_id}-step-{_safe_graph_id(parent_step_id)}" if parent_step_id in step_ids else sample_id
+        status = _trajectory_step_status(_string_value(step.get("status")), sample_status)
+        nodes.append(
+            MemoryUiGraphNode(
+                id=f"{sample_id}-step-{_safe_graph_id(step_id)}",
+                label=_string_value(step.get("kind")) or "step",
+                kind="trajectory-step",
+                parent_id=parent_id,
+                file_id=file_id,
+                content=_string_value(step.get("content")),
+                sample_status=status,
+                metadata={
+                    "sequence": str(_trajectory_step_sequence(step)),
+                    "tool_name": _string_value(step.get("tool_name")),
+                    "correction_of": _string_value(step.get("correction_of")),
+                },
+            )
+        )
+    return nodes
+
+
+def _trajectory_step_sequence(step: Mapping[str, object]) -> int:
+    sequence = step.get("sequence")
+    if isinstance(sequence, bool) or not isinstance(sequence, int):
+        return 0
+    return sequence
+
+
+def _trajectory_step_status(status: str, fallback: str) -> str:
+    if status == "failed":
+        return "negative"
+    if status == "uncertain":
+        return "uncertain"
+    if status == "success":
+        return "success"
+    return fallback
 
 
 def _json_object_from_content(content: str) -> Mapping[str, object] | None:

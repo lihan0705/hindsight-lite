@@ -304,7 +304,7 @@ and saves a `reflection_request` event:
   },
   "reflection_prompt": "Use the retrieved evidence to produce a concise decision-oriented reflection...",
   "result_schema": {
-    "version": "1.0",
+    "version": "1.1",
     "result_type": "reflection_result",
     "fields": [
       {
@@ -332,6 +332,18 @@ V1 records reflection requests only, but each request now carries the stable
 result schema expected from a later evaluator or reflection agent. The result
 shape separates `trajectory` evidence, promotable facts, reusable procedures,
 uncertain items, and a confidence score.
+
+Schema `1.1` keeps the original
+`state -> action -> observation -> outcome -> lesson` summary and adds optional
+ordered `trajectory.steps`. Each step has a stable ID, parent link, sequence,
+kind, status, and content; tool steps can name the tool, while corrected steps
+can point to the failed or uncertain step through `correction_of`.
+
+Those explicit links are the source of truth for the **Reflection Graph**:
+failed attempts become side branches and corrected actions continue toward the
+successful outcome. The graph is currently shown inside the memory tree's
+Graph view, but it renders reflection data and can later move to a dedicated
+reflection page without changing the stored JSON.
 
 Evaluator or human-reviewed outputs can be written back as explicit
 `reflection_result` JSON files:
