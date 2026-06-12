@@ -229,6 +229,8 @@ adds a deterministic tree over the same local files plus a trajectory branch
 map: failed or uncertain samples split into side branches, while successful
 samples stay on the main path for RL dataset review.
 
+![Reflection trajectory graph walkthrough](docs/assets/reflection-graph-scroll.gif)
+
 ![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
 
 The trajectory branch map uses this legend: failed samples fork left as red
