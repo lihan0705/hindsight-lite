@@ -536,13 +536,23 @@ class TestCodexPluginConfig:
     def test_plugin_manifest_and_hooks_are_relocatable(self):
         root_dir = Path(__file__).resolve().parents[3]
         manifest_path = root_dir / ".codex-plugin" / "plugin.json"
+        marketplace_path = root_dir / ".agents" / "plugins" / "marketplace.json"
         hook_path = root_dir / "hindsight-integrations" / "codex" / "hooks" / "plugin-hooks.json"
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
         hooks = json.loads(hook_path.read_text(encoding="utf-8"))
         serialized_hooks = json.dumps(hooks)
 
         assert manifest["name"] == "hindsight-lite"
+        assert manifest["hooks"] == "./hindsight-integrations/codex/hooks/plugin-hooks.json"
+        plugin_entry = marketplace["plugins"][0]
+        assert plugin_entry["name"] == "hindsight-lite"
+        assert plugin_entry["source"] == {
+            "source": "url",
+            "url": "lihan0705/hindsight-lite",
+            "ref": "main",
+        }
         assert "__SCRIPTS_DIR__" not in serialized_hooks
         for event_name in ("SessionStart", "UserPromptSubmit", "PreToolUse", "Stop"):
             command = hooks["hooks"][event_name][0]["hooks"][0]["command"]

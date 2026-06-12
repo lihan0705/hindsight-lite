@@ -19,6 +19,7 @@
     "jsonl"
   ],
   "skills": "./skills/",
+  "hooks": "./hindsight-integrations/codex/hooks/plugin-hooks.json",
   "interface": {
     "displayName": "hindsight-lite",
     "shortDescription": "Local editable memory for Codex CLI sessions.",

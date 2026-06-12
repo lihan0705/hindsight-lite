@@ -41,6 +41,41 @@ existing Codex hook mechanism.
 Store locally. Recall narrowly. Reflect for future training data.
 ```
 
+## Install With Codex CLI
+
+Requirements: Codex CLI with plugin support and Python 3.11+.
+
+```bash
+codex plugin marketplace add lihan0705/hindsight-lite --ref main
+codex plugin add hindsight-lite@hindsight-lite
+```
+
+Restart Codex and open a new thread so the hooks and bundled `memorytree` skill
+are loaded. End one short conversation, start another, and ask about something
+from the first conversation to verify cross-session recall. To inspect the
+local files visually, run `$memorytree` or select **Memory Tree** from
+`/skills`.
+
+If you are asking Codex to install the repository for you, use:
+
+```text
+Install the hindsight-lite Codex plugin from this repository. Follow the
+README installation steps, verify the plugin is enabled, then run a
+cross-session recall smoke test without deleting existing memory.
+```
+
+To update an existing installation:
+
+```bash
+codex plugin marketplace upgrade hindsight-lite
+codex plugin remove hindsight-lite@hindsight-lite
+codex plugin add hindsight-lite@hindsight-lite
+```
+
+Memory remains under `~/.hindsight-lite/` when the plugin is updated or
+removed. See the [Codex integration guide](hindsight-integrations/codex/README.md)
+for manual hook installation and troubleshooting.
+
 ## Memory Architecture
 
 ![Hindsight-lite memory architecture](docs/assets/hindsight-lite-memory-architecture.png)
@@ -103,8 +138,8 @@ new:
   Codex hook -> codex_hook.py -> local Python core -> Markdown/JSONL
 ```
 
-For installation and smoke-test commands, see the
-[Codex quickstart](hindsight-integrations/codex/README.md#quickstart).
+For runtime smoke-test commands, see the
+[Codex integration quickstart](hindsight-integrations/codex/README.md#quickstart).
 
 ---
 
