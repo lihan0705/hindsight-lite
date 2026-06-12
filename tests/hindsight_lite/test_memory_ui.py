@@ -207,6 +207,8 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert 'node.kind === "trajectory-step"' in html
     assert 'node.label === "outcome"' in html
     assert 'node.content.includes("<environment_context>")' in html
+    tree_button_handler = html.split("function treeButton(file) {", 1)[1].split("function renderViewSwitch()", 1)[0]
+    assert 'activeView = "file"' not in tree_button_handler
     assert "Graph" in html
 
 
