@@ -63,10 +63,6 @@ def make_transcript_file(tmp_path, messages, codex_format=False):
     return str(f)
 
 
-def make_memory(text, mem_type="experience", mentioned_at="2024-01-15"):
-    return {"text": text, "type": mem_type, "mentioned_at": mentioned_at}
-
-
 def make_user_config(tmp_path, overrides=None):
     """Write a ~/.hindsight/codex.json in tmp_path with test defaults."""
     hindsight_dir = tmp_path / ".hindsight"

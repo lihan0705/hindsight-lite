@@ -81,9 +81,6 @@ def main():
         debug_log(config, "Memory tree command does not need recalled conversation context")
         return
 
-    def _dbg(*a):
-        debug_log(config, *a)
-
     bank_id = derive_bank_id(hook_input, config)
     store = LocalMemoryStore(bank_id=bank_id)
 

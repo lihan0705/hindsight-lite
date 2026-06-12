@@ -390,33 +390,6 @@ def test_cli_memory_ui_opens_localhost_with_windows_browser_under_wsl(monkeypatc
     ]
 
 
-def test_cli_installs_codex_memorytree_prompt(tmp_path: Path, capsys) -> None:
-    prompt_dir = tmp_path / "prompts"
-
-    assert main(["codex-prompts", "install", "--prompt-dir", str(prompt_dir)]) == 0
-
-    output = capsys.readouterr().out
-    prompt_path = prompt_dir / "memorytree.md"
-    assert str(prompt_path) in output
-    content = prompt_path.read_text(encoding="utf-8")
-    assert "description: Open the editable hindsight-lite memory tree UI" in content
-    assert "PYTHONPATH=" in content
-    assert "python3 -m hindsight_lite memory-ui --bank codex --serve --open" in content
-    assert "http://127.0.0.1:<port>/" in content
-    assert "\\\\wsl.localhost" in content
-
-
-def test_cli_refuses_to_overwrite_codex_prompt_without_force(tmp_path: Path, capsys) -> None:
-    prompt_dir = tmp_path / "prompts"
-    prompt_dir.mkdir()
-    (prompt_dir / "memorytree.md").write_text("custom", encoding="utf-8")
-
-    assert main(["codex-prompts", "install", "--prompt-dir", str(prompt_dir)]) == 1
-
-    assert "prompt already exists" in capsys.readouterr().err
-    assert (prompt_dir / "memorytree.md").read_text(encoding="utf-8") == "custom"
-
-
 def test_cli_seeds_demo_memory_and_generates_ui(tmp_path: Path, capsys) -> None:
     assert (
         main(

@@ -43,8 +43,6 @@ DEFAULTS = {
     "bankIdPrefix": "",
     "dynamicBankId": False,
     "dynamicBankGranularity": ["agent", "project"],
-    "bankMission": "",
-    "retainMission": None,
     "agentName": "codex",
     # Misc
     "debug": False,
@@ -66,7 +64,6 @@ ENV_OVERRIDES = {
     "HINDSIGHT_FILE_CONTEXT_MAX_RESULTS": ("fileContextMaxResults", int),
     "HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS": ("fileContextMaxExcerptChars", int),
     "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
-    "HINDSIGHT_BANK_MISSION": ("bankMission", str),
     "HINDSIGHT_DEBUG": ("debug", bool),
 }
 

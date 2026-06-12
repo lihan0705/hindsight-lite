@@ -117,7 +117,6 @@ python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test 
 python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
 python3 -m hindsight_lite agent_knowledge_import_codex_memory --bank codex --dry-run
 python3 -m hindsight_lite memory-ui --bank codex --serve --open
-python3 -m hindsight_lite codex-prompts install
 ```
 
 Short commands such as `recall`, `retain`, `reflect`, and `knowledge list/get`
@@ -149,17 +148,8 @@ edit memory. Under WSL, Windows PowerShell opens the localhost URL in the
 Windows browser.
 
 Codex does not expose third-party top-level slash command registration, so
-`/memorytree` cannot be added by this plugin. For compatibility, the deprecated
-custom prompt can still be installed with:
-
-```bash
-python3 -m hindsight_lite codex-prompts install
-```
-
-Restart Codex after installing it, then invoke `/prompts:memorytree`. After
-updating hindsight-lite, run
-`python3 -m hindsight_lite codex-prompts install --force` and restart Codex to
-replace an older prompt.
+`/memorytree` cannot be added by this plugin. Use the bundled skill instead of
+the deprecated custom prompt system.
 
 ## Configuration
 

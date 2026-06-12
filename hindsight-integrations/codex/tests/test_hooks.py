@@ -17,7 +17,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from conftest import FakeHTTPResponse, make_hook_input, make_memory, make_transcript_file, make_user_config
+from conftest import FakeHTTPResponse, make_hook_input, make_transcript_file, make_user_config
 
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.store import LocalMemoryStore

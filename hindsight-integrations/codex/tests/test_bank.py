@@ -10,8 +10,6 @@ def _cfg(**overrides):
         "bankIdPrefix": "",
         "agentName": "codex",
         "dynamicBankGranularity": ["agent", "project"],
-        "bankMission": "",
-        "retainMission": None,
     }
     base.update(overrides)
     return base

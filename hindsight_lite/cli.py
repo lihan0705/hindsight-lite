@@ -11,7 +11,6 @@ from pathlib import Path
 from uuid import uuid4
 
 from hindsight_lite.codex_memory import import_codex_memories
-from hindsight_lite.codex_prompts import install_codex_prompts
 from hindsight_lite.demo_memory import DemoMemoryExistsError, seed_demo_memory
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.memory_ui_server import create_memory_ui_server, memory_ui_server_url
@@ -152,16 +151,6 @@ def _build_parser() -> argparse.ArgumentParser:
     memory_ui_parser.add_argument("--serve", action="store_true", help="Serve an editable UI on localhost.")
     memory_ui_parser.add_argument("--port", type=int, default=0, help="Local server port; 0 selects a free port.")
     memory_ui_parser.set_defaults(handler=_cmd_memory_ui)
-
-    codex_prompts_parser = subparsers.add_parser("codex-prompts", help="Install Codex custom prompts.")
-    codex_prompts_subparsers = codex_prompts_parser.add_subparsers(required=True)
-    codex_prompts_install_parser = codex_prompts_subparsers.add_parser(
-        "install",
-        help="Install hindsight-lite prompts under ~/.codex/prompts.",
-    )
-    codex_prompts_install_parser.add_argument("--prompt-dir", type=Path, default=None)
-    codex_prompts_install_parser.add_argument("--force", action="store_true")
-    codex_prompts_install_parser.set_defaults(handler=_cmd_codex_prompts_install)
 
     demo_memory_parser = subparsers.add_parser("demo-memory", help="Generate demo memory for UI inspection.")
     demo_memory_subparsers = demo_memory_parser.add_subparsers(required=True)
@@ -330,18 +319,6 @@ def _is_wsl() -> bool:
         return "microsoft" in Path("/proc/sys/kernel/osrelease").read_text(encoding="utf-8").lower()
     except OSError:
         return False
-
-
-def _cmd_codex_prompts_install(args: argparse.Namespace) -> int:
-    try:
-        result = install_codex_prompts(prompt_dir=args.prompt_dir, force=args.force)
-    except FileExistsError as exc:
-        print(f"prompt already exists; pass --force to replace: {exc}", file=sys.stderr)
-        return 1
-
-    for path in result.installed_paths:
-        print(path)
-    return 0
 
 
 def _cmd_demo_memory_seed(args: argparse.Namespace) -> int:

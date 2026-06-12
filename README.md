@@ -212,9 +212,7 @@ opens the URL in the Windows browser instead of exposing a
 `\\wsl.localhost` HTML path. Keep the command running while editing.
 
 Codex does not let third-party plugins register a top-level `/memorytree`
-command. The older `/prompts:memorytree` custom prompt remains available for
-compatibility after running `python3 -m hindsight_lite codex-prompts install`,
-but custom prompts are deprecated by Codex.
+command. Use the plugin skill instead of the deprecated custom prompt system.
 
 ---
 
