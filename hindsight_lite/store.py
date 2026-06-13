@@ -4,6 +4,7 @@ import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from hindsight_lite.models import KnowledgePage, ReflectionPacket, ReflectionResult, SessionMemoryEvent
 from hindsight_lite.paths import MemoryPaths, default_home, unsafe_page_id
@@ -44,8 +45,27 @@ class LocalMemoryStore:
     def append_session_event(self, event: SessionMemoryEvent) -> Path:
         session_path = self.paths.sessions_dir / f"{event.session_id}.jsonl"
         with session_path.open("a", encoding="utf-8") as file:
-            file.write(json.dumps(asdict(event), ensure_ascii=False, sort_keys=True))
-            file.write("\n")
+            file.write(_session_event_line(event))
+        return session_path
+
+    def replace_session_event(self, event: SessionMemoryEvent) -> Path:
+        session_path = self.paths.sessions_dir / f"{event.session_id}.jsonl"
+        with NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=session_path.parent,
+            prefix=f".{session_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary_file:
+            temporary_file.write(_session_event_line(event))
+            temporary_path = Path(temporary_file.name)
+        # Full-session retention previously appended every growing snapshot.
+        # Replace atomically so readers see either the old or latest complete event.
+        try:
+            temporary_path.replace(session_path)
+        finally:
+            temporary_path.unlink(missing_ok=True)
         return session_path
 
     def read_session_events(self, session_id: str) -> list[SessionMemoryEvent]:
@@ -179,6 +199,10 @@ def _coerce_str_list(value: object) -> list[str]:
     if isinstance(value, list):
         return [item for item in value if isinstance(item, str)]
     return []
+
+
+def _session_event_line(event: SessionMemoryEvent) -> str:
+    return f"{json.dumps(asdict(event), ensure_ascii=False, sort_keys=True)}\n"
 
 
 def _coerce_str_map(value: object) -> dict[str, str]:

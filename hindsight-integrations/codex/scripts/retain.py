@@ -109,9 +109,11 @@ def main():
     bank_id = derive_bank_id(hook_input, config)
     store = LocalMemoryStore(bank_id=bank_id)
 
-    # Document ID: use session_id so the same session always upserts.
-    # In chunked mode, append timestamp to create distinct documents per chunk.
-    if retain_mode == "chunked" and retain_every_n > 1:
+    append_chunk = retain_mode == "chunked" and retain_every_n > 1
+
+    # Full-session mode keeps one latest snapshot per session. Chunked mode
+    # appends timestamped documents so each retained window stays independent.
+    if append_chunk:
         document_id = f"{session_id}-{int(time.time() * 1000)}"
     else:
         document_id = session_id
@@ -156,7 +158,10 @@ def main():
             metadata=metadata,
             tags=tags or [],
         )
-        store.append_session_event(event)
+        if append_chunk:
+            store.append_session_event(event)
+        else:
+            store.replace_session_event(event)
         promote_user_profile_from_messages(store, messages_to_retain)
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)

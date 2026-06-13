@@ -50,6 +50,38 @@ def test_store_appends_and_reads_session_events(tmp_path: Path) -> None:
     assert store.read_session_events(session_id="missing") == []
 
 
+def test_store_replaces_full_session_snapshot_atomically(tmp_path: Path) -> None:
+    store = LocalMemoryStore(home=tmp_path, bank_id="codex")
+    first = SessionMemoryEvent(
+        type="session_memory",
+        id="evt-1",
+        timestamp="2026-06-12T12:00:00Z",
+        bank_id="codex",
+        session_id="session-1",
+        source="codex",
+        document_id="session-1",
+        content="First growing full-session snapshot.",
+    )
+    latest = SessionMemoryEvent(
+        type="session_memory",
+        id="evt-2",
+        timestamp="2026-06-12T12:01:00Z",
+        bank_id="codex",
+        session_id="session-1",
+        source="codex",
+        document_id="session-1",
+        content="Latest complete full-session snapshot.",
+    )
+
+    store.replace_session_event(first)
+    store.replace_session_event(latest)
+
+    assert store.read_session_events("session-1") == [latest]
+    session_path = store.paths.sessions_dir / "session-1.jsonl"
+    assert len(session_path.read_text(encoding="utf-8").splitlines()) == 1
+    assert not list(store.paths.sessions_dir.glob(".session-1.jsonl.*.tmp"))
+
+
 def test_store_writes_lists_and_gets_markdown_pages(tmp_path: Path) -> None:
     store = LocalMemoryStore(home=tmp_path, bank_id="codex")
 
