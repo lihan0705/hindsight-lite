@@ -507,6 +507,7 @@ def _branching_trajectory_step_nodes(
                     "sequence": str(_trajectory_step_sequence(step)),
                     "tool_name": _string_value(step.get("tool_name")),
                     "correction_of": _string_value(step.get("correction_of")),
+                    "repeat_count": _positive_int_string(step.get("repeat_count")),
                 },
             )
         )
@@ -518,6 +519,12 @@ def _trajectory_step_sequence(step: Mapping[str, object]) -> int:
     if isinstance(sequence, bool) or not isinstance(sequence, int):
         return 0
     return sequence
+
+
+def _positive_int_string(value: object) -> str:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 1:
+        return ""
+    return str(value)
 
 
 def _trajectory_step_status(status: str, fallback: str) -> str:

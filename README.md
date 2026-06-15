@@ -24,18 +24,12 @@
   <code>#rl-ready</code>
 </p>
 
-> This project is a subtractive fork of
-> [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight).
-> The upstream README is preserved at
-> [docs/upstream/HINDSIGHT_README.md](docs/upstream/HINDSIGHT_README.md).
-
-hindsight-lite keeps the agent memory workflow and removes the heavy product
-surface: no server, no daemon, no database, no cloud dependency, and no control
-plane UI.
-
-The first target is Codex CLI. The V1 design stores memory locally as editable
-Markdown and JSONL files, then injects only compact, relevant memory through the
-existing Codex hook mechanism.
+hindsight-lite is a subtractive fork of
+[vectorize-io/hindsight](https://github.com/vectorize-io/hindsight), built for
+local coding agents rather than a hosted memory platform. It stores memory as
+editable Markdown, JSONL, and JSON files, then injects only compact relevant
+context through Codex hooks. The original upstream README is preserved at
+[docs/upstream/HINDSIGHT_README.md](docs/upstream/HINDSIGHT_README.md).
 
 ```text
 Store locally. Recall narrowly. Reflect for future training data.
@@ -62,14 +56,6 @@ older manual installation, remove those entries before enabling the plugin.
 Otherwise every lifecycle event can run twice and Codex can print duplicate
 hook output or failures.
 
-If you are asking Codex to install the repository for you, use:
-
-```text
-Install the hindsight-lite Codex plugin from this repository. Follow the
-README installation steps, verify the plugin is enabled, then run a
-cross-session recall smoke test without deleting existing memory.
-```
-
 To update an existing installation:
 
 ```bash
@@ -78,37 +64,73 @@ codex plugin remove hindsight-lite@hindsight-lite
 codex plugin add hindsight-lite@hindsight-lite
 ```
 
-Plugin updates are versioned so Codex creates a fresh cache instead of reusing
-an older launcher or UI. Restart Codex and open a new thread after updating. If
-`$memorytree` reports a missing versioned script path, confirm `/plugins` shows
-`hindsight-lite@hindsight-lite`, then repeat the remove/add commands above.
+Restart Codex and open a new thread after updating. Memory remains under
+`~/.hindsight-lite/` when the plugin is updated or removed. The
+[Codex integration guide](hindsight-integrations/codex/README.md) contains the
+manual hook setup, WSL notes, configuration, and troubleshooting details.
 
-Memory remains under `~/.hindsight-lite/` when the plugin is updated or
-removed. See the [Codex integration guide](hindsight-integrations/codex/README.md)
-for manual hook installation and troubleshooting.
+## How It Works
 
-## Memory Architecture
+hindsight-lite follows a small local loop:
+
+```text
+conversation
+    |
+    v
+Retain  -> sessions/*.jsonl + pages/*.md
+    |
+    v
+Recall  -> compact relevant excerpts -> next Codex prompt
+    |
+    v
+Reflect -> reviewable failure/correction trajectory -> reflections/*.json
+```
+
+Codex lifecycle hooks connect that loop to the local runtime:
+
+| Hook | Local action |
+|---|---|
+| `SessionStart` | Initialize the selected memory bank |
+| `UserPromptSubmit` | Recall relevant pages and sessions, then inject a compact context block |
+| `PreToolUse` | Recall file-specific context before supported file reads |
+| `Stop` | Replace the latest session snapshot, promote durable profile facts, refresh the UI, and extract a reflection candidate when appropriate |
+
+The three stages deliberately have different responsibilities:
+
+- **Retain** preserves evidence. Sessions remain an audit-style record, while
+  stable user or project knowledge can be promoted into editable pages.
+- **Recall** ranks local text and returns short excerpts rather than replaying
+  full transcripts, reducing prompt noise and token use.
+- **Reflect** records the latest completed failure-to-recovery episode for
+  review. It does not silently turn heuristics into training labels.
+
+All runtime state stays under `~/.hindsight-lite/`. There is no API server,
+daemon, database, control plane, or required model call.
 
 ![Hindsight-lite memory architecture](docs/assets/hindsight-lite-memory-architecture.png)
 
----
+## Hindsight And hindsight-lite
 
-## Why This Fork?
+Both projects use the Retain, Recall, and Reflect vocabulary, but they make
+different engineering tradeoffs.
 
-Upstream Hindsight is a full memory platform with an API server, database,
-control plane, SDKs, Docker/Helm deployment, and many framework integrations.
+| Area | Hindsight | hindsight-lite |
+|---|---|---|
+| Primary use | General agent memory platform | Local memory plugin for coding agents |
+| Runtime | API service backed by PostgreSQL and vector infrastructure | In-process Python called by Codex hooks |
+| Retain | LLM-assisted extraction and normalization into facts, entities, relationships, and temporal information | Store local session evidence and promote selected facts into Markdown pages |
+| Recall | Semantic, keyword, graph, and temporal retrieval with fusion and reranking | Lightweight local lexical scoring with compact excerpt budgets |
+| Reflect | Agentic multi-step reasoning over facts, observations, and mental models | Explicit request packets and deterministic corrected-episode candidates for later human or evaluator review |
+| Inspection | Server APIs, SDKs, and platform tooling | Files plus a generated editable MemoryTree UI |
+| Operational cost | More capable, with more infrastructure and model work | Smaller, transparent, offline-friendly, and easy to delete or diff |
 
-hindsight-lite is the subtractive version for coding agents:
-
-- local files instead of hosted infrastructure,
-- Codex hooks instead of a memory server,
-- Markdown pages and JSONL sessions instead of PostgreSQL,
-- explicit reflection packets instead of hidden model calls,
-- a small plugin surface before broader multi-agent support.
-
-The goal is not to reproduce every upstream feature. The goal is to keep the
-parts that help an agent remember project work and remove the parts that make a
-local plugin hard to install, inspect, or reason about.
+Upstream Hindsight is the reference when the goal is semantic consolidation,
+graph and temporal retrieval, or autonomous reflection. hindsight-lite borrows
+the memory lifecycle while keeping evidence visible and the runtime small. See
+the upstream [repository](https://github.com/vectorize-io/hindsight),
+[Reflect documentation](https://hindsight.vectorize.io/developer/reflect), and
+[Observations documentation](https://hindsight.vectorize.io/developer/observations)
+for the full design.
 
 ---
 
@@ -130,25 +152,6 @@ The `python3 -m hindsight_lite` CLI exposes these `agent_knowledge_*` command
 names for parity with the documented V1 surface. Short local-debug commands are
 also available.
 
-The existing Codex integration already has the right hook shape:
-
-```text
-SessionStart      -> codex_hook.py -> session_start.py
-UserPromptSubmit  -> codex_hook.py -> recall.py
-PreToolUse        -> codex_hook.py -> file_context.py
-Stop              -> codex_hook.py -> retain.py
-```
-
-hindsight-lite keeps that contract and replaces the backend:
-
-```text
-old:
-  Codex hook -> recall.py / retain.py -> daemon/API client -> Hindsight server
-
-new:
-  Codex hook -> codex_hook.py -> local Python core -> Markdown/JSONL
-```
-
 For runtime smoke-test commands, see the
 [Codex integration quickstart](hindsight-integrations/codex/README.md#quickstart).
 
@@ -156,13 +159,7 @@ For runtime smoke-test commands, see the
 
 ## Memory Files
 
-Default local memory root:
-
-```text
-~/.hindsight-lite/
-```
-
-Bank layout:
+Default local memory layout:
 
 ```text
 ~/.hindsight-lite/
@@ -198,7 +195,19 @@ python3 -m hindsight_lite codex-memory import --bank codex
 By default this reads `~/.codex/memories`. Use `--source-dir` to point at a
 different Codex memory export or fixture directory.
 
-Generate a local memory tree inspector:
+## MemoryTree UI
+
+The installed plugin includes the `memorytree` skill. Start a new Codex thread
+and run:
+
+```text
+$memorytree
+```
+
+You can also use `/skills` and select **Memory Tree**. Codex does not currently
+allow third-party plugins to register a top-level `/memorytree` command.
+
+The skill starts the editable local UI. The equivalent CLI command is:
 
 ```bash
 python3 -m hindsight_lite memory-ui --bank codex --serve --open
@@ -219,24 +228,17 @@ python3 -m hindsight_lite memory-ui --bank codex --open
 
 This writes `memory-tree.html` inside the selected bank directory. The static
 page can inspect all memory types and download edited Markdown, but browsers
-cannot save those edits directly back to disk.
-When the Codex hook integration is installed, the Stop hook refreshes this file
-after each successful retain, so newly promoted pages such as user preferences
-show up the next time the HTML is opened or reloaded. Sessions are rendered as
-readable event summaries in the UI instead of raw JSONL lines.
-Reflection request/result files are labeled separately and surface request
-links, confidence, and lesson previews for quick eval review. The `Graph` view
-adds a deterministic tree over the same local files plus a trajectory branch
-map: failed or uncertain samples split into side branches, while successful
-samples stay on the main path for RL dataset review.
+cannot save those edits directly back to disk. The Stop hook refreshes this
+snapshot after each successful retain.
+
+Sessions are rendered as readable event summaries rather than raw JSONL.
+Reflection request/result files expose links, confidence, lesson previews, and
+a deterministic trajectory graph. Failed or uncertain samples split into side
+branches, while successful samples stay on the main path.
 
 ![Reflection trajectory graph walkthrough](docs/assets/reflection-graph-scroll.gif)
 
 ![Memory tree UI preview](docs/assets/memory-tree-ui-editable-preview.svg)
-
-The trajectory branch map uses this legend: failed samples fork left as red
-side branches, uncertain samples fork left as amber side branches, and reusable
-successful samples stay on the green main path.
 
 ![Trajectory branch map legend](docs/assets/trajectory-branch-map-legend.svg)
 
@@ -249,21 +251,6 @@ python3 -m hindsight_lite demo-memory seed --bank codex --write-ui
 
 The command refuses to overwrite existing demo files unless `--overwrite` is
 provided.
-
-The installed plugin includes a `memorytree` skill. Start a new Codex thread,
-then invoke it explicitly:
-
-```text
-$memorytree
-```
-
-You can also type `/skills` and select **Memory Tree**. The skill runs
-`memory-ui --serve --open` as a long-running local editor. Under WSL it opens
-the distro IPv4 URL in the Windows browser instead of exposing a
-`\\wsl.localhost` HTML path. Keep the command running while editing.
-
-Codex does not let third-party plugins register a top-level `/memorytree`
-command. Use the plugin skill instead of the deprecated custom prompt system.
 
 ---
 
@@ -344,10 +331,11 @@ That shape is meant to support future agentic RL datasets:
 state/context -> retrieved memory -> reflection request -> later agent action
 ```
 
-V1 records reflection requests only, but each request now carries the stable
-result schema expected from a later evaluator or reflection agent. The result
-shape separates `trajectory` evidence, promotable facts, reusable procedures,
-uncertain items, and a confidence score.
+The automatic pipeline records reflection requests rather than claiming a
+validated result. Each request carries the stable result schema expected from a
+later evaluator or reflection agent. The result shape separates `trajectory`
+evidence, promotable facts, reusable procedures, uncertain items, and a
+confidence score.
 
 Schema `1.1` keeps the original
 `state -> action -> observation -> outcome -> lesson` summary and adds optional
@@ -363,10 +351,12 @@ reflection page without changing the stored JSON.
 
 When `autoReflect` is enabled, the Codex Stop hook applies conservative local
 rules to the retained rich transcript. It writes or updates one automatic
-`reflection_request` for a session only after a failed tool result or explicit
-user correction is followed by a successful tool action. Ordinary chat,
-straight-through successful work, and unresolved failures do not create a
-candidate.
+`reflection_request` per session only after a failed tool result or explicit
+user correction is followed by a successful tool action. The candidate keeps
+only the latest completed episode, collapses repeated equivalent tool attempts
+with a `repeat_count`, and omits low-information success output such as
+`status: completed`. Ordinary chat, straight-through successful work, and
+unresolved failures do not create a candidate.
 
 The automatic request stores a `candidate_trajectory` for immediate review in
 the Reflection Graph. It is not a `reflection_result` and is not exported as
@@ -405,22 +395,6 @@ pull request, read the agent-friendly contribution guide:
 
 It covers branch checkout, commits, verification, MR/PR preparation, and the
 rules agents should follow when editing this repository.
-
----
-
-## Original Hindsight
-
-This repository started from upstream Hindsight:
-
-- Upstream repository:
-  [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight)
-- Preserved upstream README:
-  [docs/upstream/HINDSIGHT_README.md](docs/upstream/HINDSIGHT_README.md)
-
-The upstream project remains the reference for the original full-stack memory
-platform. hindsight-lite is the local plugin fork.
-
----
 
 ## License
 

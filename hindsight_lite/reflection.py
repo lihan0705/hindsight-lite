@@ -138,6 +138,11 @@ def _parse_trajectory_steps(value: object) -> list[ReflectionTrajectoryStep]:
                 content=_require_string(step.get("content"), f"trajectory.steps[{index}].content"),
                 tool_name=_optional_string(step.get("tool_name"), f"trajectory.steps[{index}].tool_name"),
                 correction_of=_optional_string(step.get("correction_of"), f"trajectory.steps[{index}].correction_of"),
+                repeat_count=_optional_positive_int(
+                    step.get("repeat_count"),
+                    f"trajectory.steps[{index}].repeat_count",
+                    default=1,
+                ),
             )
         )
     return steps
@@ -189,6 +194,14 @@ def _optional_string(value: object, field: str) -> str | None:
 def _require_non_negative_int(value: object, field: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ReflectionResultError(f"{field} must be a non-negative integer")
+    return value
+
+
+def _optional_positive_int(value: object, field: str, default: int) -> int:
+    if value is None:
+        return default
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ReflectionResultError(f"{field} must be a positive integer")
     return value
 
 

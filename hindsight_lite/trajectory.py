@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from hindsight_lite.models import ReflectionTrajectory, ReflectionTrajectoryStep
 
@@ -31,6 +31,10 @@ _RESULT_HEADER_PATTERNS = (
     re.compile(r"^Original token count:.*$", re.MULTILINE),
     re.compile(r"^Output:\s*$", re.MULTILINE),
 )
+_LOW_INFORMATION_RESULT_PATTERNS = (
+    re.compile(r"(?:status:\s*)?(?:completed|success|succeeded|ok)", re.IGNORECASE),
+    re.compile(r"tool completed\.?", re.IGNORECASE),
+)
 
 
 @dataclass(frozen=True)
@@ -46,75 +50,162 @@ class ToolAttempt:
     input_summary: str
     result: str
     failed: bool
+    repeat_count: int = 1
+
+
+@dataclass(frozen=True)
+class UserCorrection:
+    content: str
+
+
+@dataclass
+class ReflectionEpisode:
+    query: str
+    events: list[ToolAttempt | UserCorrection] = field(default_factory=list)
+    trigger_reasons: set[str] = field(default_factory=set)
+    outcome: str = ""
 
 
 def extract_reflection_candidate(messages: list[Mapping[str, object]]) -> ReflectionCandidate | None:
-    query = _first_user_text(messages)
-    if not query:
+    episode = _latest_completed_episode(messages)
+    if episode is None:
         return None
 
+    return _build_reflection_candidate(episode)
+
+
+def _latest_completed_episode(messages: list[Mapping[str, object]]) -> ReflectionEpisode | None:
+    current_query = ""
+    active_episode: ReflectionEpisode | None = None
+    latest_episode: ReflectionEpisode | None = None
+    awaiting_outcome: ReflectionEpisode | None = None
+
+    for message in messages:
+        role = message.get("role")
+        if role == "user":
+            user_text = _strip_internal_context(_content_text(message.get("content")))
+            if not user_text:
+                continue
+            awaiting_outcome = None
+            if _is_user_correction(user_text):
+                if active_episode is None:
+                    active_episode = ReflectionEpisode(query=current_query or user_text)
+                active_episode.events.append(UserCorrection(content=user_text))
+                active_episode.trigger_reasons.add("user_correction")
+            else:
+                # A new user task is a hard episode boundary. An unrecovered
+                # failure from the prior task must not absorb tools from this one.
+                current_query = user_text[:500]
+                active_episode = None
+            continue
+        if role != "assistant":
+            continue
+
+        assistant_text = _text_blocks(message.get("content"))
+        completed_in_message = False
+        for attempt in _tool_attempts(message.get("content")):
+            if active_episode is None:
+                if not attempt.failed or not current_query:
+                    continue
+                active_episode = ReflectionEpisode(query=current_query)
+
+            _add_episode_attempt(active_episode, attempt)
+            if attempt.failed:
+                active_episode.trigger_reasons.add("tool_failure")
+                awaiting_outcome = None
+                continue
+
+            latest_episode = active_episode
+            active_episode = None
+            awaiting_outcome = latest_episode
+            completed_in_message = True
+
+        if assistant_text and awaiting_outcome is not None and (completed_in_message or active_episode is None):
+            awaiting_outcome.outcome = assistant_text[:1000]
+
+    return latest_episode
+
+
+def _add_episode_attempt(episode: ReflectionEpisode, attempt: ToolAttempt) -> None:
+    fingerprint = _attempt_fingerprint(attempt)
+    for index in range(len(episode.events) - 1, -1, -1):
+        existing = episode.events[index]
+        if isinstance(existing, UserCorrection):
+            break
+        if _attempt_fingerprint(existing) != fingerprint:
+            continue
+        # Keep the latest evidence while representing retries as one graph node.
+        episode.events.pop(index)
+        episode.events.append(
+            ToolAttempt(
+                name=attempt.name,
+                input_summary=attempt.input_summary,
+                result=attempt.result or existing.result,
+                failed=attempt.failed,
+                repeat_count=existing.repeat_count + 1,
+            )
+        )
+        return
+    episode.events.append(attempt)
+
+
+def _attempt_fingerprint(attempt: ToolAttempt) -> str:
+    normalized_input = re.sub(r"\s+", " ", attempt.input_summary).strip().casefold()
+    result_class = "failed" if attempt.failed else "success"
+    return f"{attempt.name.casefold()}:{normalized_input}:{result_class}"
+
+
+def _build_reflection_candidate(episode: ReflectionEpisode) -> ReflectionCandidate:
     steps = [
         ReflectionTrajectoryStep(
             id="state-0",
             sequence=0,
             kind="state",
             status="neutral",
-            content=query,
+            content=episode.query,
         )
     ]
     sequence = 1
     main_parent = "state-0"
     pending_failure: str | None = None
-    recovered_failures = 0
-    trigger_reasons: set[str] = set()
     last_observation = ""
 
-    for message in messages:
-        role = message.get("role")
-        if role == "user":
-            user_text = _content_text(message.get("content"))
-            if user_text != query and _is_user_correction(user_text):
-                correction_id = f"user-correction-{sequence}"
-                steps.append(
-                    ReflectionTrajectoryStep(
-                        id=correction_id,
-                        parent_id=main_parent,
-                        sequence=sequence,
-                        kind="observation",
-                        status="failed",
-                        content=user_text,
-                    )
-                )
-                pending_failure = correction_id
-                trigger_reasons.add("user_correction")
-                last_observation = user_text
-                sequence += 1
-            continue
-        if role != "assistant":
-            continue
-
-        attempts = _tool_attempts(message.get("content"))
-        for attempt in attempts:
-            if not attempt.failed and pending_failure is None:
-                continue
-            action_id = f"tool-{sequence}"
-            action_parent = main_parent
+    for event in episode.events:
+        if isinstance(event, UserCorrection):
+            correction_id = f"user-correction-{sequence}"
             steps.append(
                 ReflectionTrajectoryStep(
-                    id=action_id,
-                    parent_id=action_parent,
+                    id=correction_id,
+                    parent_id=main_parent,
                     sequence=sequence,
-                    kind="tool",
-                    status="failed" if attempt.failed else "success",
-                    content=attempt.input_summary,
-                    tool_name=attempt.name,
-                    correction_of=pending_failure,
+                    kind="observation",
+                    status="failed",
+                    content=event.content,
                 )
             )
-            if pending_failure is not None and not attempt.failed:
-                recovered_failures += 1
+            pending_failure = correction_id
+            last_observation = event.content
             sequence += 1
+            continue
 
+        attempt = event
+        action_id = f"tool-{sequence}"
+        steps.append(
+            ReflectionTrajectoryStep(
+                id=action_id,
+                parent_id=main_parent,
+                sequence=sequence,
+                kind="tool",
+                status="failed" if attempt.failed else "success",
+                content=attempt.input_summary,
+                tool_name=attempt.name,
+                correction_of=pending_failure,
+                repeat_count=attempt.repeat_count,
+            )
+        )
+        sequence += 1
+
+        if attempt.result or attempt.failed:
             result_id = f"observation-{sequence}"
             steps.append(
                 ReflectionTrajectoryStep(
@@ -123,23 +214,22 @@ def extract_reflection_candidate(messages: list[Mapping[str, object]]) -> Reflec
                     sequence=sequence,
                     kind="observation",
                     status="failed" if attempt.failed else "success",
-                    content=attempt.result or f"{attempt.name} completed.",
+                    content=attempt.result or f"{attempt.name} failed.",
+                    repeat_count=attempt.repeat_count,
                 )
             )
-            last_observation = attempt.result
             sequence += 1
             if attempt.failed:
                 pending_failure = result_id
-                trigger_reasons.add("tool_failure")
             else:
                 pending_failure = None
                 main_parent = result_id
+            last_observation = attempt.result
+        elif not attempt.failed:
+            pending_failure = None
+            main_parent = action_id
 
-    if recovered_failures == 0:
-        return None
-
-    final_answer = _last_assistant_text(messages)
-    outcome = final_answer or "The session continued after correcting a failed or rejected attempt."
+    outcome = episode.outcome or "The session continued after correcting a failed or rejected attempt."
     steps.append(
         ReflectionTrajectoryStep(
             id=f"outcome-{sequence}",
@@ -150,14 +240,14 @@ def extract_reflection_candidate(messages: list[Mapping[str, object]]) -> Reflec
             content=outcome,
         )
     )
-    reason = "+".join(sorted(trigger_reasons))
+    reason = "+".join(sorted(episode.trigger_reasons))
     return ReflectionCandidate(
-        query=query,
+        query=episode.query,
         trigger_reason=reason,
         trajectory=ReflectionTrajectory(
-            state=query,
+            state=episode.query,
             action="The agent revised its approach after a failed or rejected attempt.",
-            observation=last_observation or "A prior attempt required correction.",
+            observation=last_observation or "The corrective action completed successfully.",
             outcome=outcome,
             lesson="Review this corrected trajectory before promoting a reusable lesson.",
             steps=steps,
@@ -197,25 +287,6 @@ def _tool_attempt(tool: Mapping[str, object], result: str) -> ToolAttempt:
         result=summarized_result,
         failed=_is_failure(result),
     )
-
-
-def _first_user_text(messages: list[Mapping[str, object]]) -> str:
-    for message in messages:
-        if message.get("role") == "user":
-            text = _strip_internal_context(_content_text(message.get("content")))
-            if text:
-                return text[:500]
-    return ""
-
-
-def _last_assistant_text(messages: list[Mapping[str, object]]) -> str:
-    for message in reversed(messages):
-        if message.get("role") != "assistant":
-            continue
-        text = _text_blocks(message.get("content"))
-        if text:
-            return text[:1000]
-    return ""
 
 
 def _content_text(content: object) -> str:
@@ -267,8 +338,10 @@ def _summarize_tool_result(result: str) -> str:
         summary = pattern.sub("", summary)
     lines = [line.strip() for line in summary.splitlines() if line.strip()]
     if not lines:
-        return "Tool completed."
+        return ""
     compact = "\n".join(lines)
+    if any(pattern.fullmatch(compact) for pattern in _LOW_INFORMATION_RESULT_PATTERNS):
+        return ""
     if len(compact) <= 320:
         return compact
     return f"{compact[:317]}..."

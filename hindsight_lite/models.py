@@ -100,6 +100,7 @@ class ReflectionTrajectoryStep:
     parent_id: str | None = None
     tool_name: str | None = None
     correction_of: str | None = None
+    repeat_count: int = 1
 
 
 @dataclass(frozen=True)
