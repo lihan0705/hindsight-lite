@@ -95,6 +95,22 @@ Codex lifecycle hooks connect that loop to the local runtime:
 | `PreToolUse` | Recall file-specific context before supported file reads |
 | `Stop` | Replace the latest session snapshot, promote durable profile facts, refresh the UI, and extract a reflection candidate when appropriate |
 
+Every event enters the same dispatcher, which routes it to one focused Python
+handler:
+
+```text
+SessionStart      -> codex_hook.py -> session_start.py
+UserPromptSubmit  -> codex_hook.py -> recall.py
+PreToolUse        -> codex_hook.py -> file_context.py
+Stop              -> codex_hook.py -> retain.py
+```
+
+`SessionStart` runs when a Codex thread starts, `UserPromptSubmit` runs before
+each user prompt is processed, and `PreToolUse` runs before matching tool
+calls. `Stop` runs after each completed agent turn, not only when Codex exits;
+with the default `retainEveryNTurns: 1`, that means Retain runs after every
+turn.
+
 The three stages deliberately have different responsibilities:
 
 - **Retain** preserves evidence. Sessions remain an audit-style record, while
