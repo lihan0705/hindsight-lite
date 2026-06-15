@@ -165,6 +165,7 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
                         content="Checked the failure and corrected the implementation.",
                         correction_of="failed-attempt",
                         tool_name="pytest",
+                        repeat_count=3,
                     ),
                 ],
             ),
@@ -190,6 +191,7 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"parent_id": "trajectory-result-error-step-start"' in html
     assert '"correction_of": "failed-attempt"' in html
     assert '"tool_name": "pytest"' in html
+    assert '"repeat_count": "3"' in html
     assert "Changed code before checking the failing case." in html
     assert "Checked the failure and corrected the implementation." in html
     assert "Reflection Branch" in html

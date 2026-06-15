@@ -104,6 +104,7 @@ def test_parse_reflection_result_validates_and_writes_json(tmp_path: Path) -> No
                         "kind": "action",
                         "status": "failed",
                         "content": "Tried an incomplete implementation.",
+                        "repeat_count": 3,
                     },
                     {
                         "id": "correction",
@@ -129,6 +130,7 @@ def test_parse_reflection_result_validates_and_writes_json(tmp_path: Path) -> No
     assert saved["type"] == "reflection_result"
     assert saved["request_id"] == "reflect-1"
     assert saved["trajectory"]["lesson"] == "Keep request and result records explicit."
+    assert saved["trajectory"]["steps"][0]["repeat_count"] == 3
     assert saved["trajectory"]["steps"][1]["correction_of"] == "attempt"
 
 
