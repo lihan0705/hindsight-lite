@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 
+from hindsight_lite.index import rebuild_recall_index, recall_index_path
 from hindsight_lite.models import (
     ReflectionPacket,
     ReflectionResult,
@@ -34,7 +35,7 @@ def seed_demo_memory(store: LocalMemoryStore, overwrite: bool = False) -> DemoMe
         store.paths.reflections_dir / "ui-review-reflection.json",
         store.paths.reflections_dir / "ui-review-success.json",
         store.paths.reflections_dir / "ui-review-negative.json",
-        store.paths.index_dir / "recall-cache.json",
+        recall_index_path(store),
     ]
     existing = [path for path in targets if path.exists()]
     if existing and not overwrite:
@@ -235,14 +236,5 @@ def _write_demo_reflections(store: LocalMemoryStore) -> list[str]:
 
 
 def _write_demo_index(store: LocalMemoryStore) -> list[str]:
-    path = store.paths.index_dir / "recall-cache.json"
-    payload = {
-        "source": "demo",
-        "items": [
-            {"id": "project-direction", "kind": "page", "keywords": ["local-first", "architecture"]},
-            {"id": "auth-redirect-loop", "kind": "session", "keywords": ["debugging", "auth"]},
-            {"id": "ui-review-reflection", "kind": "reflection", "keywords": ["ui", "eval"]},
-        ],
-    }
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
-    return [path.name]
+    rebuild_recall_index(store)
+    return [recall_index_path(store).name]

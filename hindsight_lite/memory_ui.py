@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from hindsight_lite.index import recall_index_path, recall_index_status
 from hindsight_lite.store import LocalMemoryStore
 
 _SESSION_EVENT_SOURCE_LIMIT_BYTES = 256 * 1024
@@ -67,6 +68,15 @@ class SessionUiPreview:
     truncated: bool
 
 
+@dataclass(frozen=True)
+class IndexUiSummary:
+    state: str
+    documents: int
+    source_files: int
+    generated_at: str | None
+    path: str
+
+
 def write_memory_ui(store: LocalMemoryStore, output_path: Path | None = None) -> Path:
     path = output_path or store.paths.bank_dir / "memory-tree.html"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -90,7 +100,7 @@ def _build_snapshot(store: LocalMemoryStore, save_url: str = "") -> MemoryUiSnap
         _pages_section(store),
         _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
         _reflections_section(store.paths.reflections_dir),
-        _raw_section("index", "Index", store.paths.index_dir),
+        _index_section(store),
     ]
     return MemoryUiSnapshot(
         bank_id=store.paths.bank_id,
@@ -171,19 +181,44 @@ def _reflections_section(directory: Path) -> MemoryUiSection:
     return MemoryUiSection(id="reflections", label="Reflections", files=files)
 
 
-def _raw_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
+def _index_section(store: LocalMemoryStore) -> MemoryUiSection:
+    status = recall_index_status(store)
+    index_path = recall_index_path(store)
     files: list[MemoryUiFile] = []
-    for path in sorted(item for item in directory.iterdir() if item.is_file()):
+    if index_path.exists():
+        summary = IndexUiSummary(
+            state=status.state,
+            documents=status.document_count,
+            source_files=status.source_file_count,
+            generated_at=status.generated_at,
+            path=status.path,
+        )
         files.append(
             MemoryUiFile(
-                id=f"{section_id}:{path.name}",
+                id=f"index:{index_path.name}",
+                label=index_path.name,
+                kind="index",
+                path=str(index_path),
+                content=json.dumps(asdict(summary), ensure_ascii=False, indent=2, sort_keys=True),
+                metadata={
+                    "state": status.state,
+                    "documents": str(status.document_count),
+                    "source_files": str(status.source_file_count),
+                    "generated_at": status.generated_at or "",
+                },
+            )
+        )
+    for path in sorted(item for item in store.paths.index_dir.iterdir() if item.is_file() and item != index_path):
+        files.append(
+            MemoryUiFile(
+                id=f"index:{path.name}",
                 label=path.name,
                 kind="file",
                 path=str(path),
                 content=path.read_text(encoding="utf-8"),
             )
         )
-    return MemoryUiSection(id=section_id, label=label, files=files)
+    return MemoryUiSection(id="index", label="Index", files=files)
 
 
 def _count_jsonl_lines(content: str) -> int:

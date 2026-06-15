@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from hindsight_lite.codex_memory import import_codex_memories
 from hindsight_lite.demo_memory import DemoMemoryExistsError, seed_demo_memory
+from hindsight_lite.index import rebuild_recall_index, recall_index_path, recall_index_status
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.memory_ui_server import create_memory_ui_server, memory_ui_server_url
 from hindsight_lite.models import SessionMemoryEvent
@@ -145,6 +146,17 @@ def _build_parser() -> argparse.ArgumentParser:
     agent_import_codex_memory_parser.add_argument("--dry-run", action="store_true")
     agent_import_codex_memory_parser.set_defaults(handler=_cmd_codex_memory_import)
 
+    index_parser = subparsers.add_parser("index", help="Inspect or rebuild the local recall index.")
+    index_subparsers = index_parser.add_subparsers(required=True)
+
+    index_status_parser = index_subparsers.add_parser("status", help="Show local recall index status.")
+    _add_bank_arg(index_status_parser)
+    index_status_parser.set_defaults(handler=_cmd_index_status)
+
+    index_rebuild_parser = index_subparsers.add_parser("rebuild", help="Rebuild the local recall index.")
+    _add_bank_arg(index_rebuild_parser)
+    index_rebuild_parser.set_defaults(handler=_cmd_index_rebuild)
+
     memory_ui_parser = subparsers.add_parser("memory-ui", help="Generate a static local memory tree UI.")
     _add_bank_arg(memory_ui_parser)
     memory_ui_parser.add_argument("--output", type=Path, default=None)
@@ -256,6 +268,18 @@ def _cmd_codex_memory_import(args: argparse.Namespace) -> int:
         print(page_id)
     for skipped_file in result.skipped_files:
         print(f"skipped\t{skipped_file}", file=sys.stderr)
+    return 0
+
+
+def _cmd_index_status(args: argparse.Namespace) -> int:
+    print(json.dumps(asdict(recall_index_status(_store(args))), ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _cmd_index_rebuild(args: argparse.Namespace) -> int:
+    store = _store(args)
+    index = rebuild_recall_index(store)
+    print(f"{recall_index_path(store)}\t{len(index.documents)}")
     return 0
 
 

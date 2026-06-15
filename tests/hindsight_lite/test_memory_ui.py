@@ -30,7 +30,11 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert '"request_id": "reflect-1"' in html
     assert '"confidence": "0.82"' in html
     assert '"lesson": "Keep request and result data linked for eval review."' in html
-    assert "recall-cache.json" in html
+    assert "recall-index.json" in html
+    assert '"state": "ready"' in html
+    assert '"documents": "2"' in html
+    assert "Session memory for UI tree." in html
+    assert html.count("Session memory for UI tree.") == 1
     assert "Keep this fork local-first." in html
     assert "Download Markdown" in html
     assert "Reset changes" in html
@@ -269,5 +273,7 @@ def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
             confidence=0.82,
         )
     )
-    (store.paths.index_dir / "recall-cache.json").write_text('{"ready":true}', encoding="utf-8")
+    from hindsight_lite.index import rebuild_recall_index
+
+    rebuild_recall_index(store)
     return store

@@ -22,7 +22,7 @@ Memory layout:
       sessions/<session-id>.jsonl
       pages/<page-id>.md
       reflections/<reflection-id>.json
-      index/
+      index/recall-index.json
 ```
 
 ## Requirements
@@ -152,6 +152,8 @@ python3 -m hindsight_lite agent_knowledge_recall --bank codex "project rules"
 python3 -m hindsight_lite agent_knowledge_retain --bank codex --session-id test --content "Important session note"
 python3 -m hindsight_lite agent_knowledge_reflect --bank codex --session-id test "what should we remember?"
 python3 -m hindsight_lite agent_knowledge_import_codex_memory --bank codex --dry-run
+python3 -m hindsight_lite index status --bank codex
+python3 -m hindsight_lite index rebuild --bank codex
 python3 -m hindsight_lite memory-ui --bank codex --serve --open
 ```
 
@@ -228,14 +230,17 @@ export HINDSIGHT_DEBUG=true
 
 ## Recall And Retain
 
-Recall reads local pages and session events, ranks them with lightweight lexical
-matching, and emits Codex `additionalContext` wrapped in
+Recall reads the rebuildable local BM25 index over pages and session events,
+then emits Codex `additionalContext` wrapped in
 `<hindsight_lite_memories>`. The hook output uses compact excerpts with stable
 source labels, so Codex gets a small memory index first instead of full session
 transcripts.
 
-Retain strips injected memory blocks before writing session JSONL, preventing
-memory feedback loops.
+The first Recall creates `index/recall-index.json`. Runtime writes update an
+existing index incrementally. Direct file edits are detected from source file
+metadata so the next Recall rebuilds it automatically. The index contains
+derived search data and can be deleted safely. Retain strips injected memory
+blocks before writing session JSONL, preventing memory feedback loops.
 
 `codex_hook.py` is the installed hook dispatcher. It keeps the hook surface
 small while routing `SessionStart`, `UserPromptSubmit`, `PreToolUse`, and

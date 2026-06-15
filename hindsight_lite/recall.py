@@ -4,24 +4,12 @@ import re
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 
-from hindsight_lite.models import KnowledgePage, RecallResult, SessionMemoryEvent
+from hindsight_lite.index import RecallIndexDocument, bm25_scores, ensure_recall_index, tokenize_terms
+from hindsight_lite.models import RecallResult
 from hindsight_lite.store import LocalMemoryStore
 from hindsight_lite.user_profile import expand_user_profile_query
 
-_TOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
 DEFAULT_RECALL_EXCERPT_MAX_CHARS = 160
-
-
-@dataclass(frozen=True)
-class SearchCandidate:
-    id: str
-    source: str
-    path: str
-    title: str
-    body: str
-    keywords: str
-    timestamp: str | None
-    metadata: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -47,8 +35,12 @@ def recall(
         return []
 
     query_phrase = _normalize_phrase(expanded_query)
-    candidates = _filter_temporal_bug_candidates(_iter_candidates(store), temporal_bug_query)
-    results = [_score_candidate(candidate, query_terms, query_phrase) for candidate in candidates]
+    candidates = _filter_temporal_bug_candidates(ensure_recall_index(store).documents, temporal_bug_query)
+    scores = bm25_scores(candidates, query_terms)
+    results = [
+        _score_candidate(candidate, scores.get(candidate.path, 0.0), query_terms, query_phrase)
+        for candidate in candidates
+    ]
     ranked = sorted((result for result in results if result.score > 0), key=lambda result: (-result.score, result.id))
     deduped = _dedupe_ranked_results(ranked)
     profile_result = _authoritative_profile_result(deduped, candidates, query)
@@ -84,46 +76,13 @@ def format_current_time() -> str:
     return now.strftime("%Y-%m-%d %H:%M")
 
 
-def _iter_candidates(store: LocalMemoryStore) -> list[SearchCandidate]:
-    candidates = [_page_candidate(page) for page in store.list_pages()]
-    candidates.extend(_event_candidate(event) for event in store.list_session_events())
-    return candidates
-
-
-def _page_candidate(page: KnowledgePage) -> SearchCandidate:
-    return SearchCandidate(
-        id=page.id,
-        source="page",
-        path=page.path,
-        title=page.title,
-        body=page.content,
-        keywords=_join_search_terms(page.title, page.tags, page.metadata),
-        timestamp=page.updated_at,
-        metadata=page.metadata,
-    )
-
-
-def _event_candidate(event: SessionMemoryEvent) -> SearchCandidate:
-    return SearchCandidate(
-        id=event.id,
-        source="session",
-        path=f"sessions/{event.session_id}.jsonl#{event.id}",
-        title=event.document_id,
-        body=event.content,
-        keywords=_join_search_terms(event.document_id, event.tags, event.metadata, event.session_id),
-        timestamp=event.timestamp,
-        metadata=event.metadata,
-    )
-
-
-def _score_candidate(candidate: SearchCandidate, query_terms: set[str], query_phrase: str) -> RecallResult:
-    body_terms = _tokenize(candidate.body)
-    title_terms = _tokenize(candidate.title)
-    keyword_terms = _tokenize(candidate.keywords)
-    body_overlap = query_terms & body_terms
-    title_overlap = query_terms & title_terms
-    keyword_overlap = query_terms & keyword_terms
-    score = float(len(body_overlap) + (len(title_overlap) * 2.0) + (len(keyword_overlap) * 1.5))
+def _score_candidate(
+    candidate: RecallIndexDocument,
+    base_score: float,
+    query_terms: set[str],
+    query_phrase: str,
+) -> RecallResult:
+    score = base_score
     if _contains_query_phrase(candidate, query_phrase):
         score += 2.0
     return RecallResult(
@@ -159,7 +118,7 @@ def _recall_dedupe_key(result: RecallResult) -> str:
 
 def _authoritative_profile_result(
     results: list[RecallResult],
-    candidates: list[SearchCandidate],
+    candidates: list[RecallIndexDocument],
     query: str,
 ) -> RecallResult | None:
     labels = _profile_query_labels(query)
@@ -232,12 +191,7 @@ def _trim_excerpt(excerpt: str, max_chars: int) -> str:
 
 
 def _tokenize(text: str) -> set[str]:
-    return {match.group(0).lower() for match in _TOKEN_RE.finditer(text)}
-
-
-def _join_search_terms(title: str, tags: list[str], metadata: dict[str, str], extra: str = "") -> str:
-    metadata_terms = [item for pair in metadata.items() for item in pair]
-    return " ".join([title, *tags, *metadata_terms, extra])
+    return set(tokenize_terms(text))
 
 
 def _expand_recall_query(query: str, temporal_bug_query: TemporalBugQuery | None) -> str:
@@ -284,15 +238,15 @@ def _coerce_current_time(current_time: datetime | None) -> datetime:
 
 
 def _filter_temporal_bug_candidates(
-    candidates: list[SearchCandidate],
+    candidates: list[RecallIndexDocument],
     temporal_bug_query: TemporalBugQuery | None,
-) -> list[SearchCandidate]:
+) -> list[RecallIndexDocument]:
     if temporal_bug_query is None:
         return candidates
     return [candidate for candidate in candidates if _matches_temporal_bug_query(candidate, temporal_bug_query)]
 
 
-def _matches_temporal_bug_query(candidate: SearchCandidate, temporal_bug_query: TemporalBugQuery) -> bool:
+def _matches_temporal_bug_query(candidate: RecallIndexDocument, temporal_bug_query: TemporalBugQuery) -> bool:
     if candidate.source != "session":
         return False
     timestamp = _parse_timestamp(candidate.timestamp)
@@ -312,7 +266,7 @@ def _parse_timestamp(timestamp: str | None) -> datetime | None:
     return _coerce_current_time(parsed)
 
 
-def _contains_query_phrase(candidate: SearchCandidate, query_phrase: str) -> bool:
+def _contains_query_phrase(candidate: RecallIndexDocument, query_phrase: str) -> bool:
     if " " not in query_phrase:
         return False
     searchable = _normalize_phrase(" ".join([candidate.title, candidate.keywords, candidate.body]))
@@ -320,7 +274,7 @@ def _contains_query_phrase(candidate: SearchCandidate, query_phrase: str) -> boo
 
 
 def _normalize_phrase(text: str) -> str:
-    return " ".join(match.group(0).lower() for match in _TOKEN_RE.finditer(text))
+    return " ".join(tokenize_terms(text))
 
 
 def _excerpt(text: str, query_terms: set[str], max_chars: int = 220) -> str:
