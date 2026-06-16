@@ -18,6 +18,7 @@ from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.memory_ui_server import create_memory_ui_server, memory_ui_server_url
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
+from hindsight_lite.recall_eval import RecallEvalExistsError, run_recall_eval
 from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, write_reflection_result_from_file
 from hindsight_lite.reflection_dataset import export_reflection_dataset
 from hindsight_lite.store import LocalMemoryStore, UnsafeReflectionIdError
@@ -174,6 +175,14 @@ def _build_parser() -> argparse.ArgumentParser:
     demo_seed_parser.add_argument("--write-ui", action="store_true")
     demo_seed_parser.add_argument("--output", type=Path, default=None)
     demo_seed_parser.set_defaults(handler=_cmd_demo_memory_seed)
+
+    recall_eval_parser = subparsers.add_parser("recall-eval", help="Run a local recall quality fixture.")
+    recall_eval_subparsers = recall_eval_parser.add_subparsers(required=True)
+    recall_eval_run_parser = recall_eval_subparsers.add_parser("run", help="Seed and run five recall eval cases.")
+    _add_bank_arg(recall_eval_run_parser)
+    recall_eval_run_parser.add_argument("--overwrite", action="store_true")
+    recall_eval_run_parser.add_argument("--max-results", type=int, default=3)
+    recall_eval_run_parser.set_defaults(handler=_cmd_recall_eval_run)
 
     return parser
 
@@ -390,6 +399,30 @@ def _cmd_demo_memory_seed(args: argparse.Namespace) -> int:
     if args.write_ui:
         print(f"ui\t{write_memory_ui(store=store, output_path=args.output)}")
     return 0
+
+
+def _cmd_recall_eval_run(args: argparse.Namespace) -> int:
+    try:
+        result = run_recall_eval(store=_store(args), overwrite=args.overwrite, max_results=args.max_results)
+    except RecallEvalExistsError as exc:
+        print(f"recall eval memory already exists; pass --overwrite to replace: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"recall-eval\t{result.passed}/{result.total}")
+    for case in result.cases:
+        status = "pass" if case.passed else "fail"
+        print(
+            "\t".join(
+                [
+                    status,
+                    case.case_id,
+                    f"expected={case.expected_source}:{case.expected_id}",
+                    f"top={case.top_source}:{case.top_id}",
+                    f"returned={','.join(case.returned_ids)}",
+                ]
+            )
+        )
+    return 0 if result.ok else 1
 
 
 def _utc_now() -> str:

@@ -476,3 +476,24 @@ def test_cli_seeds_demo_memory_and_generates_ui(tmp_path: Path, capsys) -> None:
     assert "Reflection Graph" in html
     assert "Error / Negative Candidates" in html
     assert "Task failed because the agent treated a stale draft as final." in html
+
+
+def test_cli_runs_recall_eval_fixture(tmp_path: Path, capsys) -> None:
+    assert main(["--home", str(tmp_path), "recall-eval", "run", "--bank", "recall-eval"]) == 0
+
+    output = capsys.readouterr().out
+    assert "recall-eval\t5/5" in output
+    assert "pass\tdrink-preference\texpected=page:user-profile\ttop=page:user-profile" in output
+    assert "pass\trecent-bug-window\texpected=session:eval-recent-cache-bug" in output
+    assert (tmp_path / "banks" / "recall-eval" / "index" / "recall-index.json").exists()
+
+
+def test_cli_recall_eval_refuses_existing_fixture_without_overwrite(tmp_path: Path, capsys) -> None:
+    assert main(["--home", str(tmp_path), "recall-eval", "run", "--bank", "recall-eval"]) == 0
+    capsys.readouterr()
+
+    assert main(["--home", str(tmp_path), "recall-eval", "run", "--bank", "recall-eval"]) == 1
+
+    error = capsys.readouterr().err
+    assert "recall eval memory already exists" in error
+    assert "--overwrite" in error
