@@ -20,6 +20,7 @@ from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.recall import format_recall_for_codex, recall
 from hindsight_lite.recall_eval import RecallEvalExistsError, run_recall_eval
 from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, write_reflection_result_from_file
+from hindsight_lite.reflection_cleanup import scan_reflection_cleanup
 from hindsight_lite.reflection_dataset import export_reflection_dataset
 from hindsight_lite.store import LocalMemoryStore, UnsafeReflectionIdError
 
@@ -98,6 +99,18 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_bank_arg(reflection_dataset_export_parser)
     reflection_dataset_export_parser.add_argument("--output", required=True, type=Path)
     reflection_dataset_export_parser.set_defaults(handler=_cmd_reflection_dataset_export)
+
+    reflection_cleanup_parser = subparsers.add_parser(
+        "reflection-cleanup",
+        help="Find low-quality reflection candidates without deleting files.",
+    )
+    reflection_cleanup_subparsers = reflection_cleanup_parser.add_subparsers(required=True)
+    reflection_cleanup_scan_parser = reflection_cleanup_subparsers.add_parser(
+        "scan",
+        help="Report repeated or noisy reflection records.",
+    )
+    _add_bank_arg(reflection_cleanup_scan_parser)
+    reflection_cleanup_scan_parser.set_defaults(handler=_cmd_reflection_cleanup_scan)
 
     knowledge_parser = subparsers.add_parser("knowledge", help="Manage Markdown knowledge pages.")
     knowledge_subparsers = knowledge_parser.add_subparsers(required=True)
@@ -248,6 +261,24 @@ def _cmd_reflection_result_write(args: argparse.Namespace) -> int:
 def _cmd_reflection_dataset_export(args: argparse.Namespace) -> int:
     result = export_reflection_dataset(store=_store(args), output_path=args.output)
     print(f"{result.output_path}\t{result.example_count}")
+    return 0
+
+
+def _cmd_reflection_cleanup_scan(args: argparse.Namespace) -> int:
+    report = scan_reflection_cleanup(_store(args))
+    print(f"reflection-cleanup\t{len(report.candidates)}/{report.scanned}")
+    for candidate in report.candidates:
+        print(
+            "\t".join(
+                [
+                    "candidate",
+                    candidate.id,
+                    ",".join(candidate.issue_codes),
+                    candidate.entry_state,
+                    str(candidate.path),
+                ]
+            )
+        )
     return 0
 
 

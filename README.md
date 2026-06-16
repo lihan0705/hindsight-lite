@@ -426,6 +426,17 @@ python3 -m hindsight_lite reflection-dataset export --bank codex --output reflec
 Only records with both a `reflection_request` and linked `reflection_result` are
 included, so each output line is a complete local trajectory sample.
 
+To find older reflection candidates that are likely noisy before review or
+export, run:
+
+```bash
+python3 -m hindsight_lite reflection-cleanup scan --bank codex
+```
+
+The scan reports repeated entry states, environment/plugin-cache failures, and
+oversized trajectories. It is intentionally read-only: it does not delete,
+rewrite, or hide `reflections/*.json`.
+
 ---
 
 ## Contributing
