@@ -227,6 +227,7 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"parent_id": "trajectory-negative"' in html
     assert '"parent_id": "trajectory-success"' in html
     assert '"kind": "trajectory-entry"' in html
+    assert '"entry_state": "Need to update the implementation."' in html
     assert '"label": "Need to update the implementation."' in html
     assert '"content": "2 related reflection episodes"' in html
     assert '"episodes": "2"' in html
@@ -249,6 +250,10 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert "graphForActiveFile" in html
     assert "relevantTrajectorySteps" in html
     assert "branchContent" in html
+    assert "renderSectionFiles(wrapper, section)" in html
+    assert "groupedReflectionFiles(section.files)" in html
+    assert "tree-entry-group" in html
+    assert "${item.files.length} episodes" in html
     assert "parsed.cmd || parsed.file || parsed.path" in html
     assert "commandMatch" in html
     assert "branch-card-detail" in html

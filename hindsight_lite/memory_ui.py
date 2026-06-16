@@ -372,6 +372,9 @@ def _reflection_metadata(
     trigger_reason = _string_value(data.get("trigger_reason"))
     if trigger_reason:
         metadata["trigger_reason"] = trigger_reason
+    entry_state = _reflection_entry_state(data)
+    if entry_state:
+        metadata["entry_state"] = entry_state
     return metadata
 
 
@@ -403,6 +406,15 @@ def _trajectory_lesson(value: object) -> str:
     if not isinstance(value, Mapping):
         return ""
     return _string_value(value.get("lesson"))
+
+
+def _reflection_entry_state(data: Mapping[str, object]) -> str:
+    trajectory = data.get("trajectory")
+    if not isinstance(trajectory, Mapping):
+        trajectory = data.get("candidate_trajectory")
+    if not isinstance(trajectory, Mapping):
+        return ""
+    return _trajectory_entry_state(trajectory)
 
 
 def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph:
@@ -844,6 +856,26 @@ _HTML_TEMPLATE = """<!doctype html>
     .tree-button.active {
       background: #eef3e9;
     }
+    .tree-entry-group {
+      margin: 8px 0 4px;
+      padding-left: 8px;
+      border-left: 2px solid var(--line);
+    }
+    .tree-entry-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin: 4px 0;
+      padding: 5px 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .tree-entry-title span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .dot {
       width: 8px;
       height: 8px;
@@ -1270,9 +1302,53 @@ _HTML_TEMPLATE = """<!doctype html>
         title.className = "section-title";
         title.innerHTML = `<span>${section.label}</span><span>${section.files.length}</span>`;
         wrapper.append(title);
-        section.files.forEach((file) => wrapper.append(treeButton(file)));
+        renderSectionFiles(wrapper, section);
         tree.append(wrapper);
       });
+    }
+
+    function renderSectionFiles(wrapper, section) {
+      if (section.id !== "reflections") {
+        section.files.forEach((file) => wrapper.append(treeButton(file)));
+        return;
+      }
+      groupedReflectionFiles(section.files).forEach((item) => {
+        if (item.files.length === 1) {
+          wrapper.append(treeButton(item.files[0]));
+          return;
+        }
+        const group = document.createElement("div");
+        group.className = "tree-entry-group";
+        const title = document.createElement("div");
+        title.className = "tree-entry-title";
+        const label = document.createElement("span");
+        label.textContent = item.entryState;
+        const count = document.createElement("span");
+        count.className = "pill";
+        count.textContent = `${item.files.length} episodes`;
+        title.append(label, count);
+        group.append(title);
+        item.files.forEach((file) => group.append(treeButton(file)));
+        wrapper.append(group);
+      });
+    }
+
+    function groupedReflectionFiles(files) {
+      const groups = new Map();
+      files.forEach((file) => {
+        const key = file.metadata?.entry_state || file.id;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(file);
+      });
+      const consumed = new Set();
+      const items = [];
+      files.forEach((file) => {
+        const key = file.metadata?.entry_state || file.id;
+        if (consumed.has(key)) return;
+        consumed.add(key);
+        items.push({ entryState: key, files: groups.get(key) || [file] });
+      });
+      return items;
     }
 
     function treeButton(file) {
