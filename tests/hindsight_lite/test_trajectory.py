@@ -259,3 +259,42 @@ def test_extract_reflection_candidate_omits_low_information_success_result() -> 
     assert "Tool completed." not in rendered_steps
     assert "status: completed" not in rendered_steps
     assert len(candidate.trajectory.steps) == 5
+
+
+def test_extract_reflection_candidate_skips_environment_permission_noise() -> None:
+    candidate = extract_reflection_candidate(
+        [
+            {"role": "user", "content": "$hindsight-lite:memorytree"},
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "exec_command",
+                        "input": {
+                            "cmd": ("mkdir -p /Users/gongping/.codex/plugins/cache/personal-local/hindsight-lite/0.3.0")
+                        },
+                    },
+                    {
+                        "type": "tool_result",
+                        "content": (
+                            "Process exited with code 1\n"
+                            "mkdir: /Users/gongping/.codex/plugins/cache/personal-local/"
+                            "hindsight-lite/0.3.0: Operation not permitted"
+                        ),
+                    },
+                    {
+                        "type": "tool_use",
+                        "name": "exec_command",
+                        "input": {
+                            "cmd": ("mkdir -p /Users/gongping/.codex/plugins/cache/personal-local/hindsight-lite/0.3.0")
+                        },
+                    },
+                    {"type": "tool_result", "content": "Process exited with code 0\nOutput:\ncreated"},
+                    {"type": "text", "text": "The memory tree plugin cache was refreshed."},
+                ],
+            },
+        ]
+    )
+
+    assert candidate is None

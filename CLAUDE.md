@@ -47,14 +47,15 @@ The memory store is file-based:
       sessions/*.jsonl
       pages/*.md
       reflections/*.json
-      index/recall-cache.json
+      index/recall-index.json
       metadata.json
 ```
 
 Core modules:
 
 - `hindsight_lite/store.py`: typed file-store operations
-- `hindsight_lite/recall.py`: local text recall over sessions and pages
+- `hindsight_lite/index.py`: rebuildable typed BM25 index over sessions and pages
+- `hindsight_lite/recall.py`: indexed local recall with compact excerpts
 - `hindsight_lite/reflection.py`: reflection request packet creation
 - `hindsight_lite/codex_memory.py`: Codex memory import
 - `hindsight_lite/memory_ui.py`: static memory tree inspector

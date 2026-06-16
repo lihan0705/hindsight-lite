@@ -116,7 +116,8 @@ The three stages deliberately have different responsibilities:
 - **Retain** preserves evidence. Sessions remain an audit-style record, while
   stable user or project knowledge can be promoted into editable pages.
 - **Recall** ranks local text and returns short excerpts rather than replaying
-  full transcripts, reducing prompt noise and token use.
+  full transcripts. A local BM25 index avoids reparsing every memory file on
+  each prompt, reducing latency, prompt noise, and token use.
 - **Reflect** records the latest completed failure-to-recovery episode for
   review. It does not silently turn heuristics into training labels.
 
@@ -188,7 +189,7 @@ Default local memory layout:
       reflections/
         <reflection_id>.json
       index/
-        recall-cache.json
+        recall-index.json
       metadata.json
 ```
 
@@ -198,8 +199,20 @@ V1 memory types:
   windows when chunked retention is enabled.
 - `pages/*.md` stores user-readable knowledge pages.
 - `reflections/*.json` stores reflection requests for later analysis.
+- `index/recall-index.json` stores a rebuildable BM25 search index over pages
+  and sessions. It is derived data, not a memory source.
 
 This keeps memory readable, diffable, scriptable, and easy to delete.
+
+Recall creates the index on first use. Runtime page and session writes update
+an existing index incrementally; direct file edits are detected from source
+metadata and cause the next Recall to rebuild it. Deleting the index does not
+delete memory. To inspect or rebuild it manually:
+
+```bash
+python3 -m hindsight_lite index status --bank codex
+python3 -m hindsight_lite index rebuild --bank codex
+```
 
 Existing Codex memory files can be imported into `pages/*.md` without changing
 the Codex-owned source files:
@@ -296,11 +309,12 @@ that path, and emits a small `<hindsight_lite_file_context>` block. This follows
 the same conservative rule as prompt recall: inject only excerpts and IDs, not
 full historical transcripts.
 
-Recall scoring is intentionally lightweight and local. It uses body text plus
-titles, tags, metadata, and session identifiers, then excerpts near matching
-query terms. Hook injection applies a separate excerpt character budget so the
-agent sees a compact index of relevant memories instead of full historical
-transcripts.
+Recall scoring is intentionally lightweight and local. The rebuildable index
+stores weighted term frequencies from body text, titles, tags, metadata, and
+session identifiers. Recall uses BM25 to rank candidates, then excerpts near
+matching query terms. Hook injection applies a separate excerpt character
+budget so the agent sees a compact list of relevant memories instead of full
+historical transcripts.
 
 ---
 

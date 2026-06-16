@@ -5,11 +5,13 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from hindsight_lite.index import recall_index_path, recall_index_status
 from hindsight_lite.store import LocalMemoryStore
 
 _SESSION_EVENT_SOURCE_LIMIT_BYTES = 256 * 1024
 _SESSION_EVENT_CONTENT_LIMIT = 12_000
 _SESSION_FILE_CONTENT_LIMIT = 80_000
+_TRAJECTORY_STEP_SUMMARY_LIMIT = 180
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,15 @@ class SessionUiPreview:
     truncated: bool
 
 
+@dataclass(frozen=True)
+class IndexUiSummary:
+    state: str
+    documents: int
+    source_files: int
+    generated_at: str | None
+    path: str
+
+
 def write_memory_ui(store: LocalMemoryStore, output_path: Path | None = None) -> Path:
     path = output_path or store.paths.bank_dir / "memory-tree.html"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -90,7 +101,7 @@ def _build_snapshot(store: LocalMemoryStore, save_url: str = "") -> MemoryUiSnap
         _pages_section(store),
         _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
         _reflections_section(store.paths.reflections_dir),
-        _raw_section("index", "Index", store.paths.index_dir),
+        _index_section(store),
     ]
     return MemoryUiSnapshot(
         bank_id=store.paths.bank_id,
@@ -171,19 +182,44 @@ def _reflections_section(directory: Path) -> MemoryUiSection:
     return MemoryUiSection(id="reflections", label="Reflections", files=files)
 
 
-def _raw_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
+def _index_section(store: LocalMemoryStore) -> MemoryUiSection:
+    status = recall_index_status(store)
+    index_path = recall_index_path(store)
     files: list[MemoryUiFile] = []
-    for path in sorted(item for item in directory.iterdir() if item.is_file()):
+    if index_path.exists():
+        summary = IndexUiSummary(
+            state=status.state,
+            documents=status.document_count,
+            source_files=status.source_file_count,
+            generated_at=status.generated_at,
+            path=status.path,
+        )
         files.append(
             MemoryUiFile(
-                id=f"{section_id}:{path.name}",
+                id=f"index:{index_path.name}",
+                label=index_path.name,
+                kind="index",
+                path=str(index_path),
+                content=json.dumps(asdict(summary), ensure_ascii=False, indent=2, sort_keys=True),
+                metadata={
+                    "state": status.state,
+                    "documents": str(status.document_count),
+                    "source_files": str(status.source_file_count),
+                    "generated_at": status.generated_at or "",
+                },
+            )
+        )
+    for path in sorted(item for item in store.paths.index_dir.iterdir() if item.is_file() and item != index_path):
+        files.append(
+            MemoryUiFile(
+                id=f"index:{path.name}",
                 label=path.name,
                 kind="file",
                 path=str(path),
                 content=path.read_text(encoding="utf-8"),
             )
         )
-    return MemoryUiSection(id=section_id, label=label, files=files)
+    return MemoryUiSection(id="index", label="Index", files=files)
 
 
 def _count_jsonl_lines(content: str) -> int:
@@ -336,6 +372,9 @@ def _reflection_metadata(
     trigger_reason = _string_value(data.get("trigger_reason"))
     if trigger_reason:
         metadata["trigger_reason"] = trigger_reason
+    entry_state = _reflection_entry_state(data)
+    if entry_state:
+        metadata["entry_state"] = entry_state
     return metadata
 
 
@@ -367,6 +406,15 @@ def _trajectory_lesson(value: object) -> str:
     if not isinstance(value, Mapping):
         return ""
     return _string_value(value.get("lesson"))
+
+
+def _reflection_entry_state(data: Mapping[str, object]) -> str:
+    trajectory = data.get("trajectory")
+    if not isinstance(trajectory, Mapping):
+        trajectory = data.get("candidate_trajectory")
+    if not isinstance(trajectory, Mapping):
+        return ""
+    return _trajectory_entry_state(trajectory)
 
 
 def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph:
@@ -412,7 +460,7 @@ def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph
                 )
             )
             nodes.extend(_trajectory_graph_nodes(file))
-    return MemoryUiGraph(root_id=root_id, nodes=nodes)
+    return MemoryUiGraph(root_id=root_id, nodes=_group_trajectory_sample_entries(nodes))
 
 
 def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
@@ -449,6 +497,7 @@ def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
                 "confidence": _confidence_value(data.get("confidence")),
                 "stage": "candidate" if record_type == "reflection_request" else "evaluated",
                 "trigger_reason": _string_value(data.get("trigger_reason")),
+                "entry_state": _trajectory_entry_state(trajectory),
             },
         )
     ]
@@ -478,6 +527,70 @@ def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
     return nodes
 
 
+def _group_trajectory_sample_entries(nodes: list[MemoryUiGraphNode]) -> list[MemoryUiGraphNode]:
+    groups: dict[str, list[MemoryUiGraphNode]] = {}
+    for node in nodes:
+        if node.kind != "trajectory-sample":
+            continue
+        entry_state = node.metadata.get("entry_state", "")
+        if not entry_state:
+            continue
+        groups.setdefault(f"{node.parent_id}:{entry_state}", []).append(node)
+
+    repeated_groups = {key: samples for key, samples in groups.items() if len(samples) > 1}
+    if not repeated_groups:
+        return nodes
+
+    group_nodes: list[MemoryUiGraphNode] = []
+    parent_by_sample_id: dict[str, str] = {}
+    for group_key, samples in sorted(repeated_groups.items()):
+        parent_id, entry_state = group_key.split(":", 1)
+        group_id = f"{parent_id}-entry-{_safe_graph_id(entry_state)}"
+        group_nodes.append(
+            MemoryUiGraphNode(
+                id=group_id,
+                label=entry_state,
+                kind="trajectory-entry",
+                parent_id=parent_id,
+                content=f"{len(samples)} related reflection episodes",
+                sample_status=samples[0].sample_status,
+                metadata={"episodes": str(len(samples))},
+            )
+        )
+        for sample in samples:
+            parent_by_sample_id[sample.id] = group_id
+
+    regrouped_nodes = [*nodes, *group_nodes]
+    return [
+        node if node.id not in parent_by_sample_id else _replace_graph_node_parent(node, parent_by_sample_id[node.id])
+        for node in regrouped_nodes
+    ]
+
+
+def _replace_graph_node_parent(node: MemoryUiGraphNode, parent_id: str) -> MemoryUiGraphNode:
+    return MemoryUiGraphNode(
+        id=node.id,
+        label=node.label,
+        kind=node.kind,
+        parent_id=parent_id,
+        file_id=node.file_id,
+        content=node.content,
+        sample_status=node.sample_status,
+        metadata=node.metadata,
+    )
+
+
+def _trajectory_entry_state(trajectory: Mapping[str, object]) -> str:
+    raw_steps = trajectory.get("steps")
+    if isinstance(raw_steps, list):
+        for step in raw_steps:
+            if not isinstance(step, Mapping):
+                continue
+            if _string_value(step.get("kind")) == "state":
+                return _trajectory_step_summary(_string_value(step.get("content")))
+    return _trajectory_step_summary(_string_value(trajectory.get("state")))
+
+
 def _branching_trajectory_step_nodes(
     raw_steps: list[object],
     sample_id: str,
@@ -494,6 +607,16 @@ def _branching_trajectory_step_nodes(
         parent_step_id = _string_value(step.get("parent_id"))
         parent_id = f"{sample_id}-step-{_safe_graph_id(parent_step_id)}" if parent_step_id in step_ids else sample_id
         status = _trajectory_step_status(_string_value(step.get("status")), sample_status)
+        content = _string_value(step.get("content"))
+        summary = _trajectory_step_summary(content)
+        metadata = {
+            "sequence": str(_trajectory_step_sequence(step)),
+            "tool_name": _string_value(step.get("tool_name")),
+            "correction_of": _string_value(step.get("correction_of")),
+            "repeat_count": _positive_int_string(step.get("repeat_count")),
+        }
+        if summary != content:
+            metadata["detail"] = content
         nodes.append(
             MemoryUiGraphNode(
                 id=f"{sample_id}-step-{_safe_graph_id(step_id)}",
@@ -501,17 +624,43 @@ def _branching_trajectory_step_nodes(
                 kind="trajectory-step",
                 parent_id=parent_id,
                 file_id=file_id,
-                content=_string_value(step.get("content")),
+                content=summary,
                 sample_status=status,
-                metadata={
-                    "sequence": str(_trajectory_step_sequence(step)),
-                    "tool_name": _string_value(step.get("tool_name")),
-                    "correction_of": _string_value(step.get("correction_of")),
-                    "repeat_count": _positive_int_string(step.get("repeat_count")),
-                },
+                metadata=metadata,
             )
         )
     return nodes
+
+
+def _trajectory_step_summary(content: str) -> str:
+    cleaned = _clean_trajectory_step_content(content)
+    if len(cleaned) <= _TRAJECTORY_STEP_SUMMARY_LIMIT:
+        return cleaned
+    return f"{cleaned[: _TRAJECTORY_STEP_SUMMARY_LIMIT - 3]}..."
+
+
+def _clean_trajectory_step_content(content: str) -> str:
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        parsed = None
+    if isinstance(parsed, Mapping):
+        command = _string_value(parsed.get("cmd"))
+        if command:
+            return command
+        file_path = _string_value(parsed.get("file")) or _string_value(parsed.get("path"))
+        if file_path:
+            return file_path
+
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
+    kept: list[str] = []
+    for line in lines:
+        if line.startswith(("Chunk ID:", "Wall time:", "Original token count:", "Output:")):
+            continue
+        if line.startswith("Process exited") or line.startswith("Process running"):
+            continue
+        kept.append(line)
+    return " ".join(kept)
 
 
 def _trajectory_step_sequence(step: Mapping[str, object]) -> int:
@@ -706,6 +855,26 @@ _HTML_TEMPLATE = """<!doctype html>
     .tree-button:hover,
     .tree-button.active {
       background: #eef3e9;
+    }
+    .tree-entry-group {
+      margin: 8px 0 4px;
+      padding-left: 8px;
+      border-left: 2px solid var(--line);
+    }
+    .tree-entry-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin: 4px 0;
+      padding: 5px 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .tree-entry-title span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .dot {
       width: 8px;
@@ -965,6 +1134,26 @@ _HTML_TEMPLATE = """<!doctype html>
       font-size: 12px;
       overflow-wrap: anywhere;
     }
+    .branch-card-detail {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .branch-card-detail summary {
+      cursor: pointer;
+      width: fit-content;
+    }
+    .branch-card-detail pre {
+      margin-top: 7px;
+      max-height: 180px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 0;
+      padding: 9px;
+      background: #fffefb;
+      font-size: 11px;
+    }
     .graph-tree {
       min-width: 760px;
     }
@@ -1113,9 +1302,53 @@ _HTML_TEMPLATE = """<!doctype html>
         title.className = "section-title";
         title.innerHTML = `<span>${section.label}</span><span>${section.files.length}</span>`;
         wrapper.append(title);
-        section.files.forEach((file) => wrapper.append(treeButton(file)));
+        renderSectionFiles(wrapper, section);
         tree.append(wrapper);
       });
+    }
+
+    function renderSectionFiles(wrapper, section) {
+      if (section.id !== "reflections") {
+        section.files.forEach((file) => wrapper.append(treeButton(file)));
+        return;
+      }
+      groupedReflectionFiles(section.files).forEach((item) => {
+        if (item.files.length === 1) {
+          wrapper.append(treeButton(item.files[0]));
+          return;
+        }
+        const group = document.createElement("div");
+        group.className = "tree-entry-group";
+        const title = document.createElement("div");
+        title.className = "tree-entry-title";
+        const label = document.createElement("span");
+        label.textContent = item.entryState;
+        const count = document.createElement("span");
+        count.className = "pill";
+        count.textContent = `${item.files.length} episodes`;
+        title.append(label, count);
+        group.append(title);
+        item.files.forEach((file) => group.append(treeButton(file)));
+        wrapper.append(group);
+      });
+    }
+
+    function groupedReflectionFiles(files) {
+      const groups = new Map();
+      files.forEach((file) => {
+        const key = file.metadata?.entry_state || file.id;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(file);
+      });
+      const consumed = new Set();
+      const items = [];
+      files.forEach((file) => {
+        const key = file.metadata?.entry_state || file.id;
+        if (consumed.has(key)) return;
+        consumed.add(key);
+        items.push({ entryState: key, files: groups.get(key) || [file] });
+      });
+      return items;
     }
 
     function treeButton(file) {
@@ -1331,15 +1564,21 @@ _HTML_TEMPLATE = """<!doctype html>
     }
 
     function branchCard(node, laneLabel) {
-      const card = document.createElement("button");
+      const card = document.createElement("div");
       card.className = `branch-card status-${node.sample_status || "success"}`;
-      card.type = "button";
+      card.role = "button";
+      card.tabIndex = 0;
       card.addEventListener("click", () => {
         activeId = node.file_id;
         activeView = "file";
         renderTree();
         renderViewSwitch();
         renderActiveView();
+      });
+      card.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        card.click();
       });
       const label = document.createElement("div");
       label.className = "branch-card-label";
@@ -1357,6 +1596,17 @@ _HTML_TEMPLATE = """<!doctype html>
         body.className = "branch-card-body";
         body.textContent = branchContent(node.content);
         card.append(body);
+      }
+      if (node.metadata?.detail) {
+        const details = document.createElement("details");
+        details.className = "branch-card-detail";
+        details.addEventListener("click", (event) => event.stopPropagation());
+        const summary = document.createElement("summary");
+        summary.textContent = "Details";
+        const pre = document.createElement("pre");
+        pre.textContent = node.metadata.detail;
+        details.append(summary, pre);
+        card.append(details);
       }
       return card;
     }

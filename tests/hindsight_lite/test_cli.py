@@ -59,6 +59,42 @@ def test_cli_retain_and_recall_session_memory(tmp_path: Path, capsys) -> None:
     assert "Codex should recall local memory without a server." in output
 
 
+def test_cli_reports_and_rebuilds_recall_index(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "memory.md"
+    source.write_text("Local BM25 recall index.", encoding="utf-8")
+    assert (
+        main(
+            [
+                "--home",
+                str(tmp_path),
+                "knowledge",
+                "write",
+                "--bank",
+                "codex",
+                "--id",
+                "index-note",
+                "--file",
+                str(source),
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+
+    assert main(["--home", str(tmp_path), "index", "status", "--bank", "codex"]) == 0
+    missing_status = json.loads(capsys.readouterr().out)
+    assert missing_status["state"] == "missing"
+
+    assert main(["--home", str(tmp_path), "index", "rebuild", "--bank", "codex"]) == 0
+    rebuild_output = capsys.readouterr().out
+    assert "recall-index.json\t1" in rebuild_output
+
+    assert main(["--home", str(tmp_path), "index", "status", "--bank", "codex"]) == 0
+    ready_status = json.loads(capsys.readouterr().out)
+    assert ready_status["state"] == "ready"
+    assert ready_status["document_count"] == 1
+
+
 def test_cli_reflect_outputs_packet_json(tmp_path: Path, capsys) -> None:
     source = tmp_path / "memory.md"
     source.write_text("Reflection preserves state action observation outcome lesson.", encoding="utf-8")

@@ -46,6 +46,9 @@ class LocalMemoryStore:
         session_path = self.paths.sessions_dir / f"{event.session_id}.jsonl"
         with session_path.open("a", encoding="utf-8") as file:
             file.write(_session_event_line(event))
+        from hindsight_lite.index import append_session_event_to_recall_index
+
+        append_session_event_to_recall_index(self, event)
         return session_path
 
     def replace_session_event(self, event: SessionMemoryEvent) -> Path:
@@ -66,6 +69,9 @@ class LocalMemoryStore:
             temporary_path.replace(session_path)
         finally:
             temporary_path.unlink(missing_ok=True)
+        from hindsight_lite.index import replace_session_event_in_recall_index
+
+        replace_session_event_in_recall_index(self, event)
         return session_path
 
     def read_session_events(self, session_id: str) -> list[SessionMemoryEvent]:
@@ -107,6 +113,9 @@ class LocalMemoryStore:
             metadata=metadata or {},
         )
         page_path.write_text(self._render_page(page), encoding="utf-8")
+        from hindsight_lite.index import update_page_in_recall_index
+
+        update_page_in_recall_index(self, page)
         return page
 
     def list_pages(self) -> list[KnowledgePage]:

@@ -67,7 +67,7 @@
 
     <text x="24" y="646" class="ui small" font-weight="700">INDEX</text>
     <circle cx="36" cy="676" r="5" class="index"/>
-    <text x="52" y="681" class="ui body">recall-cache.json</text>
+    <text x="52" y="681" class="ui body">recall-index.json</text>
   </g>
 
   <g transform="translate(356 112)">

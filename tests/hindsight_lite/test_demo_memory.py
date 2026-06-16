@@ -12,7 +12,7 @@ def test_seed_demo_memory_writes_representative_tree_data(tmp_path: Path) -> Non
     assert result.pages == ["project-direction", "coding-preferences"]
     assert result.sessions == ["auth-redirect-loop", "memory-ui-feedback"]
     assert result.reflections == ["ui-review-reflection", "ui-review-success", "ui-review-negative"]
-    assert result.index_files == ["recall-cache.json"]
+    assert result.index_files == ["recall-index.json"]
     assert "local-first memory runtime" in store.get_page("project-direction").content
     assert "auth redirect loop" in (store.paths.sessions_dir / "auth-redirect-loop.jsonl").read_text(encoding="utf-8")
     assert "reflection_request" in (store.paths.reflections_dir / "ui-review-reflection.json").read_text(

@@ -30,7 +30,11 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert '"request_id": "reflect-1"' in html
     assert '"confidence": "0.82"' in html
     assert '"lesson": "Keep request and result data linked for eval review."' in html
-    assert "recall-cache.json" in html
+    assert "recall-index.json" in html
+    assert '"state": "ready"' in html
+    assert '"documents": "2"' in html
+    assert "Session memory for UI tree." in html
+    assert html.count("Session memory for UI tree.") == 1
     assert "Keep this fork local-first." in html
     assert "Download Markdown" in html
     assert "Reset changes" in html
@@ -157,9 +161,24 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
                         content="Changed code before checking the failing case.",
                     ),
                     ReflectionTrajectoryStep(
+                        id="failure-log",
+                        parent_id="failed-attempt",
+                        sequence=2,
+                        kind="observation",
+                        status="failed",
+                        content=(
+                            "Chunk ID: failed\n"
+                            "Wall time: 0.1 seconds\n"
+                            "Process exited with code 1\n"
+                            "Output:\n"
+                            "Traceback shows the implementation skipped the failing case before validation. "
+                            + ("Detailed stack frame. " * 20)
+                        ),
+                    ),
+                    ReflectionTrajectoryStep(
                         id="corrected-attempt",
                         parent_id="start",
-                        sequence=2,
+                        sequence=3,
                         kind="action",
                         status="success",
                         content="Checked the failure and corrected the implementation.",
@@ -175,6 +194,27 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
             confidence=0.31,
         )
     )
+    store.write_reflection_result(
+        ReflectionResult(
+            type="reflection_result",
+            id="result-error-repeat",
+            request_id="reflect-1",
+            timestamp="2026-05-24T12:04:00Z",
+            bank_id="codex",
+            session_id="session-1",
+            trajectory=ReflectionTrajectory(
+                state="Need to update the implementation.",
+                action="Repeated the same entry state with a different failed attempt.",
+                observation="The attempt still needed reviewer triage.",
+                outcome="The graph should group related reflection episodes by entry state.",
+                lesson="Group repeated entry states in the graph overview without merging files.",
+            ),
+            durable_facts=[],
+            reusable_procedures=[],
+            uncertain_items=[],
+            confidence=0.31,
+        )
+    )
 
     html = render_memory_ui(store)
 
@@ -186,6 +226,12 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"sample_status": "success"' in html
     assert '"parent_id": "trajectory-negative"' in html
     assert '"parent_id": "trajectory-success"' in html
+    assert '"kind": "trajectory-entry"' in html
+    assert '"entry_state": "Need to update the implementation."' in html
+    assert '"label": "Need to update the implementation."' in html
+    assert '"content": "2 related reflection episodes"' in html
+    assert '"episodes": "2"' in html
+    assert '"parent_id": "trajectory-negative-entry-Need-to-update-the-implementation"' in html
     assert '"label": "outcome"' in html
     assert "Task failed because the trajectory skipped validation." in html
     assert '"parent_id": "trajectory-result-error-step-start"' in html
@@ -204,14 +250,28 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert "graphForActiveFile" in html
     assert "relevantTrajectorySteps" in html
     assert "branchContent" in html
+    assert "renderSectionFiles(wrapper, section)" in html
+    assert "groupedReflectionFiles(section.files)" in html
+    assert "tree-entry-group" in html
+    assert "${item.files.length} episodes" in html
     assert "parsed.cmd || parsed.file || parsed.path" in html
     assert "commandMatch" in html
+    assert "branch-card-detail" in html
     assert 'node.kind === "trajectory-step"' in html
     assert 'node.label === "outcome"' in html
     assert 'node.content.includes("<environment_context>")' in html
     tree_button_handler = html.split("function treeButton(file) {", 1)[1].split("function renderViewSwitch()", 1)[0]
     assert 'activeView = "file"' not in tree_button_handler
     assert "Graph" in html
+
+    snapshot_json = html.split("const snapshot = ", 1)[1].split(";\n", 1)[0]
+    snapshot = json.loads(snapshot_json)
+    graph_nodes = snapshot["graph"]["nodes"]
+    failure_log = next(node for node in graph_nodes if node["id"].endswith("step-failure-log"))
+    assert failure_log["content"].startswith("Traceback shows")
+    assert "Chunk ID" not in failure_log["content"]
+    assert failure_log["content"].endswith("...")
+    assert "Chunk ID: failed" in failure_log["metadata"]["detail"]
 
 
 def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
@@ -269,5 +329,7 @@ def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
             confidence=0.82,
         )
     )
-    (store.paths.index_dir / "recall-cache.json").write_text('{"ready":true}', encoding="utf-8")
+    from hindsight_lite.index import rebuild_recall_index
+
+    rebuild_recall_index(store)
     return store
