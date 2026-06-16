@@ -194,6 +194,27 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
             confidence=0.31,
         )
     )
+    store.write_reflection_result(
+        ReflectionResult(
+            type="reflection_result",
+            id="result-error-repeat",
+            request_id="reflect-1",
+            timestamp="2026-05-24T12:04:00Z",
+            bank_id="codex",
+            session_id="session-1",
+            trajectory=ReflectionTrajectory(
+                state="Need to update the implementation.",
+                action="Repeated the same entry state with a different failed attempt.",
+                observation="The attempt still needed reviewer triage.",
+                outcome="The graph should group related reflection episodes by entry state.",
+                lesson="Group repeated entry states in the graph overview without merging files.",
+            ),
+            durable_facts=[],
+            reusable_procedures=[],
+            uncertain_items=[],
+            confidence=0.31,
+        )
+    )
 
     html = render_memory_ui(store)
 
@@ -205,6 +226,11 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert '"sample_status": "success"' in html
     assert '"parent_id": "trajectory-negative"' in html
     assert '"parent_id": "trajectory-success"' in html
+    assert '"kind": "trajectory-entry"' in html
+    assert '"label": "Need to update the implementation."' in html
+    assert '"content": "2 related reflection episodes"' in html
+    assert '"episodes": "2"' in html
+    assert '"parent_id": "trajectory-negative-entry-Need-to-update-the-implementation"' in html
     assert '"label": "outcome"' in html
     assert "Task failed because the trajectory skipped validation." in html
     assert '"parent_id": "trajectory-result-error-step-start"' in html

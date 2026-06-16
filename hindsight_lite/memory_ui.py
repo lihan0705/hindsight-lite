@@ -448,7 +448,7 @@ def _build_graph(bank_id: str, sections: list[MemoryUiSection]) -> MemoryUiGraph
                 )
             )
             nodes.extend(_trajectory_graph_nodes(file))
-    return MemoryUiGraph(root_id=root_id, nodes=nodes)
+    return MemoryUiGraph(root_id=root_id, nodes=_group_trajectory_sample_entries(nodes))
 
 
 def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
@@ -485,6 +485,7 @@ def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
                 "confidence": _confidence_value(data.get("confidence")),
                 "stage": "candidate" if record_type == "reflection_request" else "evaluated",
                 "trigger_reason": _string_value(data.get("trigger_reason")),
+                "entry_state": _trajectory_entry_state(trajectory),
             },
         )
     ]
@@ -512,6 +513,70 @@ def _trajectory_graph_nodes(file: MemoryUiFile) -> list[MemoryUiGraphNode]:
         )
         parent_id = node_id
     return nodes
+
+
+def _group_trajectory_sample_entries(nodes: list[MemoryUiGraphNode]) -> list[MemoryUiGraphNode]:
+    groups: dict[str, list[MemoryUiGraphNode]] = {}
+    for node in nodes:
+        if node.kind != "trajectory-sample":
+            continue
+        entry_state = node.metadata.get("entry_state", "")
+        if not entry_state:
+            continue
+        groups.setdefault(f"{node.parent_id}:{entry_state}", []).append(node)
+
+    repeated_groups = {key: samples for key, samples in groups.items() if len(samples) > 1}
+    if not repeated_groups:
+        return nodes
+
+    group_nodes: list[MemoryUiGraphNode] = []
+    parent_by_sample_id: dict[str, str] = {}
+    for group_key, samples in sorted(repeated_groups.items()):
+        parent_id, entry_state = group_key.split(":", 1)
+        group_id = f"{parent_id}-entry-{_safe_graph_id(entry_state)}"
+        group_nodes.append(
+            MemoryUiGraphNode(
+                id=group_id,
+                label=entry_state,
+                kind="trajectory-entry",
+                parent_id=parent_id,
+                content=f"{len(samples)} related reflection episodes",
+                sample_status=samples[0].sample_status,
+                metadata={"episodes": str(len(samples))},
+            )
+        )
+        for sample in samples:
+            parent_by_sample_id[sample.id] = group_id
+
+    regrouped_nodes = [*nodes, *group_nodes]
+    return [
+        node if node.id not in parent_by_sample_id else _replace_graph_node_parent(node, parent_by_sample_id[node.id])
+        for node in regrouped_nodes
+    ]
+
+
+def _replace_graph_node_parent(node: MemoryUiGraphNode, parent_id: str) -> MemoryUiGraphNode:
+    return MemoryUiGraphNode(
+        id=node.id,
+        label=node.label,
+        kind=node.kind,
+        parent_id=parent_id,
+        file_id=node.file_id,
+        content=node.content,
+        sample_status=node.sample_status,
+        metadata=node.metadata,
+    )
+
+
+def _trajectory_entry_state(trajectory: Mapping[str, object]) -> str:
+    raw_steps = trajectory.get("steps")
+    if isinstance(raw_steps, list):
+        for step in raw_steps:
+            if not isinstance(step, Mapping):
+                continue
+            if _string_value(step.get("kind")) == "state":
+                return _trajectory_step_summary(_string_value(step.get("content")))
+    return _trajectory_step_summary(_string_value(trajectory.get("state")))
 
 
 def _branching_trajectory_step_nodes(
