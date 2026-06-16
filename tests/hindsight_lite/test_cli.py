@@ -476,3 +476,62 @@ def test_cli_seeds_demo_memory_and_generates_ui(tmp_path: Path, capsys) -> None:
     assert "Reflection Graph" in html
     assert "Error / Negative Candidates" in html
     assert "Task failed because the agent treated a stale draft as final." in html
+
+
+def test_cli_runs_recall_eval_fixture(tmp_path: Path, capsys) -> None:
+    assert main(["--home", str(tmp_path), "recall-eval", "run", "--bank", "recall-eval"]) == 0
+
+    output = capsys.readouterr().out
+    assert "recall-eval\t5/5" in output
+    assert "pass\tdrink-preference\texpected=page:user-profile\ttop=page:user-profile" in output
+    assert "pass\trecent-bug-window\texpected=session:eval-recent-cache-bug" in output
+    assert (tmp_path / "banks" / "recall-eval" / "index" / "recall-index.json").exists()
+
+
+def test_cli_recall_eval_refuses_existing_fixture_without_overwrite(tmp_path: Path, capsys) -> None:
+    assert main(["--home", str(tmp_path), "recall-eval", "run", "--bank", "recall-eval"]) == 0
+    capsys.readouterr()
+
+    assert main(["--home", str(tmp_path), "recall-eval", "run", "--bank", "recall-eval"]) == 1
+
+    error = capsys.readouterr().err
+    assert "recall eval memory already exists" in error
+    assert "--overwrite" in error
+
+
+def test_cli_scans_reflection_cleanup_candidates(tmp_path: Path, capsys) -> None:
+    reflection_dir = tmp_path / "banks" / "codex" / "reflections"
+    reflection_dir.mkdir(parents=True)
+    (reflection_dir / "noisy.json").write_text(
+        json.dumps(
+            {
+                "type": "reflection_request",
+                "id": "noisy",
+                "query": "$hindsight-lite:memorytree",
+                "candidate_trajectory": {
+                    "state": "$hindsight-lite:memorytree",
+                    "action": "Open the memory tree.",
+                    "observation": "Operation not permitted.",
+                    "outcome": "Retried with permission.",
+                    "lesson": "Review before export.",
+                    "steps": [
+                        {
+                            "id": "tool-1",
+                            "sequence": 1,
+                            "kind": "tool",
+                            "status": "failed",
+                            "content": "python3 ~/.codex/plugins/cache/personal-local/hindsight-lite/open.py",
+                        }
+                    ],
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    assert main(["--home", str(tmp_path), "reflection-cleanup", "scan", "--bank", "codex"]) == 0
+
+    output = capsys.readouterr().out
+    assert "reflection-cleanup\t1/1" in output
+    assert "candidate\tnoisy\tenvironment-noise\t$hindsight-lite:memorytree" in output

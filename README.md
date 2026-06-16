@@ -281,6 +281,18 @@ python3 -m hindsight_lite demo-memory seed --bank codex --write-ui
 The command refuses to overwrite existing demo files unless `--overwrite` is
 provided.
 
+To smoke-test recall quality with a deterministic local fixture, run:
+
+```bash
+python3 -m hindsight_lite recall-eval run --bank recall-eval
+```
+
+The eval seeds five representative history items and checks five queries:
+profile preference, project architecture, auth bug fix, memory tree UI intent,
+and a recent solved-bug time window. It reports `pass`/`fail` for the expected
+top memory and writes `index/recall-index.json` for inspection. Re-run with
+`--overwrite` to refresh the fixture bank.
+
 ---
 
 ## Recall Injection
@@ -413,6 +425,17 @@ python3 -m hindsight_lite reflection-dataset export --bank codex --output reflec
 
 Only records with both a `reflection_request` and linked `reflection_result` are
 included, so each output line is a complete local trajectory sample.
+
+To find older reflection candidates that are likely noisy before review or
+export, run:
+
+```bash
+python3 -m hindsight_lite reflection-cleanup scan --bank codex
+```
+
+The scan reports repeated entry states, environment/plugin-cache failures, and
+oversized trajectories. It is intentionally read-only: it does not delete,
+rewrite, or hide `reflections/*.json`.
 
 ---
 
