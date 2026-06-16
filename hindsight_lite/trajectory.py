@@ -35,6 +35,13 @@ _LOW_INFORMATION_RESULT_PATTERNS = (
     re.compile(r"(?:status:\s*)?(?:completed|success|succeeded|ok)", re.IGNORECASE),
     re.compile(r"tool completed\.?", re.IGNORECASE),
 )
+_ENVIRONMENT_NOISE_PATTERNS = (
+    re.compile(r"operation not permitted", re.IGNORECASE),
+    re.compile(r"sandbox permission", re.IGNORECASE),
+    re.compile(r"requires? escalat(?:ed|ion)", re.IGNORECASE),
+    re.compile(r"\.codex/plugins/cache", re.IGNORECASE),
+    re.compile(r"personal-local/hindsight-lite", re.IGNORECASE),
+)
 
 
 @dataclass(frozen=True)
@@ -69,6 +76,8 @@ class ReflectionEpisode:
 def extract_reflection_candidate(messages: list[Mapping[str, object]]) -> ReflectionCandidate | None:
     episode = _latest_completed_episode(messages)
     if episode is None:
+        return None
+    if _is_low_quality_environment_episode(episode):
         return None
 
     return _build_reflection_candidate(episode)
@@ -153,6 +162,18 @@ def _attempt_fingerprint(attempt: ToolAttempt) -> str:
     normalized_input = re.sub(r"\s+", " ", attempt.input_summary).strip().casefold()
     result_class = "failed" if attempt.failed else "success"
     return f"{attempt.name.casefold()}:{normalized_input}:{result_class}"
+
+
+def _is_low_quality_environment_episode(episode: ReflectionEpisode) -> bool:
+    failed_attempts = [event for event in episode.events if isinstance(event, ToolAttempt) and event.failed]
+    if not failed_attempts or any(isinstance(event, UserCorrection) for event in episode.events):
+        return False
+    return all(_is_environment_noise_attempt(attempt) for attempt in failed_attempts)
+
+
+def _is_environment_noise_attempt(attempt: ToolAttempt) -> bool:
+    text = f"{attempt.input_summary}\n{attempt.result}"
+    return any(pattern.search(text) for pattern in _ENVIRONMENT_NOISE_PATTERNS)
 
 
 def _build_reflection_candidate(episode: ReflectionEpisode) -> ReflectionCandidate:

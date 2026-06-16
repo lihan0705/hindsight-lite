@@ -11,6 +11,7 @@ from hindsight_lite.store import LocalMemoryStore
 _SESSION_EVENT_SOURCE_LIMIT_BYTES = 256 * 1024
 _SESSION_EVENT_CONTENT_LIMIT = 12_000
 _SESSION_FILE_CONTENT_LIMIT = 80_000
+_TRAJECTORY_STEP_SUMMARY_LIMIT = 180
 
 
 @dataclass(frozen=True)
@@ -529,6 +530,16 @@ def _branching_trajectory_step_nodes(
         parent_step_id = _string_value(step.get("parent_id"))
         parent_id = f"{sample_id}-step-{_safe_graph_id(parent_step_id)}" if parent_step_id in step_ids else sample_id
         status = _trajectory_step_status(_string_value(step.get("status")), sample_status)
+        content = _string_value(step.get("content"))
+        summary = _trajectory_step_summary(content)
+        metadata = {
+            "sequence": str(_trajectory_step_sequence(step)),
+            "tool_name": _string_value(step.get("tool_name")),
+            "correction_of": _string_value(step.get("correction_of")),
+            "repeat_count": _positive_int_string(step.get("repeat_count")),
+        }
+        if summary != content:
+            metadata["detail"] = content
         nodes.append(
             MemoryUiGraphNode(
                 id=f"{sample_id}-step-{_safe_graph_id(step_id)}",
@@ -536,17 +547,43 @@ def _branching_trajectory_step_nodes(
                 kind="trajectory-step",
                 parent_id=parent_id,
                 file_id=file_id,
-                content=_string_value(step.get("content")),
+                content=summary,
                 sample_status=status,
-                metadata={
-                    "sequence": str(_trajectory_step_sequence(step)),
-                    "tool_name": _string_value(step.get("tool_name")),
-                    "correction_of": _string_value(step.get("correction_of")),
-                    "repeat_count": _positive_int_string(step.get("repeat_count")),
-                },
+                metadata=metadata,
             )
         )
     return nodes
+
+
+def _trajectory_step_summary(content: str) -> str:
+    cleaned = _clean_trajectory_step_content(content)
+    if len(cleaned) <= _TRAJECTORY_STEP_SUMMARY_LIMIT:
+        return cleaned
+    return f"{cleaned[: _TRAJECTORY_STEP_SUMMARY_LIMIT - 3]}..."
+
+
+def _clean_trajectory_step_content(content: str) -> str:
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        parsed = None
+    if isinstance(parsed, Mapping):
+        command = _string_value(parsed.get("cmd"))
+        if command:
+            return command
+        file_path = _string_value(parsed.get("file")) or _string_value(parsed.get("path"))
+        if file_path:
+            return file_path
+
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
+    kept: list[str] = []
+    for line in lines:
+        if line.startswith(("Chunk ID:", "Wall time:", "Original token count:", "Output:")):
+            continue
+        if line.startswith("Process exited") or line.startswith("Process running"):
+            continue
+        kept.append(line)
+    return " ".join(kept)
 
 
 def _trajectory_step_sequence(step: Mapping[str, object]) -> int:
@@ -1000,6 +1037,26 @@ _HTML_TEMPLATE = """<!doctype html>
       font-size: 12px;
       overflow-wrap: anywhere;
     }
+    .branch-card-detail {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .branch-card-detail summary {
+      cursor: pointer;
+      width: fit-content;
+    }
+    .branch-card-detail pre {
+      margin-top: 7px;
+      max-height: 180px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 0;
+      padding: 9px;
+      background: #fffefb;
+      font-size: 11px;
+    }
     .graph-tree {
       min-width: 760px;
     }
@@ -1366,15 +1423,21 @@ _HTML_TEMPLATE = """<!doctype html>
     }
 
     function branchCard(node, laneLabel) {
-      const card = document.createElement("button");
+      const card = document.createElement("div");
       card.className = `branch-card status-${node.sample_status || "success"}`;
-      card.type = "button";
+      card.role = "button";
+      card.tabIndex = 0;
       card.addEventListener("click", () => {
         activeId = node.file_id;
         activeView = "file";
         renderTree();
         renderViewSwitch();
         renderActiveView();
+      });
+      card.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        card.click();
       });
       const label = document.createElement("div");
       label.className = "branch-card-label";
@@ -1392,6 +1455,17 @@ _HTML_TEMPLATE = """<!doctype html>
         body.className = "branch-card-body";
         body.textContent = branchContent(node.content);
         card.append(body);
+      }
+      if (node.metadata?.detail) {
+        const details = document.createElement("details");
+        details.className = "branch-card-detail";
+        details.addEventListener("click", (event) => event.stopPropagation());
+        const summary = document.createElement("summary");
+        summary.textContent = "Details";
+        const pre = document.createElement("pre");
+        pre.textContent = node.metadata.detail;
+        details.append(summary, pre);
+        card.append(details);
       }
       return card;
     }

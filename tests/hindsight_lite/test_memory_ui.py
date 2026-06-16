@@ -161,9 +161,24 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
                         content="Changed code before checking the failing case.",
                     ),
                     ReflectionTrajectoryStep(
+                        id="failure-log",
+                        parent_id="failed-attempt",
+                        sequence=2,
+                        kind="observation",
+                        status="failed",
+                        content=(
+                            "Chunk ID: failed\n"
+                            "Wall time: 0.1 seconds\n"
+                            "Process exited with code 1\n"
+                            "Output:\n"
+                            "Traceback shows the implementation skipped the failing case before validation. "
+                            + ("Detailed stack frame. " * 20)
+                        ),
+                    ),
+                    ReflectionTrajectoryStep(
                         id="corrected-attempt",
                         parent_id="start",
-                        sequence=2,
+                        sequence=3,
                         kind="action",
                         status="success",
                         content="Checked the failure and corrected the implementation.",
@@ -210,12 +225,22 @@ def test_render_memory_ui_includes_trajectory_tree_graph(tmp_path: Path) -> None
     assert "branchContent" in html
     assert "parsed.cmd || parsed.file || parsed.path" in html
     assert "commandMatch" in html
+    assert "branch-card-detail" in html
     assert 'node.kind === "trajectory-step"' in html
     assert 'node.label === "outcome"' in html
     assert 'node.content.includes("<environment_context>")' in html
     tree_button_handler = html.split("function treeButton(file) {", 1)[1].split("function renderViewSwitch()", 1)[0]
     assert 'activeView = "file"' not in tree_button_handler
     assert "Graph" in html
+
+    snapshot_json = html.split("const snapshot = ", 1)[1].split(";\n", 1)[0]
+    snapshot = json.loads(snapshot_json)
+    graph_nodes = snapshot["graph"]["nodes"]
+    failure_log = next(node for node in graph_nodes if node["id"].endswith("step-failure-log"))
+    assert failure_log["content"].startswith("Traceback shows")
+    assert "Chunk ID" not in failure_log["content"]
+    assert failure_log["content"].endswith("...")
+    assert "Chunk ID: failed" in failure_log["metadata"]["detail"]
 
 
 def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
