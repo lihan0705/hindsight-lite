@@ -10,6 +10,7 @@ from hindsight_lite.models import (
     ReflectionTrajectoryStep,
     SessionMemoryEvent,
 )
+from hindsight_lite.retain import create_retain_record
 from hindsight_lite.store import LocalMemoryStore
 
 
@@ -22,6 +23,8 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert "grid-template-columns: repeat(2, minmax(0, 1fr));" in html
     assert "project-rules" in html
     assert "session-1.jsonl" in html
+    assert "session-1.json" in html
+    assert "retain_record" in html
     assert "reflect-1.json" in html
     assert "result-1.json" in html
     assert '"kind": "reflection-request"' in html
@@ -34,7 +37,6 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert '"state": "ready"' in html
     assert '"documents": "2"' in html
     assert "Session memory for UI tree." in html
-    assert html.count("Session memory for UI tree.") == 1
     assert "Keep this fork local-first." in html
     assert "Download Markdown" in html
     assert "Reset changes" in html
@@ -283,18 +285,18 @@ def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
         tags=["rules"],
         metadata={"source": "test"},
     )
-    store.append_session_event(
-        SessionMemoryEvent(
-            type="session_memory",
-            id="event-1",
-            timestamp="2026-05-24T12:00:00Z",
-            bank_id="codex",
-            session_id="session-1",
-            source="codex",
-            document_id="codex-session-1",
-            content="Session memory for UI tree.",
-        )
+    event = SessionMemoryEvent(
+        type="session_memory",
+        id="event-1",
+        timestamp="2026-05-24T12:00:00Z",
+        bank_id="codex",
+        session_id="session-1",
+        source="codex",
+        document_id="codex-session-1",
+        content="Session memory for UI tree.",
     )
+    store.append_session_event(event)
+    store.write_retain_record(create_retain_record(event, extraction_mode="verbose"))
     store.write_reflection_packet(
         ReflectionPacket(
             type="reflection_request",

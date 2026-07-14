@@ -45,6 +45,10 @@ class MemoryPaths:
         return self.bank_dir / "reflections"
 
     @property
+    def retains_dir(self) -> Path:
+        return self.bank_dir / "retains"
+
+    @property
     def index_dir(self) -> Path:
         return self.bank_dir / "index"
 
@@ -56,4 +60,5 @@ class MemoryPaths:
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
         self.pages_dir.mkdir(parents=True, exist_ok=True)
         self.reflections_dir.mkdir(parents=True, exist_ok=True)
+        self.retains_dir.mkdir(parents=True, exist_ok=True)
         self.index_dir.mkdir(parents=True, exist_ok=True)

@@ -16,6 +16,7 @@ def test_memory_paths_create_bank_dirs(tmp_path: Path) -> None:
     assert paths.sessions_dir.is_dir()
     assert paths.pages_dir.is_dir()
     assert paths.reflections_dir.is_dir()
+    assert paths.retains_dir.is_dir()
     assert paths.index_dir.is_dir()
 
 

@@ -594,6 +594,24 @@ class TestRetainHook:
 
         assert _retained_events(tmp_path, session_id="sess-doc-test")[0].document_id == "sess-doc-test"
 
+    def test_retain_writes_structured_retain_record(self, monkeypatch, tmp_path):
+        messages = [
+            {
+                "role": "user",
+                "content": "Remember: Codex should use local JSON files because they are diffable.",
+            }
+        ]
+        transcript = make_transcript_file(tmp_path, messages)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-retain-record")
+
+        _run_hook("retain", hook_input, monkeypatch, tmp_path)
+
+        record_path = tmp_path / ".hindsight-lite" / "banks" / "codex" / "retains" / "sess-retain-record.json"
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        assert record["type"] == "retain_record"
+        assert record["facts"][0]["perspective"] == "world"
+        assert record["relationships"][0]["kind"] == "causes"
+
     def test_retain_does_not_call_http(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "test"}, {"role": "assistant", "content": "response"}]
         transcript = make_transcript_file(tmp_path, messages)
@@ -673,7 +691,12 @@ class TestCodexPluginConfig:
         serialized_hooks = json.dumps(hooks)
 
         assert manifest["name"] == "hindsight-lite"
+        assert manifest["version"] == "0.3.3"
         assert manifest["hooks"] == "./hindsight-integrations/codex/hooks/plugin-hooks.json"
+        settings = json.loads((root_dir / "hindsight-integrations" / "codex" / "settings.json").read_text())
+        assert settings["version"] == manifest["version"]
+        assert settings["retainExtractionMode"] == "concise"
+        assert settings["retainMission"] is None
         plugin_entry = marketplace["plugins"][0]
         assert plugin_entry["name"] == "hindsight-lite"
         assert plugin_entry["source"] == {

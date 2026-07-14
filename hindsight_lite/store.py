@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from hindsight_lite.models import KnowledgePage, ReflectionPacket, ReflectionResult, SessionMemoryEvent
+from hindsight_lite.models import KnowledgePage, ReflectionPacket, ReflectionResult, RetainRecord, SessionMemoryEvent
 from hindsight_lite.paths import MemoryPaths, default_home, unsafe_page_id
 
 
@@ -135,6 +135,17 @@ class LocalMemoryStore:
         )
         return packet_path
 
+    def write_retain_record(self, record: RetainRecord) -> Path:
+        record_path = self.paths.retains_dir / f"{record.session_id}.json"
+        record_path.write_text(
+            json.dumps(asdict(record), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        return record_path
+
+    def get_retain_record(self, session_id: str) -> RetainRecord:
+        record_path = self.paths.retains_dir / f"{session_id}.json"
+        return _retain_record_from_json(json.loads(record_path.read_text(encoding="utf-8")))
+
     def write_reflection_result(self, result: ReflectionResult) -> Path:
         result_path = self._reflection_path(result.id)
         result_path.write_text(
@@ -244,3 +255,26 @@ def _with_frontmatter_value(frontmatter: PageFrontmatter, key: str, value: objec
             _coerce_str_map(value),
         )
     return frontmatter
+
+
+def _retain_record_from_json(data: dict[str, object]) -> RetainRecord:
+    from hindsight_lite.models import RetainedEntity, RetainedFact, RetainedRelationship, RetainSecurityEvent
+
+    return RetainRecord(
+        type="retain_record",
+        id=str(data["id"]),
+        timestamp=str(data["timestamp"]),
+        bank_id=str(data["bank_id"]),
+        session_id=str(data["session_id"]),
+        source_event_id=str(data["source_event_id"]),
+        extraction_mode=data["extraction_mode"],  # type: ignore[arg-type]
+        retain_mission=data.get("retain_mission") if isinstance(data.get("retain_mission"), str) else None,
+        facts=[RetainedFact(**item) for item in data.get("facts", []) if isinstance(item, dict)],
+        entities=[RetainedEntity(**item) for item in data.get("entities", []) if isinstance(item, dict)],
+        relationships=[
+            RetainedRelationship(**item) for item in data.get("relationships", []) if isinstance(item, dict)
+        ],
+        security_events=[
+            RetainSecurityEvent(**item) for item in data.get("security_events", []) if isinstance(item, dict)
+        ],
+    )

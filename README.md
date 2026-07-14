@@ -77,7 +77,7 @@ hindsight-lite follows a small local loop:
 conversation
     |
     v
-Retain  -> sessions/*.jsonl + pages/*.md
+Retain  -> sessions/*.jsonl + retains/*.json + pages/*.md
     |
     v
 Recall  -> compact relevant excerpts -> next Codex prompt
@@ -93,7 +93,7 @@ Codex lifecycle hooks connect that loop to the local runtime:
 | `SessionStart` | Initialize the selected memory bank |
 | `UserPromptSubmit` | Recall relevant pages and sessions, then inject a compact context block |
 | `PreToolUse` | Recall file-specific context before supported file reads |
-| `Stop` | Replace the latest session snapshot, promote durable profile facts, refresh the UI, and extract a reflection candidate when appropriate |
+| `Stop` | Replace the latest session snapshot, write a structured retain record, promote durable profile facts, refresh the UI, and extract a reflection candidate when appropriate |
 
 Every event enters the same dispatcher, which routes it to one focused Python
 handler:
@@ -113,8 +113,9 @@ turn.
 
 The three stages deliberately have different responsibilities:
 
-- **Retain** preserves evidence. Sessions remain an audit-style record, while
-  stable user or project knowledge can be promoted into editable pages.
+- **Retain** preserves evidence. Sessions remain an audit-style record,
+  structured retain records hold local fact/entity/relationship candidates,
+  and stable user or project knowledge can be promoted into editable pages.
 - **Recall** ranks local text and returns short excerpts rather than replaying
   full transcripts. A local BM25 index avoids reparsing every memory file on
   each prompt, reducing latency, prompt noise, and token use.
@@ -135,7 +136,7 @@ different engineering tradeoffs.
 |---|---|---|
 | Primary use | General agent memory platform | Local memory plugin for coding agents |
 | Runtime | API service backed by PostgreSQL and vector infrastructure | In-process Python called by Codex hooks |
-| Retain | LLM-assisted extraction and normalization into facts, entities, relationships, and temporal information | Store local session evidence and promote selected facts into Markdown pages |
+| Retain | LLM-assisted extraction and normalization into facts, entities, relationships, and temporal information | Store local session evidence, write local structured retain records, and promote selected facts into Markdown pages |
 | Recall | Semantic, keyword, graph, and temporal retrieval with fusion and reranking | Lightweight local lexical scoring with compact excerpt budgets |
 | Reflect | Agentic multi-step reasoning over facts, observations, and mental models | Explicit request packets and deterministic corrected-episode candidates for later human or evaluator review |
 | Inspection | Server APIs, SDKs, and platform tooling | Files plus a generated editable MemoryTree UI |
@@ -157,7 +158,7 @@ The V1 scope is intentionally small.
 
 | Capability | Status | Mechanism |
 |---|---:|---|
-| `agent_knowledge_retain` | alpha | Codex `Stop` hook writes session JSONL |
+| `agent_knowledge_retain` | alpha | Codex `Stop` hook writes session JSONL and structured retain JSON |
 | `agent_knowledge_recall` | alpha | Codex `UserPromptSubmit` injects compact context |
 | `agent_knowledge_reflect` | alpha | local recall packet plus saved reflection request |
 | file context recall | alpha | Codex `PreToolUse` injects compact context before file reads |
@@ -165,9 +166,11 @@ The V1 scope is intentionally small.
 | `agent_knowledge_get_page` | alpha | reads one local Markdown page |
 | `agent_knowledge_import_codex_memory` | alpha | imports Codex memory files as local pages |
 
-The `python3 -m hindsight_lite` CLI exposes these `agent_knowledge_*` command
-names for parity with the documented V1 surface. Short local-debug commands are
-also available.
+The Python package exposes a `hindsight-lite` console script with these
+`agent_knowledge_*` command names for parity with the documented V1 surface.
+The Codex plugin installation itself does not add a shell command to `PATH`;
+from a source checkout, `python3 -m hindsight_lite` runs the same CLI. Short
+local-debug commands are also available.
 
 For runtime smoke-test commands, see the
 [Codex integration quickstart](hindsight-integrations/codex/README.md#quickstart).
@@ -184,6 +187,8 @@ Default local memory layout:
     <bank_id>/
       sessions/
         <session_id>.jsonl
+      retains/
+        <session_id>.json
       pages/
         <page_id>.md
       reflections/
@@ -197,6 +202,8 @@ V1 memory types:
 
 - `sessions/*.jsonl` stores the latest full-session snapshot, or append-only
   windows when chunked retention is enabled.
+- `retains/*.json` stores local structured retain artifacts: extracted fact
+  candidates, entity mentions, simple relationships, and security flags.
 - `pages/*.md` stores user-readable knowledge pages.
 - `reflections/*.json` stores reflection requests for later analysis.
 - `index/recall-index.json` stores a rebuildable BM25 search index over pages
@@ -246,8 +253,9 @@ The command starts a local editor, prints its HTTP URL, and opens it in the
 platform browser. It binds to `127.0.0.1` normally. Under WSL it binds to the
 distro's private IPv4 so the Windows browser can still connect when localhost
 forwarding is disabled. This avoids WSL UNC file paths. Existing Markdown pages
-can be edited and saved back to `pages/*.md`; sessions, reflections, and index
-files remain read-only. Use `--host` only when a custom bind address is needed.
+can be edited and saved back to `pages/*.md`; sessions, retains, reflections,
+and index files remain read-only. Use `--host` only when a custom bind address
+is needed.
 
 For a server-free snapshot, omit `--serve`:
 

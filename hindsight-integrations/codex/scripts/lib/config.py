@@ -37,6 +37,8 @@ DEFAULTS = {
     "retainContext": "codex",
     "retainTags": [],
     "retainMetadata": {},
+    "retainMission": None,
+    "retainExtractionMode": "concise",
     "autoMemoryUi": True,
     "autoReflect": True,
     # Bank
@@ -55,6 +57,8 @@ ENV_OVERRIDES = {
     "HINDSIGHT_AGENT_NAME": ("agentName", str),
     "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
     "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
+    "HINDSIGHT_RETAIN_MISSION": ("retainMission", str),
+    "HINDSIGHT_RETAIN_EXTRACTION_MODE": ("retainExtractionMode", str),
     "HINDSIGHT_AUTO_MEMORY_UI": ("autoMemoryUi", bool),
     "HINDSIGHT_AUTO_REFLECT": ("autoReflect", bool),
     "HINDSIGHT_RETAIN_MODE": ("retainMode", str),

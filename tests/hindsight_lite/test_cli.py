@@ -1,8 +1,17 @@
 import json
+import tomllib
 from pathlib import Path
 from subprocess import CompletedProcess
 
 from hindsight_lite.cli import main
+
+
+def test_pyproject_exposes_console_script() -> None:
+    config = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+
+    assert config["build-system"]["build-backend"] == "hatchling.build"
+    assert config["project"]["license"] == "MIT"
+    assert config["project"]["scripts"]["hindsight-lite"] == "hindsight_lite.cli:main"
 
 
 def test_cli_writes_lists_and_gets_knowledge_pages(tmp_path: Path, capsys) -> None:
@@ -57,6 +66,39 @@ def test_cli_retain_and_recall_session_memory(tmp_path: Path, capsys) -> None:
     output = capsys.readouterr().out
     assert "<hindsight_lite_memories>" in output
     assert "Codex should recall local memory without a server." in output
+
+    retain_record = json.loads((tmp_path / "banks" / "codex" / "retains" / "session-1.json").read_text())
+    assert retain_record["type"] == "retain_record"
+    assert retain_record["extraction_mode"] == "concise"
+    assert retain_record["facts"][0]["text"] == "Codex should recall local memory without a server."
+
+
+def test_cli_retain_respects_local_retain_mission(tmp_path: Path, capsys) -> None:
+    assert (
+        main(
+            [
+                "--home",
+                str(tmp_path),
+                "retain",
+                "--bank",
+                "codex",
+                "--session-id",
+                "session-1",
+                "--retain-mission",
+                "architecture",
+                "--retain-extraction-mode",
+                "verbose",
+                "--content",
+                "Architecture decision: use local JSON files.\nMeeting logistics: call moved to Friday.",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+
+    retain_record = json.loads((tmp_path / "banks" / "codex" / "retains" / "session-1.json").read_text())
+    assert retain_record["retain_mission"] == "architecture"
+    assert [fact["text"] for fact in retain_record["facts"]] == ["Architecture decision: use local JSON files."]
 
 
 def test_cli_reports_and_rebuilds_recall_index(tmp_path: Path, capsys) -> None:

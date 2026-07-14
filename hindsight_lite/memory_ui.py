@@ -100,6 +100,7 @@ def _build_snapshot(store: LocalMemoryStore, save_url: str = "") -> MemoryUiSnap
     sections = [
         _pages_section(store),
         _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
+        _json_section("retains", "Retains", store.paths.retains_dir),
         _reflections_section(store.paths.reflections_dir),
         _index_section(store),
     ]
@@ -180,6 +181,23 @@ def _reflections_section(directory: Path) -> MemoryUiSection:
         for path, data in parsed_files
     ]
     return MemoryUiSection(id="reflections", label="Reflections", files=files)
+
+
+def _json_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
+    files = [
+        MemoryUiFile(
+            id=f"{section_id}:{path.name}",
+            label=path.name,
+            kind="json",
+            path=str(path),
+            content=_format_json_value(data)
+            if (data := _read_json_object(path)) is not None
+            else path.read_text(encoding="utf-8"),
+            metadata={},
+        )
+        for path in sorted(directory.glob("*.json"))
+    ]
+    return MemoryUiSection(id=section_id, label=label, files=files)
 
 
 def _index_section(store: LocalMemoryStore) -> MemoryUiSection:

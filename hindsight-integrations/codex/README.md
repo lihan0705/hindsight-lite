@@ -11,7 +11,7 @@ required.
 | `SessionStart` | Initializes the local bank directory |
 | `UserPromptSubmit` | Recalls relevant local memory and injects compact context |
 | `PreToolUse` | Injects compact file-specific memory before file reads |
-| `Stop` | Retains the conversation to session JSONL |
+| `Stop` | Retains the conversation to session JSONL plus structured retain JSON |
 
 Memory layout:
 
@@ -20,6 +20,7 @@ Memory layout:
   banks/
     codex/
       sessions/<session-id>.jsonl
+      retains/<session-id>.json
       pages/<page-id>.md
       reflections/<reflection-id>.json
       index/recall-index.json
@@ -131,10 +132,12 @@ export HINDSIGHT_LITE_HOME="$HOME/.hindsight-lite"
 codex
 ```
 
-After a Codex session ends, check that retain wrote local session memory:
+After a Codex session ends, check that retain wrote local session memory and a
+structured retain record:
 
 ```bash
 find "$HINDSIGHT_LITE_HOME/banks/codex/sessions" -name '*.jsonl'
+find "$HINDSIGHT_LITE_HOME/banks/codex/retains" -name '*.json'
 ```
 
 The hooks also keep small operational state files under
@@ -142,7 +145,10 @@ The hooks also keep small operational state files under
 
 ## Commands
 
-Direct CLI checks:
+Direct CLI checks from a repository checkout use `python3 -m hindsight_lite`.
+If you install the Python package separately, the `hindsight-lite` console
+script is equivalent. The Codex plugin installation itself does not add that
+shell command to `PATH`.
 
 ```bash
 python3 -m hindsight_lite agent_knowledge_list_pages --bank codex
@@ -174,11 +180,12 @@ in page metadata, and never writes back to Codex-owned files. Pass
 `memory-ui --serve` starts a local editor. It uses `127.0.0.1` normally and the
 WSL distro's private IPv4 when the Windows browser cannot rely on localhost
 forwarding. This avoids WSL UNC paths and allows existing Markdown pages to be
-saved back to `pages/*.md`. Sessions, reflections, and index files remain
-read-only. Without `--serve`, the command writes a static `memory-tree.html`
-file into the selected bank directory; browser edits can then be downloaded
-but not written directly back to disk. When the Codex hooks are installed, the
-Stop hook refreshes this static file after each successful retain.
+saved back to `pages/*.md`. Sessions, retains, reflections, and index files
+remain read-only. Without `--serve`, the command writes a static
+`memory-tree.html` file into the selected bank directory; browser edits can
+then be downloaded but not written directly back to disk. When the Codex hooks
+are installed, the Stop hook refreshes this static file after each successful
+retain.
 
 The installed plugin includes a `memorytree` skill. Start a new Codex thread
 and invoke `$memorytree`, or type `/skills` and select **Memory Tree**. The
@@ -203,6 +210,8 @@ Defaults live in `settings.json`. User overrides can be written to
 | `autoMemoryUi` | `true` | Refresh `memory-tree.html` after each successful retain |
 | `autoReflect` | `true` | Write review-only trajectory candidates after corrected failures |
 | `retainMode` | `full-session` | Replace the latest session snapshot, or append retained `chunked` windows |
+| `retainMission` | `null` | Optional local keyword mission used to filter structured retain facts |
+| `retainExtractionMode` | `concise` | Local structured retain mode: `concise`, `verbose`, or `custom` |
 | `retainEveryNTurns` | `1` | Retain every N turns |
 | `recallMaxResults` | `5` | Maximum local recall results |
 | `recallMaxExcerptChars` | `160` | Maximum prompt-recall excerpt characters per result |
@@ -223,6 +232,8 @@ export HINDSIGHT_RECALL_MAX_RESULTS=5
 export HINDSIGHT_RECALL_MAX_EXCERPT_CHARS=160
 export HINDSIGHT_FILE_CONTEXT_MAX_RESULTS=3
 export HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS=140
+export HINDSIGHT_RETAIN_MISSION=
+export HINDSIGHT_RETAIN_EXTRACTION_MODE=concise
 export HINDSIGHT_AUTO_MEMORY_UI=true
 export HINDSIGHT_AUTO_REFLECT=true
 export HINDSIGHT_DEBUG=true
@@ -236,11 +247,13 @@ then emits Codex `additionalContext` wrapped in
 source labels, so Codex gets a small memory index first instead of full session
 transcripts.
 
-The first Recall creates `index/recall-index.json`. Runtime writes update an
-existing index incrementally. Direct file edits are detected from source file
-metadata so the next Recall rebuilds it automatically. The index contains
-derived search data and can be deleted safely. Retain strips injected memory
-blocks before writing session JSONL, preventing memory feedback loops.
+The first Recall creates `index/recall-index.json`. Runtime page and session
+writes update an existing index incrementally. Direct file edits are detected
+from source file metadata so the next Recall rebuilds it automatically. The
+index contains derived search data and can be deleted safely. Retain strips
+injected memory blocks before writing session JSONL, then writes
+`retains/<session-id>.json` with local fact, entity, relationship, and security
+event candidates.
 
 `codex_hook.py` is the installed hook dispatcher. It keeps the hook surface
 small while routing `SessionStart`, `UserPromptSubmit`, `PreToolUse`, and
