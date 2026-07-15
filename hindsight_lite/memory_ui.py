@@ -13,6 +13,32 @@ _SESSION_EVENT_CONTENT_LIMIT = 12_000
 _SESSION_FILE_CONTENT_LIMIT = 80_000
 _TRAJECTORY_STEP_SUMMARY_LIMIT = 180
 
+_SECTION_HELP = {
+    "pages": "Markdown knowledge pages promoted for direct human editing.",
+    "sessions": "Raw Codex session snapshots. These are source evidence, not summaries.",
+    "retains": "One retain operation envelope per session: settings, source id, extracted objects.",
+    "facts": "First-class world/experience facts extracted from retain.",
+    "entities": "Entity registry merged across retains.",
+    "graph": "Graph data files: nodes are facts/entities, edges are links between them.",
+    "observation-candidates": "Evidence-backed candidates only. These are not consolidated observations yet.",
+    "reflections": "Reflection requests/results for failure, correction, and reusable trajectory review.",
+    "index": "Derived recall index. Safe to rebuild or delete.",
+}
+
+_KIND_HELP = {
+    "page": "Editable Markdown knowledge page.",
+    "session": "Raw session source event.",
+    "retain-record": "Retain operation envelope.",
+    "retained-facts": "Extracted facts, one JSON object per line.",
+    "json-list": "JSON list registry.",
+    "graph-nodes": "Graph nodes for entities and facts.",
+    "graph-edges": "Graph links between retained nodes.",
+    "observation-candidate": "Reviewable observation candidate backed by facts.",
+    "reflection-request": "Reflection request or candidate trajectory.",
+    "reflection-result": "Evaluated reflection result.",
+    "index": "Derived recall index summary.",
+}
+
 
 @dataclass(frozen=True)
 class MemoryUiFile:
@@ -22,6 +48,7 @@ class MemoryUiFile:
     path: str
     content: str
     metadata: dict[str, str] = field(default_factory=dict)
+    description: str = ""
     editable: bool = False
     download_name: str = ""
     download_prefix: str = ""
@@ -32,6 +59,7 @@ class MemoryUiSection:
     id: str
     label: str
     files: list[MemoryUiFile]
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -59,6 +87,7 @@ class MemoryUiSnapshot:
     sections: list[MemoryUiSection]
     graph: MemoryUiGraph | None = None
     save_url: str = ""
+    section_help: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -100,6 +129,11 @@ def _build_snapshot(store: LocalMemoryStore, save_url: str = "") -> MemoryUiSnap
     sections = [
         _pages_section(store),
         _jsonl_section("sessions", "Sessions", store.paths.sessions_dir),
+        _json_section("retains", "Retains", store.paths.retains_dir),
+        _jsonl_section("facts", "Facts", store.paths.facts_dir),
+        _json_section("entities", "Entities", store.paths.entities_dir),
+        _jsonl_section("graph", "Graph", store.paths.graph_dir),
+        _json_section("observation-candidates", "Observation Candidates", store.paths.observation_candidates_dir),
         _reflections_section(store.paths.reflections_dir),
         _index_section(store),
     ]
@@ -109,6 +143,7 @@ def _build_snapshot(store: LocalMemoryStore, save_url: str = "") -> MemoryUiSnap
         sections=sections,
         graph=_build_graph(store.paths.bank_id, sections),
         save_url=save_url,
+        section_help=_SECTION_HELP,
     )
 
 
@@ -128,12 +163,13 @@ def _pages_section(store: LocalMemoryStore) -> MemoryUiSection:
                     "tags": ", ".join(page.tags),
                     **page.metadata,
                 },
+                description=_KIND_HELP["page"],
                 editable=True,
                 download_name=Path(page.path).name,
                 download_prefix=_page_download_prefix(Path(page.path)),
             )
         )
-    return MemoryUiSection(id="pages", label="Pages", files=files)
+    return MemoryUiSection(id="pages", label="Pages", files=files, description=_SECTION_HELP["pages"])
 
 
 def _jsonl_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
@@ -156,13 +192,14 @@ def _jsonl_section(section_id: str, label: str, directory: Path) -> MemoryUiSect
             MemoryUiFile(
                 id=f"{section_id}:{path.name}",
                 label=path.name,
-                kind="session" if section_id == "sessions" else "jsonl",
+                kind=_jsonl_kind(section_id, path),
                 path=str(path),
                 content=rendered_content,
                 metadata=metadata,
+                description=_file_description(_jsonl_kind(section_id, path)),
             )
         )
-    return MemoryUiSection(id=section_id, label=label, files=files)
+    return MemoryUiSection(id=section_id, label=label, files=files, description=_SECTION_HELP.get(section_id, ""))
 
 
 def _reflections_section(directory: Path) -> MemoryUiSection:
@@ -176,10 +213,34 @@ def _reflections_section(directory: Path) -> MemoryUiSection:
             path=str(path),
             content=_format_json_value(data) if data is not None else path.read_text(encoding="utf-8"),
             metadata=_reflection_metadata(data, result_ids_by_request),
+            description=_file_description(_reflection_kind(data)),
         )
         for path, data in parsed_files
     ]
-    return MemoryUiSection(id="reflections", label="Reflections", files=files)
+    return MemoryUiSection(
+        id="reflections",
+        label="Reflections",
+        files=files,
+        description=_SECTION_HELP["reflections"],
+    )
+
+
+def _json_section(section_id: str, label: str, directory: Path) -> MemoryUiSection:
+    files: list[MemoryUiFile] = []
+    for path in sorted(directory.glob("*.json")):
+        data = _read_json_value(path)
+        files.append(
+            MemoryUiFile(
+                id=f"{section_id}:{path.name}",
+                label=path.name,
+                kind=_json_kind(data),
+                path=str(path),
+                content=_format_json_value(data) if data is not None else path.read_text(encoding="utf-8"),
+                metadata=_json_metadata(data),
+                description=_file_description(_json_kind(data)),
+            )
+        )
+    return MemoryUiSection(id=section_id, label=label, files=files, description=_SECTION_HELP.get(section_id, ""))
 
 
 def _index_section(store: LocalMemoryStore) -> MemoryUiSection:
@@ -207,6 +268,7 @@ def _index_section(store: LocalMemoryStore) -> MemoryUiSection:
                     "source_files": str(status.source_file_count),
                     "generated_at": status.generated_at or "",
                 },
+                description=_KIND_HELP["index"],
             )
         )
     for path in sorted(item for item in store.paths.index_dir.iterdir() if item.is_file() and item != index_path):
@@ -217,13 +279,30 @@ def _index_section(store: LocalMemoryStore) -> MemoryUiSection:
                 kind="file",
                 path=str(path),
                 content=path.read_text(encoding="utf-8"),
+                description="Derived index side file.",
             )
         )
-    return MemoryUiSection(id="index", label="Index", files=files)
+    return MemoryUiSection(id="index", label="Index", files=files, description=_SECTION_HELP["index"])
 
 
 def _count_jsonl_lines(content: str) -> int:
     return sum(1 for line in content.splitlines() if line.strip())
+
+
+def _jsonl_kind(section_id: str, path: Path) -> str:
+    if section_id == "sessions":
+        return "session"
+    if section_id == "facts":
+        return "retained-facts"
+    if section_id == "graph" and path.name == "nodes.jsonl":
+        return "graph-nodes"
+    if section_id == "graph" and path.name == "edges.jsonl":
+        return "graph-edges"
+    return "jsonl"
+
+
+def _file_description(kind: str) -> str:
+    return _KIND_HELP.get(kind, "Memory file.")
 
 
 def _session_ui_preview(path: Path) -> SessionUiPreview:
@@ -327,24 +406,59 @@ def _format_json_value(value: object) -> str:
 
 
 def _read_json_object(path: Path) -> Mapping[str, object] | None:
+    parsed = _read_json_value(path)
+    return parsed if isinstance(parsed, Mapping) else None
+
+
+def _read_json_value(path: Path) -> object | None:
     try:
-        parsed = json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return None
-    if isinstance(parsed, Mapping):
-        return parsed
-    return None
 
 
 def _reflection_kind(data: Mapping[str, object] | None) -> str:
+    return _json_kind(data)
+
+
+def _json_kind(data: object | None) -> str:
+    if isinstance(data, list):
+        return "json-list"
     if data is None:
         return "json"
+    if not isinstance(data, Mapping):
+        return "json"
     result_type = data.get("type")
+    if result_type == "retain_record":
+        return "retain-record"
     if result_type == "reflection_request":
         return "reflection-request"
     if result_type == "reflection_result":
         return "reflection-result"
+    if result_type == "observation_candidate":
+        return "observation-candidate"
     return "json"
+
+
+def _json_metadata(data: object | None) -> dict[str, str]:
+    if isinstance(data, list):
+        return {"items": str(len(data))}
+    if not isinstance(data, Mapping):
+        return {}
+    metadata = {"type": _string_value(data.get("type"))}
+    facts = _list_count(data.get("facts"))
+    if facts:
+        metadata["facts"] = facts
+    entities = _list_count(data.get("entities"))
+    if entities:
+        metadata["entities"] = entities
+    relationships = _list_count(data.get("relationships"))
+    if relationships:
+        metadata["relationships"] = relationships
+    proof_count = _int_value(data.get("proof_count"))
+    if proof_count:
+        metadata["proof_count"] = proof_count
+    return {key: value for key, value in metadata.items() if value}
 
 
 def _reflection_metadata(
@@ -400,6 +514,16 @@ def _confidence_value(value: object) -> str:
     if isinstance(value, bool) or not isinstance(value, int | float):
         return ""
     return f"{float(value):.2f}"
+
+
+def _list_count(value: object) -> str:
+    return str(len(value)) if isinstance(value, list) else ""
+
+
+def _int_value(value: object) -> str:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return ""
+    return str(value)
 
 
 def _trajectory_lesson(value: object) -> str:
@@ -763,36 +887,51 @@ _HTML_TEMPLATE = """<!doctype html>
   <style>
     :root {
       color-scheme: light;
-      --bg: #f7f7f3;
+      --bg: #f5f6f8;
       --panel: #ffffff;
-      --line: #d9ded2;
-      --text: #18201b;
-      --muted: #667065;
-      --green: #1f7a4c;
-      --blue: #245f9f;
-      --gold: #9b6b12;
-      --violet: #6848a8;
-      --red: #a23b3b;
-      --shadow: 0 10px 30px rgba(24, 32, 27, 0.08);
+      --soft: #f9fafb;
+      --line: #d8dde6;
+      --text: #151922;
+      --muted: #626c7a;
+      --green: #1d7a50;
+      --blue: #2563a9;
+      --gold: #a56516;
+      --violet: #6a4cad;
+      --red: #a33d3d;
+      --shadow: 0 8px 24px rgba(21, 25, 34, 0.08);
     }
     * { box-sizing: border-box; }
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
     body {
       margin: 0;
+      height: 100%;
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
       font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     .app {
-      min-height: 100vh;
+      height: 100vh;
       display: grid;
-      grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+      grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+      overflow: hidden;
     }
     aside {
       border-right: 1px solid var(--line);
-      background: #fbfbf7;
-      padding: 20px;
+      background: var(--panel);
+      padding: 18px;
+      overflow: auto;
+      min-height: 0;
     }
-    main { padding: 24px; min-width: 0; }
+    main {
+      padding: 18px;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+    }
     h1 {
       margin: 0;
       font-size: 18px;
@@ -807,35 +946,77 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     .summary {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin: 18px 0 22px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 16px 0;
     }
     .metric {
       border: 1px solid var(--line);
-      background: var(--panel);
-      padding: 10px;
-      border-radius: 8px;
+      background: var(--soft);
+      padding: 8px;
+      border-radius: 6px;
       min-width: 0;
     }
-    .metric strong { display: block; font-size: 18px; }
+    .metric strong { display: block; font-size: 16px; }
     .metric span {
       color: var(--muted);
       display: block;
       font-size: 12px;
       overflow-wrap: anywhere;
     }
-    .section {
-      margin-top: 16px;
+    .pipeline {
+      display: grid;
+      gap: 6px;
+      margin: 16px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
     }
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted);
+    .pipeline-title {
       font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0;
-      margin-bottom: 6px;
+    }
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .pipeline-step {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 6px;
+      padding: 3px 7px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .section {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .section-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 10px 2px;
+    }
+    .section-help {
+      color: var(--muted);
+      font-size: 12px;
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--line);
     }
     .tree-button {
       width: 100%;
@@ -844,7 +1025,7 @@ _HTML_TEMPLATE = """<!doctype html>
       gap: 8px;
       align-items: center;
       border: 0;
-      border-radius: 8px;
+      border-radius: 0;
       background: transparent;
       color: var(--text);
       padding: 8px 10px;
@@ -854,7 +1035,7 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     .tree-button:hover,
     .tree-button.active {
-      background: #eef3e9;
+      background: #eef3f8;
     }
     .tree-entry-group {
       margin: 8px 0 4px;
@@ -884,8 +1065,16 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     .kind-jsonl { background: var(--blue); }
     .kind-json { background: var(--violet); }
+    .kind-session { background: var(--blue); }
+    .kind-retain-record { background: var(--green); }
+    .kind-retained-facts { background: var(--green); }
+    .kind-json-list { background: var(--violet); }
+    .kind-graph-nodes { background: var(--gold); }
+    .kind-graph-edges { background: var(--gold); }
+    .kind-observation-candidate { background: var(--red); }
     .kind-reflection-request { background: var(--violet); }
     .kind-reflection-result { background: var(--gold); }
+    .kind-index { background: var(--blue); }
     .kind-file { background: var(--gold); }
     .label {
       overflow: hidden;
@@ -904,14 +1093,32 @@ _HTML_TEMPLATE = """<!doctype html>
       border: 1px solid var(--line);
       border-radius: 8px;
       box-shadow: var(--shadow);
-      min-height: calc(100vh - 48px);
+      min-height: 0;
       display: grid;
-      grid-template-rows: auto auto auto minmax(320px, 1fr);
-      overflow: hidden;
+      grid-template-rows: auto auto auto minmax(320px, auto);
+      overflow: visible;
     }
     .viewer-header {
-      padding: 18px 20px 12px;
+      padding: 12px 16px 8px;
       border-bottom: 1px solid var(--line);
+    }
+    .file-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--soft);
+    }
+    .file-summary-text {
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .file-summary-kind {
+      color: var(--text);
+      font-weight: 700;
+      white-space: nowrap;
     }
     .viewer-title-row {
       display: flex;
@@ -921,10 +1128,10 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     .viewer-header h2 {
       margin: 0;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.2;
     }
-    .viewer-header .path { margin-top: 8px; }
+    .viewer-header .path { margin-top: 4px; }
     .view-switch {
       display: inline-flex;
       gap: 4px;
@@ -952,11 +1159,11 @@ _HTML_TEMPLATE = """<!doctype html>
     .metadata {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px 20px;
+      gap: 6px;
+      padding: 8px 16px;
       border-bottom: 1px solid var(--line);
-      min-height: 48px;
     }
+    .metadata:empty { display: none; }
     .meta {
       border: 1px solid var(--line);
       border-radius: 999px;
@@ -970,11 +1177,11 @@ _HTML_TEMPLATE = """<!doctype html>
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      padding: 12px 20px;
+      padding: 8px 16px;
       border-bottom: 1px solid var(--line);
-      min-height: 54px;
       align-items: center;
     }
+    .toolbar:empty { display: none; }
     .action {
       border: 1px solid var(--line);
       background: #f8faf5;
@@ -1000,10 +1207,10 @@ _HTML_TEMPLATE = """<!doctype html>
       margin: 0;
       border: 0;
       width: 100%;
-      min-height: 100%;
-      padding: 20px;
+      min-height: 320px;
+      padding: 12px 16px;
       color: var(--text);
-      background: #fffefb;
+      background: #ffffff;
       font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
       resize: none;
       white-space: pre-wrap;
@@ -1011,10 +1218,154 @@ _HTML_TEMPLATE = """<!doctype html>
       outline: none;
     }
     .graph-view {
-      min-height: 100%;
-      overflow: auto;
+      min-height: 320px;
+      overflow: visible;
       padding: 22px;
       background: #fffefb;
+    }
+    .memory-graph-view {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 14px;
+      padding: 14px;
+      background: #ffffff;
+      min-height: 520px;
+    }
+    .memory-graph-canvas {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+      min-width: 0;
+      overflow: auto;
+    }
+    .memory-graph-svg {
+      display: block;
+      min-width: 920px;
+      min-height: 560px;
+    }
+    .memory-edge {
+      stroke: #aab5c4;
+      stroke-width: 1.2;
+      opacity: 0.65;
+    }
+    .memory-edge.causes {
+      stroke: var(--red);
+      stroke-width: 1.8;
+      opacity: 0.8;
+    }
+    .memory-edge.co_occurs {
+      stroke: var(--gold);
+    }
+    .memory-node {
+      cursor: pointer;
+    }
+    .memory-node circle {
+      stroke: #ffffff;
+      stroke-width: 2;
+      filter: drop-shadow(0 2px 4px rgba(21, 25, 34, 0.18));
+    }
+    .memory-node.entity circle { fill: var(--blue); }
+    .memory-node.fact circle { fill: var(--green); }
+    .memory-node.active circle {
+      stroke: var(--red);
+      stroke-width: 3;
+    }
+    .memory-node text {
+      fill: var(--text);
+      font: 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      paint-order: stroke;
+      stroke: #ffffff;
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
+    .memory-graph-side {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 12px;
+      min-width: 0;
+    }
+    .memory-graph-side h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+    .memory-graph-side p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .memory-graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .structured-view {
+      display: grid;
+      gap: 12px;
+      padding: 12px 16px 18px;
+      background: #ffffff;
+    }
+    .structured-section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .structured-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 11px;
+      border-bottom: 1px solid var(--line);
+      background: var(--soft);
+      font-weight: 700;
+    }
+    .structured-list {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+    }
+    .fact-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #ffffff;
+    }
+    .fact-text {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .fact-evidence {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+    .structured-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .structured-source {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      overflow: hidden;
+    }
+    .structured-source summary {
+      cursor: pointer;
+      padding: 9px 11px;
+      font-weight: 700;
+    }
+    .structured-source pre {
+      border-top: 1px solid var(--line);
+      min-height: 0;
+      max-height: 460px;
+      overflow: auto;
+      background: #ffffff;
     }
     .branch-map {
       min-width: 760px;
@@ -1231,14 +1582,20 @@ _HTML_TEMPLATE = """<!doctype html>
     }
     @media (max-width: 760px) {
       .app { grid-template-columns: 1fr; }
-      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+      aside {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        max-height: 42vh;
+      }
       main { padding: 14px; }
-      .viewer { min-height: 70vh; }
+      .viewer { min-height: 58vh; }
       .viewer-title-row { display: block; }
+      .file-summary { grid-template-columns: 1fr; }
       .view-switch { margin-top: 12px; }
       .branch-map { min-width: 560px; }
       .branch-row { grid-template-columns: minmax(180px, 1fr) 40px minmax(180px, 1fr); }
       .graph-tree { min-width: 560px; }
+      .memory-graph-view { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1248,6 +1605,16 @@ _HTML_TEMPLATE = """<!doctype html>
       <h1 id="bank-title"></h1>
       <div class="path" id="bank-path"></div>
       <div class="summary" id="summary"></div>
+      <div class="pipeline">
+        <div class="pipeline-title">Retain Model</div>
+        <div class="pipeline-flow">
+          <span class="pipeline-step">sessions</span><span>source</span>
+          <span>→</span><span class="pipeline-step">retains</span><span>extract</span>
+          <span>→</span><span class="pipeline-step">facts</span><span>memory</span>
+          <span>→</span><span class="pipeline-step">graph</span><span>links</span>
+          <span>→</span><span class="pipeline-step">observations</span><span>candidates</span>
+        </div>
+      </div>
       <div id="tree"></div>
     </aside>
     <main>
@@ -1260,6 +1627,7 @@ _HTML_TEMPLATE = """<!doctype html>
           <div class="path" id="file-path"></div>
         </div>
         <div class="metadata" id="metadata"></div>
+        <div class="file-summary" id="file-summary"></div>
         <div class="toolbar" id="toolbar"></div>
         <div id="content"></div>
       </section>
@@ -1302,6 +1670,12 @@ _HTML_TEMPLATE = """<!doctype html>
         title.className = "section-title";
         title.innerHTML = `<span>${section.label}</span><span>${section.files.length}</span>`;
         wrapper.append(title);
+        if (section.description) {
+          const help = document.createElement("div");
+          help.className = "section-help";
+          help.textContent = section.description;
+          wrapper.append(help);
+        }
         renderSectionFiles(wrapper, section);
         tree.append(wrapper);
       });
@@ -1372,11 +1746,15 @@ _HTML_TEMPLATE = """<!doctype html>
     function renderViewSwitch() {
       const switcher = document.getElementById("view-switch");
       switcher.innerHTML = "";
-      ["file", "graph"].forEach((mode) => {
+      [
+        ["file", "File"],
+        ["memory-graph", "Memory Graph"],
+        ["graph", "Reflection Graph"],
+      ].forEach(([mode, label]) => {
         const button = document.createElement("button");
         button.className = `view-tab ${activeView === mode ? "active" : ""}`;
         button.type = "button";
-        button.textContent = mode === "file" ? "File" : "Graph";
+        button.textContent = label;
         button.addEventListener("click", () => {
           activeView = mode;
           renderViewSwitch();
@@ -1387,6 +1765,10 @@ _HTML_TEMPLATE = """<!doctype html>
     }
 
     function renderActiveView() {
+      if (activeView === "memory-graph") {
+        renderMemoryGraph();
+        return;
+      }
       if (activeView === "graph") {
         renderGraph();
         return;
@@ -1399,6 +1781,7 @@ _HTML_TEMPLATE = """<!doctype html>
       document.getElementById("file-title").textContent = file ? file.label : "No memory files";
       document.getElementById("file-path").textContent = file ? file.path : "";
       renderMetadata(file);
+      renderFileSummary(file);
       renderToolbar(file);
       const content = document.getElementById("content");
       content.innerHTML = "";
@@ -1420,9 +1803,384 @@ _HTML_TEMPLATE = """<!doctype html>
         content.append(editor);
         return;
       }
+      const interpreted = renderStructuredMemory(file);
+      if (interpreted) {
+        content.append(interpreted);
+        return;
+      }
       const pre = document.createElement("pre");
       pre.textContent = file.content;
       content.append(pre);
+    }
+
+    function renderMemoryGraph() {
+      const graphData = memoryGraphData();
+      document.getElementById("file-title").textContent = "Memory Graph";
+      document.getElementById("file-path").textContent = `${snapshot.bank_path}/graph`;
+      renderMemoryGraphMetadata(graphData);
+      renderMemoryGraphSummary(graphData);
+      document.getElementById("toolbar").innerHTML = "";
+
+      const content = document.getElementById("content");
+      content.innerHTML = "";
+      if (!graphData.nodes.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No retain graph nodes found. Run retain first.";
+        content.append(empty);
+        return;
+      }
+
+      const view = document.createElement("div");
+      view.className = "memory-graph-view";
+      const canvas = document.createElement("div");
+      canvas.className = "memory-graph-canvas";
+      const side = document.createElement("div");
+      side.className = "memory-graph-side";
+      const positions = memoryGraphPositions(graphData.nodes);
+      canvas.append(memoryGraphSvg(graphData, positions, side));
+      renderMemoryGraphNodeDetails(side, graphData.nodes[0], graphData);
+      view.append(canvas, side);
+      content.append(view);
+    }
+
+    function memoryGraphData() {
+      const nodesFile = files.find((file) => file.kind === "graph-nodes");
+      const edgesFile = files.find((file) => file.kind === "graph-edges");
+      const nodes = nodesFile ? parseJsonLines(nodesFile.content) : [];
+      const knownIds = new Set(nodes.map((node) => node.id));
+      const edges = (edgesFile ? parseJsonLines(edgesFile.content) : []).filter(
+        (edge) => knownIds.has(edge.source_id) && knownIds.has(edge.target_id),
+      );
+      return { nodes, edges };
+    }
+
+    function renderMemoryGraphMetadata(graphData) {
+      const metadata = document.getElementById("metadata");
+      metadata.innerHTML = "";
+      [
+        ["nodes", graphData.nodes.length],
+        ["edges", graphData.edges.length],
+        ["entities", graphData.nodes.filter((node) => node.kind === "entity").length],
+        ["facts", graphData.nodes.filter((node) => node.kind === "fact").length],
+      ].forEach(([key, value]) => {
+        const item = document.createElement("span");
+        item.className = "meta";
+        item.textContent = `${key}: ${value}`;
+        metadata.append(item);
+      });
+    }
+
+    function renderMemoryGraphSummary(graphData) {
+      const summary = document.getElementById("file-summary");
+      summary.innerHTML = "";
+      const text = document.createElement("div");
+      text.className = "file-summary-text";
+      text.textContent = "Retain graph visualization. Blue nodes are entities, green nodes are facts, and edges are retain relationships.";
+      const kind = document.createElement("div");
+      kind.className = "file-summary-kind";
+      kind.textContent = `${graphData.nodes.length} nodes / ${graphData.edges.length} edges`;
+      summary.append(text, kind);
+    }
+
+    function memoryGraphPositions(nodes) {
+      const width = 920;
+      const height = 560;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const entityNodes = nodes.filter((node) => node.kind === "entity");
+      const factNodes = nodes.filter((node) => node.kind !== "entity");
+      const positions = new Map();
+      placeRing(entityNodes, 185, centerX, centerY, positions);
+      placeRing(factNodes, 255, centerX, centerY, positions);
+      return positions;
+    }
+
+    function placeRing(nodes, radius, centerX, centerY, positions) {
+      const count = Math.max(nodes.length, 1);
+      nodes.forEach((node, index) => {
+        const angle = -Math.PI / 2 + (index / count) * Math.PI * 2;
+        positions.set(node.id, {
+          x: Math.round(centerX + Math.cos(angle) * radius),
+          y: Math.round(centerY + Math.sin(angle) * radius),
+        });
+      });
+    }
+
+    function memoryGraphSvg(graphData, positions, side) {
+      const namespace = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(namespace, "svg");
+      svg.classList.add("memory-graph-svg");
+      svg.setAttribute("viewBox", "0 0 920 560");
+      const edgeLayer = document.createElementNS(namespace, "g");
+      const nodeLayer = document.createElementNS(namespace, "g");
+      graphData.edges.forEach((edge) => {
+        const source = positions.get(edge.source_id);
+        const target = positions.get(edge.target_id);
+        if (!source || !target) return;
+        const line = document.createElementNS(namespace, "line");
+        line.setAttribute("x1", source.x);
+        line.setAttribute("y1", source.y);
+        line.setAttribute("x2", target.x);
+        line.setAttribute("y2", target.y);
+        line.classList.add("memory-edge", edge.kind || "edge");
+        const title = document.createElementNS(namespace, "title");
+        title.textContent = edge.kind || "edge";
+        line.append(title);
+        edgeLayer.append(line);
+      });
+      graphData.nodes.forEach((node) => {
+        const position = positions.get(node.id);
+        if (!position) return;
+        const group = document.createElementNS(namespace, "g");
+        group.classList.add("memory-node", node.kind === "entity" ? "entity" : "fact");
+        group.setAttribute("transform", `translate(${position.x}, ${position.y})`);
+        group.addEventListener("click", () => {
+          svg.querySelectorAll(".memory-node.active").forEach((item) => item.classList.remove("active"));
+          group.classList.add("active");
+          renderMemoryGraphNodeDetails(side, node, graphData);
+        });
+        const circle = document.createElementNS(namespace, "circle");
+        circle.setAttribute("r", node.kind === "entity" ? "12" : "10");
+        const text = document.createElementNS(namespace, "text");
+        text.setAttribute("x", "16");
+        text.setAttribute("y", "4");
+        text.textContent = compactLabel(node.label || node.id, 30);
+        const title = document.createElementNS(namespace, "title");
+        title.textContent = node.label || node.id;
+        group.append(title, circle, text);
+        nodeLayer.append(group);
+      });
+      svg.append(edgeLayer, nodeLayer);
+      const firstNode = nodeLayer.querySelector(".memory-node");
+      if (firstNode) firstNode.classList.add("active");
+      return svg;
+    }
+
+    function renderMemoryGraphNodeDetails(container, node, graphData) {
+      container.innerHTML = "";
+      const title = document.createElement("h3");
+      title.textContent = node.label || node.id || "node";
+      const body = document.createElement("p");
+      body.textContent = node.kind === "entity" ? "Entity node" : "Fact node";
+      container.append(title, body);
+      container.append(
+        metaRow([
+          ["id", node.id],
+          ["kind", node.kind],
+          ["entity_kind", node.entity_kind],
+          ["fact_kind", node.fact_kind],
+          ["retain", node.retain_id],
+        ]),
+      );
+      const connected = graphData.edges.filter((edge) => edge.source_id === node.id || edge.target_id === node.id);
+      const section = structuredSection(
+        "Connected Edges",
+        connected.map((edge) =>
+          summaryCard(edge.kind || edge.id || "edge", [
+            ["from", edge.source_id],
+            ["to", edge.target_id],
+            ["facts", Array.isArray(edge.fact_ids) ? edge.fact_ids.length : ""],
+          ]),
+        ),
+      );
+      container.append(section);
+      const legend = document.createElement("div");
+      legend.className = "memory-graph-legend";
+      [["entity", "blue"], ["fact", "green"], ["causes", "red"], ["co_occurs", "gold"]].forEach(([label]) => {
+        const item = document.createElement("span");
+        item.className = "meta";
+        item.textContent = label;
+        legend.append(item);
+      });
+      container.append(legend);
+    }
+
+    function compactLabel(value, limit) {
+      if (!value || value.length <= limit) return value || "";
+      return `${value.slice(0, limit - 3)}...`;
+    }
+
+    function renderStructuredMemory(file) {
+      if (file.kind === "retain-record") return renderRetainRecord(file);
+      if (file.kind === "retained-facts") return renderRetainedFacts(file);
+      return null;
+    }
+
+    function renderRetainRecord(file) {
+      const record = parseJsonObject(file.content);
+      if (!record) return null;
+      const view = structuredView();
+      view.append(
+        structuredSection("Retain", [
+          summaryCard(record.id || file.label, [
+            ["session", record.session_id],
+            ["mode", record.extraction_mode],
+            ["mention_time", record.mention_time],
+            ["source_event", record.source_event_id],
+            ["mission", record.retain_mission],
+          ]),
+        ]),
+      );
+      view.append(structuredSection("Facts", (record.facts || []).map(factCard)));
+      view.append(structuredSection("Entities", (record.entities || []).map(entityCard)));
+      view.append(structuredSection("Relationships", (record.relationships || []).map(relationshipCard)));
+      if (Array.isArray(record.security_events) && record.security_events.length) {
+        view.append(structuredSection("Security Events", record.security_events.map(securityEventCard)));
+      }
+      view.append(sourceDetails(file.content, "Source JSON"));
+      return view;
+    }
+
+    function renderRetainedFacts(file) {
+      const facts = parseJsonLines(file.content);
+      if (!facts.length) return null;
+      const view = structuredView();
+      view.append(structuredSection("Extracted Facts", facts.map(factCard)));
+      view.append(sourceDetails(file.content, "Source JSONL"));
+      return view;
+    }
+
+    function structuredView() {
+      const view = document.createElement("div");
+      view.className = "structured-view";
+      return view;
+    }
+
+    function structuredSection(title, children) {
+      const section = document.createElement("section");
+      section.className = "structured-section";
+      const head = document.createElement("div");
+      head.className = "structured-section-head";
+      const label = document.createElement("span");
+      label.textContent = title;
+      const count = document.createElement("span");
+      count.className = "pill";
+      count.textContent = String(children.length);
+      head.append(label, count);
+      const list = document.createElement("div");
+      list.className = "structured-list";
+      if (children.length) {
+        children.forEach((child) => list.append(child));
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "fact-evidence";
+        empty.textContent = "No items extracted.";
+        list.append(empty);
+      }
+      section.append(head, list);
+      return section;
+    }
+
+    function summaryCard(title, entries) {
+      const card = document.createElement("div");
+      card.className = "fact-card";
+      const text = document.createElement("div");
+      text.className = "fact-text";
+      text.textContent = title || "retain";
+      card.append(text, metaRow(entries));
+      return card;
+    }
+
+    function factCard(fact) {
+      const card = document.createElement("div");
+      card.className = "fact-card";
+      const text = document.createElement("div");
+      text.className = "fact-text";
+      text.textContent = fact.text || fact.evidence || fact.id || "fact";
+      card.append(text);
+      const entries = [
+        ["kind", fact.kind],
+        ["role", fact.source_role],
+        ["occurred", fact.occurred_at],
+        ["mentioned", fact.mentioned_at],
+        ["emotion", fact.emotion],
+        ["entities", Array.isArray(fact.entity_ids) ? fact.entity_ids.length : ""],
+      ];
+      card.append(metaRow(entries));
+      if (fact.reasoning) card.append(evidenceLine(`reasoning: ${fact.reasoning}`));
+      if (fact.evidence && fact.evidence !== fact.text) card.append(evidenceLine(`evidence: ${fact.evidence}`));
+      return card;
+    }
+
+    function entityCard(entity) {
+      return summaryCard(entity.name || entity.id || "entity", [
+        ["kind", entity.kind],
+        ["aliases", Array.isArray(entity.aliases) ? entity.aliases.length : ""],
+        ["mentions", Array.isArray(entity.mentions) ? entity.mentions.length : ""],
+      ]);
+    }
+
+    function relationshipCard(relationship) {
+      return summaryCard(relationship.kind || relationship.id || "relationship", [
+        ["from", relationship.source_entity_id],
+        ["to", relationship.target_entity_id],
+        ["facts", Array.isArray(relationship.fact_ids) ? relationship.fact_ids.length : ""],
+      ]);
+    }
+
+    function securityEventCard(event) {
+      const card = summaryCard(event.detector || "security", [
+        ["severity", event.severity],
+        ["receipt", event.receipt_uri],
+      ]);
+      if (event.message) card.append(evidenceLine(event.message));
+      if (event.evidence) card.append(evidenceLine(`evidence: ${event.evidence}`));
+      return card;
+    }
+
+    function metaRow(entries) {
+      const row = document.createElement("div");
+      row.className = "structured-meta";
+      entries.filter((entry) => entry[1] !== undefined && entry[1] !== null && entry[1] !== "").forEach(([key, value]) => {
+        const item = document.createElement("span");
+        item.className = "meta";
+        item.textContent = `${key}: ${value}`;
+        row.append(item);
+      });
+      return row;
+    }
+
+    function evidenceLine(text) {
+      const line = document.createElement("div");
+      line.className = "fact-evidence";
+      line.textContent = text;
+      return line;
+    }
+
+    function sourceDetails(content, title) {
+      const details = document.createElement("details");
+      details.className = "structured-source";
+      const summary = document.createElement("summary");
+      summary.textContent = title;
+      const pre = document.createElement("pre");
+      pre.textContent = content;
+      details.append(summary, pre);
+      return details;
+    }
+
+    function parseJsonObject(content) {
+      try {
+        const parsed = JSON.parse(content);
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function parseJsonLines(content) {
+      return content
+        .split("\\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          try {
+            return JSON.parse(line);
+          } catch (_error) {
+            return null;
+          }
+        })
+        .filter((item) => item && typeof item === "object" && !Array.isArray(item));
     }
 
     function renderGraph() {
@@ -1434,6 +2192,7 @@ _HTML_TEMPLATE = """<!doctype html>
         : "Reflection Graph";
       document.getElementById("file-path").textContent = focusedSample ? activeFile?.path || "" : snapshot.bank_path;
       renderGraphMetadata(graph);
+      renderGraphSummary(graph, focusedSample);
       document.getElementById("toolbar").innerHTML = "";
 
       const content = document.getElementById("content");
@@ -1657,6 +2416,33 @@ _HTML_TEMPLATE = """<!doctype html>
         item.textContent = `${key}: ${value}`;
         metadata.append(item);
       });
+    }
+
+    function renderFileSummary(file) {
+      const summary = document.getElementById("file-summary");
+      summary.innerHTML = "";
+      if (!file) return;
+      const text = document.createElement("div");
+      text.className = "file-summary-text";
+      text.textContent = file.description || "Memory file.";
+      const kind = document.createElement("div");
+      kind.className = "file-summary-kind";
+      kind.textContent = file.kind;
+      summary.append(text, kind);
+    }
+
+    function renderGraphSummary(graph, focusedSample) {
+      const summary = document.getElementById("file-summary");
+      summary.innerHTML = "";
+      const text = document.createElement("div");
+      text.className = "file-summary-text";
+      text.textContent = focusedSample
+        ? "Focused reflection trajectory. This view shows failed branches, corrections, and outcome nodes."
+        : "Reflection-only graph overview. Retain graph data lives in graph/nodes.jsonl and graph/edges.jsonl.";
+      const kind = document.createElement("div");
+      kind.className = "file-summary-kind";
+      kind.textContent = graph ? `${graph.nodes.length} nodes` : "0 nodes";
+      summary.append(text, kind);
     }
 
     function graphNodesByParent(nodes) {

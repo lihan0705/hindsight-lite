@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.3",
   "bankId": "codex",
   "autoRecall": true,
   "autoRetain": true,
@@ -22,6 +22,9 @@
   "retainOverlapTurns": 2,
   "retainTags": ["{session_id}"],
   "retainMetadata": {},
+  "retainMission": null,
+  "retainExtractionMode": "concise",
+  "receiptUri": null,
   "retainContext": "codex",
   "bankIdPrefix": "",
   "dynamicBankId": false,

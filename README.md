@@ -77,7 +77,7 @@ hindsight-lite follows a small local loop:
 conversation
     |
     v
-Retain  -> sessions/*.jsonl + pages/*.md
+Retain  -> sessions/*.jsonl + retains/*.json + facts/*.jsonl + entities + graph + observation candidates
     |
     v
 Recall  -> compact relevant excerpts -> next Codex prompt
@@ -93,7 +93,7 @@ Codex lifecycle hooks connect that loop to the local runtime:
 | `SessionStart` | Initialize the selected memory bank |
 | `UserPromptSubmit` | Recall relevant pages and sessions, then inject a compact context block |
 | `PreToolUse` | Recall file-specific context before supported file reads |
-| `Stop` | Replace the latest session snapshot, promote durable profile facts, refresh the UI, and extract a reflection candidate when appropriate |
+| `Stop` | Replace the latest session snapshot, write structured retain artifacts, promote durable profile facts, refresh the UI, and extract a reflection candidate when appropriate |
 
 Every event enters the same dispatcher, which routes it to one focused Python
 handler:
@@ -113,8 +113,10 @@ turn.
 
 The three stages deliberately have different responsibilities:
 
-- **Retain** preserves evidence. Sessions remain an audit-style record, while
-  stable user or project knowledge can be promoted into editable pages.
+- **Retain** preserves evidence and extracts local structure. Sessions remain
+  an audit-style record; retain records capture fact, entity, relationship,
+  temporal, and security candidates; stable user or project knowledge can be
+  promoted into editable pages.
 - **Recall** ranks local text and returns short excerpts rather than replaying
   full transcripts. A local BM25 index avoids reparsing every memory file on
   each prompt, reducing latency, prompt noise, and token use.
@@ -123,6 +125,29 @@ The three stages deliberately have different responsibilities:
 
 All runtime state stays under `~/.hindsight-lite/`. There is no API server,
 daemon, database, control plane, or required model call.
+
+### Retain, Locally
+
+The upstream Hindsight Retain path transforms content into structured memory:
+facts, perspective (`world` vs `experience`), entities, graph connections,
+temporal grounding, and later evidence-backed observations. hindsight-lite keeps
+that mental model but writes it as inspectable local files:
+
+```text
+source evidence  -> sessions/*.jsonl
+retain envelope  -> retains/<session-id>.json
+facts            -> facts/<session-id>.jsonl
+entities         -> entities/entities.json
+graph            -> graph/nodes.jsonl + graph/edges.jsonl
+observations     -> observations/candidates/*.json
+```
+
+This local Retain implementation is deterministic and reviewable. It does not
+claim hosted Hindsight's LLM normalization, semantic graph links, or background
+observation consolidation, but it gives each write-path artifact a first-class
+place before Recall starts using them more deeply.
+
+For the node/edge model and UI, see [Memory Graph](docs/memory-graph.md).
 
 ![Hindsight-lite memory architecture](docs/assets/hindsight-lite-memory-architecture.png)
 
@@ -135,7 +160,7 @@ different engineering tradeoffs.
 |---|---|---|
 | Primary use | General agent memory platform | Local memory plugin for coding agents |
 | Runtime | API service backed by PostgreSQL and vector infrastructure | In-process Python called by Codex hooks |
-| Retain | LLM-assisted extraction and normalization into facts, entities, relationships, and temporal information | Store local session evidence and promote selected facts into Markdown pages |
+| Retain | LLM-assisted extraction and normalization into facts, entities, relationships, and temporal information | Store local session evidence, deterministic fact/entity/relationship/security candidates, graph edges, and reviewable observation candidates |
 | Recall | Semantic, keyword, graph, and temporal retrieval with fusion and reranking | Lightweight local lexical scoring with compact excerpt budgets |
 | Reflect | Agentic multi-step reasoning over facts, observations, and mental models | Explicit request packets and deterministic corrected-episode candidates for later human or evaluator review |
 | Inspection | Server APIs, SDKs, and platform tooling | Files plus a generated editable MemoryTree UI |
@@ -157,7 +182,7 @@ The V1 scope is intentionally small.
 
 | Capability | Status | Mechanism |
 |---|---:|---|
-| `agent_knowledge_retain` | alpha | Codex `Stop` hook writes session JSONL |
+| `agent_knowledge_retain` | alpha | Codex `Stop` hook writes session JSONL plus structured retain artifacts |
 | `agent_knowledge_recall` | alpha | Codex `UserPromptSubmit` injects compact context |
 | `agent_knowledge_reflect` | alpha | local recall packet plus saved reflection request |
 | file context recall | alpha | Codex `PreToolUse` injects compact context before file reads |
@@ -184,6 +209,18 @@ Default local memory layout:
     <bank_id>/
       sessions/
         <session_id>.jsonl
+      retains/
+        <session_id>.json
+      facts/
+        <session_id>.jsonl
+      entities/
+        entities.json
+      graph/
+        nodes.jsonl
+        edges.jsonl
+      observations/
+        candidates/
+          observe-<id>.json
       pages/
         <page_id>.md
       reflections/
@@ -196,13 +233,26 @@ Default local memory layout:
 V1 memory types:
 
 - `sessions/*.jsonl` stores the latest full-session snapshot, or append-only
-  windows when chunked retention is enabled.
+  windows when chunked retention is enabled. This is source evidence, not a
+  summary.
+- `retains/*.json` stores the retain operation envelope: extraction settings,
+  source event id, and the structured objects produced from that source.
+- `facts/*.jsonl` stores one retained fact per line. These are the first-class
+  world/experience memories that later recall can search directly.
+- `entities/entities.json` stores the local entity registry built from retain
+  records.
+- `graph/nodes.jsonl` stores entity and fact nodes.
+- `graph/edges.jsonl` stores retain-derived mention, co-occurrence, and causal
+  links between those nodes for later graph recall.
+- `observations/candidates/*.json` stores evidence-linked local observation
+  candidates. These are review artifacts, not hosted Hindsight consolidation.
 - `pages/*.md` stores user-readable knowledge pages.
 - `reflections/*.json` stores reflection requests for later analysis.
 - `index/recall-index.json` stores a rebuildable BM25 search index over pages
   and sessions. It is derived data, not a memory source.
 
 This keeps memory readable, diffable, scriptable, and easy to delete.
+The graph files are documented in [Memory Graph](docs/memory-graph.md).
 
 Recall creates the index on first use. Runtime page and session writes update
 an existing index incrementally; direct file edits are detected from source
@@ -261,6 +311,10 @@ cannot save those edits directly back to disk. The Stop hook refreshes this
 snapshot after each successful retain.
 
 Sessions are rendered as readable event summaries rather than raw JSONL.
+Retain records and fact JSONL files are rendered as structured cards so you do
+not have to read raw JSON for ordinary inspection. The dedicated **Memory
+Graph** tab visualizes `graph/nodes.jsonl` and `graph/edges.jsonl`; the
+**Reflection Graph** tab remains focused on failure/correction trajectories.
 Reflection request/result files expose links, confidence, lesson previews, and
 a deterministic trajectory graph. Failed or uncertain samples split into side
 branches, while successful samples stay on the main path.

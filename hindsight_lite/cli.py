@@ -22,6 +22,7 @@ from hindsight_lite.recall_eval import RecallEvalExistsError, run_recall_eval
 from hindsight_lite.reflection import ReflectionResultError, create_reflection_packet, write_reflection_result_from_file
 from hindsight_lite.reflection_cleanup import scan_reflection_cleanup
 from hindsight_lite.reflection_dataset import export_reflection_dataset
+from hindsight_lite.retain import create_retain_artifacts
 from hindsight_lite.store import LocalMemoryStore, UnsafeReflectionIdError
 
 
@@ -40,12 +41,20 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_bank_arg(retain_parser)
     retain_parser.add_argument("--session-id", required=True)
     retain_parser.add_argument("--content", required=True)
+    retain_parser.add_argument("--retain-mission", default=None)
+    retain_parser.add_argument("--retain-extraction-mode", choices=["concise", "verbose", "custom"], default="concise")
+    retain_parser.add_argument("--receipt-uri", default=None)
     retain_parser.set_defaults(handler=_cmd_retain)
 
     agent_retain_parser = subparsers.add_parser("agent_knowledge_retain", help="Append session memory.")
     _add_bank_arg(agent_retain_parser)
     agent_retain_parser.add_argument("--session-id", required=True)
     agent_retain_parser.add_argument("--content", required=True)
+    agent_retain_parser.add_argument("--retain-mission", default=None)
+    agent_retain_parser.add_argument(
+        "--retain-extraction-mode", choices=["concise", "verbose", "custom"], default="concise"
+    )
+    agent_retain_parser.add_argument("--receipt-uri", default=None)
     agent_retain_parser.set_defaults(handler=_cmd_retain)
 
     recall_parser = subparsers.add_parser("recall", help="Recall local memory.")
@@ -221,6 +230,19 @@ def _cmd_retain(args: argparse.Namespace) -> int:
         content=args.content,
     )
     store.append_session_event(event)
+    artifacts = create_retain_artifacts(
+        event,
+        extraction_mode=args.retain_extraction_mode,
+        retain_mission=args.retain_mission,
+        receipt_uri=args.receipt_uri,
+    )
+    store.write_retain_record(artifacts.record)
+    store.write_facts(event.session_id, artifacts.record.facts)
+    store.merge_entities(artifacts.record.entities)
+    store.append_graph_nodes(artifacts.graph_nodes)
+    store.append_graph_edges(artifacts.graph_edges)
+    if artifacts.observation_candidate is not None:
+        store.write_observation_candidate(artifacts.observation_candidate)
     print(event.id)
     return 0
 

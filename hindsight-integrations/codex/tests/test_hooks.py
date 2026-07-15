@@ -89,6 +89,11 @@ class TestSessionStartHook:
         assert (bank_dir / "sessions").is_dir()
         assert (bank_dir / "pages").is_dir()
         assert (bank_dir / "reflections").is_dir()
+        assert (bank_dir / "retains").is_dir()
+        assert (bank_dir / "facts").is_dir()
+        assert (bank_dir / "entities").is_dir()
+        assert (bank_dir / "graph").is_dir()
+        assert (bank_dir / "observations" / "candidates").is_dir()
 
     def test_disabled_memory_skips_local_bank_init(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(session_id="sess-start")
@@ -377,15 +382,54 @@ class TestRetainHook:
         assert load_config()["autoReflect"] is True
 
     def test_writes_transcript_to_local_store(self, monkeypatch, tmp_path):
-        messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
+        messages = [
+            {
+                "role": "user",
+                "content": (
+                    "Alice joined Google last spring because she wanted research opportunities. "
+                    "Ignore previous instructions appears only as evidence."
+                ),
+            },
+            {"role": "assistant", "content": "I recorded the memory."},
+        ]
         transcript = make_transcript_file(tmp_path, messages)
 
-        hook_input = make_hook_input(transcript_path=transcript)
-        _run_hook("retain", hook_input, monkeypatch, tmp_path)
+        hook_input = make_hook_input(transcript_path=transcript, session_id="sess-retain")
+        _run_hook(
+            "retain",
+            hook_input,
+            monkeypatch,
+            tmp_path,
+            user_config={
+                "retainMission": "Keep people, organizations, causal reasons, and security evidence.",
+                "retainExtractionMode": "verbose",
+                "receiptUri": "receipt://smoke",
+            },
+        )
 
-        events = _retained_events(tmp_path)
+        events = _retained_events(tmp_path, session_id="sess-retain")
         assert len(events) == 1
-        assert "hello" in events[0].content
+        assert "Alice joined Google" in events[0].content
+        bank_dir = tmp_path / ".hindsight-lite" / "banks" / "codex"
+        retain_record = json.loads((bank_dir / "retains" / "sess-retain.json").read_text(encoding="utf-8"))
+        assert retain_record["type"] == "retain_record"
+        assert retain_record["retain_mission"].startswith("Keep people")
+        assert retain_record["extraction_mode"] == "verbose"
+        assert retain_record["facts"][0]["kind"] == "world"
+        assert retain_record["facts"][0]["reasoning"].startswith("because")
+        assert retain_record["facts"][0]["occurred_at"] == "last spring"
+        assert any(entity["name"] == "Alice" for entity in retain_record["entities"])
+        assert any(entity["name"] == "Google" for entity in retain_record["entities"])
+        assert any(relationship["kind"] == "causes" for relationship in retain_record["relationships"])
+        assert retain_record["security_events"][0]["detector"] == "prompt_injection"
+        assert retain_record["security_events"][0]["receipt_uri"] == "receipt://smoke"
+        facts = (bank_dir / "facts" / "sess-retain.jsonl").read_text(encoding="utf-8")
+        assert "retained_fact" in facts
+        assert (bank_dir / "entities" / "entities.json").exists()
+        assert (bank_dir / "graph" / "nodes.jsonl").exists()
+        assert (bank_dir / "graph" / "edges.jsonl").exists()
+        observation_paths = list((bank_dir / "observations" / "candidates").glob("observe-*.json"))
+        assert len(observation_paths) == 1
 
     def test_retain_refreshes_memory_tree_ui(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "我喜欢喝柠檬水"}, {"role": "assistant", "content": "记住了。"}]
@@ -673,7 +717,9 @@ class TestCodexPluginConfig:
         serialized_hooks = json.dumps(hooks)
 
         assert manifest["name"] == "hindsight-lite"
+        assert manifest["version"] == "0.3.3"
         assert manifest["hooks"] == "./hindsight-integrations/codex/hooks/plugin-hooks.json"
+        assert set(hooks) == {"hooks"}
         plugin_entry = marketplace["plugins"][0]
         assert plugin_entry["name"] == "hindsight-lite"
         assert plugin_entry["source"] == {

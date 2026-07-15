@@ -58,6 +58,19 @@ def test_cli_retain_and_recall_session_memory(tmp_path: Path, capsys) -> None:
     assert "<hindsight_lite_memories>" in output
     assert "Codex should recall local memory without a server." in output
 
+    retain_record = json.loads((tmp_path / "banks" / "codex" / "retains" / "session-1.json").read_text())
+    assert retain_record["type"] == "retain_record"
+    assert retain_record["facts"][0]["kind"] == "world"
+    assert retain_record["facts"][0]["text"] == "Codex should recall local memory without a server."
+    facts = (tmp_path / "banks" / "codex" / "facts" / "session-1.jsonl").read_text()
+    assert "retained_fact" in facts
+    observation_paths = list((tmp_path / "banks" / "codex" / "observations" / "candidates").glob("observe-*.json"))
+    assert len(observation_paths) == 1
+    graph_nodes = (tmp_path / "banks" / "codex" / "graph" / "nodes.jsonl").read_text()
+    assert "retain_graph_node" in graph_nodes
+    graph_edges = (tmp_path / "banks" / "codex" / "graph" / "edges.jsonl").read_text()
+    assert "retain_graph_edge" in graph_edges
+
 
 def test_cli_reports_and_rebuilds_recall_index(tmp_path: Path, capsys) -> None:
     source = tmp_path / "memory.md"

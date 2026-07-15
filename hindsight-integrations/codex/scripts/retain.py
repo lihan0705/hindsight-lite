@@ -36,6 +36,7 @@ from lib.state import increment_turn_count
 from hindsight_lite.memory_ui import write_memory_ui
 from hindsight_lite.models import SessionMemoryEvent
 from hindsight_lite.reflection import create_reflection_packet
+from hindsight_lite.retain import create_retain_artifacts
 from hindsight_lite.store import LocalMemoryStore
 from hindsight_lite.trajectory import extract_reflection_candidate
 from hindsight_lite.user_profile import promote_user_profile_from_messages
@@ -162,6 +163,19 @@ def main():
             store.append_session_event(event)
         else:
             store.replace_session_event(event)
+        artifacts = create_retain_artifacts(
+            event,
+            extraction_mode=config.get("retainExtractionMode", "concise"),
+            retain_mission=config.get("retainMission"),
+            receipt_uri=config.get("receiptUri") or metadata.get("receipt_uri"),
+        )
+        store.write_retain_record(artifacts.record)
+        store.write_facts(event.session_id, artifacts.record.facts)
+        store.merge_entities(artifacts.record.entities)
+        store.append_graph_nodes(artifacts.graph_nodes)
+        store.append_graph_edges(artifacts.graph_edges)
+        if artifacts.observation_candidate is not None:
+            store.write_observation_candidate(artifacts.observation_candidate)
         promote_user_profile_from_messages(store, messages_to_retain)
     except Exception as e:
         print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)

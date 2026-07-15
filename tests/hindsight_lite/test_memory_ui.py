@@ -10,6 +10,7 @@ from hindsight_lite.models import (
     ReflectionTrajectoryStep,
     SessionMemoryEvent,
 )
+from hindsight_lite.retain import create_retain_artifacts
 from hindsight_lite.store import LocalMemoryStore
 
 
@@ -19,9 +20,30 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     html = render_memory_ui(store)
 
     assert "<!doctype html>" in html
-    assert "grid-template-columns: repeat(2, minmax(0, 1fr));" in html
+    assert "Retain Model" in html
+    assert "sessions</span><span>source" in html
+    assert "Raw Codex session snapshots. These are source evidence, not summaries." in html
+    assert "Graph data files: nodes are facts/entities, edges are links between them." in html
     assert "project-rules" in html
     assert "session-1.jsonl" in html
+    assert "session-1.json" in html
+    assert "entities.json" in html
+    assert "nodes.jsonl" in html
+    assert "edges.jsonl" in html
+    assert "Retains" in html
+    assert "Facts" in html
+    assert "Observation Candidates" in html
+    assert '"kind": "retain-record"' in html
+    assert '"kind": "retained-facts"' in html
+    assert '"kind": "graph-nodes"' in html
+    assert '"kind": "graph-edges"' in html
+    assert '"kind": "observation-candidate"' in html
+    assert "renderRetainRecord" in html
+    assert "Extracted Facts" in html
+    assert "Source JSONL" in html
+    assert "Memory Graph" in html
+    assert "renderMemoryGraph" in html
+    assert "memory-graph-svg" in html
     assert "reflect-1.json" in html
     assert "result-1.json" in html
     assert '"kind": "reflection-request"' in html
@@ -34,7 +56,6 @@ def test_render_memory_ui_includes_memory_tree_snapshot(tmp_path: Path) -> None:
     assert '"state": "ready"' in html
     assert '"documents": "2"' in html
     assert "Session memory for UI tree." in html
-    assert html.count("Session memory for UI tree.") == 1
     assert "Keep this fork local-first." in html
     assert "Download Markdown" in html
     assert "Reset changes" in html
@@ -70,6 +91,7 @@ def test_memory_ui_snapshot_is_structured_for_json_payload() -> None:
         "sections": [],
         "graph": None,
         "save_url": "",
+        "section_help": {},
     }
 
 
@@ -283,18 +305,25 @@ def _store_with_memory(tmp_path: Path) -> LocalMemoryStore:
         tags=["rules"],
         metadata={"source": "test"},
     )
-    store.append_session_event(
-        SessionMemoryEvent(
-            type="session_memory",
-            id="event-1",
-            timestamp="2026-05-24T12:00:00Z",
-            bank_id="codex",
-            session_id="session-1",
-            source="codex",
-            document_id="codex-session-1",
-            content="Session memory for UI tree.",
-        )
+    event = SessionMemoryEvent(
+        type="session_memory",
+        id="event-1",
+        timestamp="2026-05-24T12:00:00Z",
+        bank_id="codex",
+        session_id="session-1",
+        source="codex",
+        document_id="codex-session-1",
+        content="Session memory for UI tree.",
     )
+    store.append_session_event(event)
+    artifacts = create_retain_artifacts(event, extraction_mode="verbose")
+    store.write_retain_record(artifacts.record)
+    store.write_facts(event.session_id, artifacts.record.facts)
+    store.merge_entities(artifacts.record.entities)
+    store.append_graph_nodes(artifacts.graph_nodes)
+    store.append_graph_edges(artifacts.graph_edges)
+    if artifacts.observation_candidate is not None:
+        store.write_observation_candidate(artifacts.observation_candidate)
     store.write_reflection_packet(
         ReflectionPacket(
             type="reflection_request",

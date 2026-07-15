@@ -45,6 +45,26 @@ class MemoryPaths:
         return self.bank_dir / "reflections"
 
     @property
+    def retains_dir(self) -> Path:
+        return self.bank_dir / "retains"
+
+    @property
+    def facts_dir(self) -> Path:
+        return self.bank_dir / "facts"
+
+    @property
+    def entities_dir(self) -> Path:
+        return self.bank_dir / "entities"
+
+    @property
+    def graph_dir(self) -> Path:
+        return self.bank_dir / "graph"
+
+    @property
+    def observation_candidates_dir(self) -> Path:
+        return self.bank_dir / "observations" / "candidates"
+
+    @property
     def index_dir(self) -> Path:
         return self.bank_dir / "index"
 
@@ -56,4 +76,9 @@ class MemoryPaths:
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
         self.pages_dir.mkdir(parents=True, exist_ok=True)
         self.reflections_dir.mkdir(parents=True, exist_ok=True)
+        self.retains_dir.mkdir(parents=True, exist_ok=True)
+        self.facts_dir.mkdir(parents=True, exist_ok=True)
+        self.entities_dir.mkdir(parents=True, exist_ok=True)
+        self.graph_dir.mkdir(parents=True, exist_ok=True)
+        self.observation_candidates_dir.mkdir(parents=True, exist_ok=True)
         self.index_dir.mkdir(parents=True, exist_ok=True)

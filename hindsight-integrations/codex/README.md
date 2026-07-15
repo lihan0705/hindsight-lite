@@ -11,7 +11,7 @@ required.
 | `SessionStart` | Initializes the local bank directory |
 | `UserPromptSubmit` | Recalls relevant local memory and injects compact context |
 | `PreToolUse` | Injects compact file-specific memory before file reads |
-| `Stop` | Retains the conversation to session JSONL |
+| `Stop` | Retains the conversation to session JSONL plus structured retain artifacts |
 
 Memory layout:
 
@@ -20,6 +20,12 @@ Memory layout:
   banks/
     codex/
       sessions/<session-id>.jsonl
+      retains/<session-id>.json
+      facts/<session-id>.jsonl
+      entities/entities.json
+      graph/nodes.jsonl
+      graph/edges.jsonl
+      observations/candidates/observe-<id>.json
       pages/<page-id>.md
       reflections/<reflection-id>.json
       index/recall-index.json
@@ -131,10 +137,16 @@ export HINDSIGHT_LITE_HOME="$HOME/.hindsight-lite"
 codex
 ```
 
-After a Codex session ends, check that retain wrote local session memory:
+After a Codex session ends, check that retain wrote local session memory and
+structured retain artifacts:
 
 ```bash
 find "$HINDSIGHT_LITE_HOME/banks/codex/sessions" -name '*.jsonl'
+find "$HINDSIGHT_LITE_HOME/banks/codex/retains" -name '*.json'
+find "$HINDSIGHT_LITE_HOME/banks/codex/facts" -name '*.jsonl'
+find "$HINDSIGHT_LITE_HOME/banks/codex/graph" -name 'nodes.jsonl'
+find "$HINDSIGHT_LITE_HOME/banks/codex/graph" -name 'edges.jsonl'
+find "$HINDSIGHT_LITE_HOME/banks/codex/observations/candidates" -name 'observe-*.json'
 ```
 
 The hooks also keep small operational state files under
@@ -204,6 +216,9 @@ Defaults live in `settings.json`. User overrides can be written to
 | `autoReflect` | `true` | Write review-only trajectory candidates after corrected failures |
 | `retainMode` | `full-session` | Replace the latest session snapshot, or append retained `chunked` windows |
 | `retainEveryNTurns` | `1` | Retain every N turns |
+| `retainMission` | `null` | Plain-language focus for local fact extraction |
+| `retainExtractionMode` | `concise` | `concise`, `verbose`, or `custom` extraction breadth |
+| `receiptUri` | `null` | Optional external receipt pointer copied into security events |
 | `recallMaxResults` | `5` | Maximum local recall results |
 | `recallMaxExcerptChars` | `160` | Maximum prompt-recall excerpt characters per result |
 | `fileContextMaxResults` | `3` | Maximum file-context recall results |
@@ -225,6 +240,9 @@ export HINDSIGHT_FILE_CONTEXT_MAX_RESULTS=3
 export HINDSIGHT_FILE_CONTEXT_MAX_EXCERPT_CHARS=140
 export HINDSIGHT_AUTO_MEMORY_UI=true
 export HINDSIGHT_AUTO_REFLECT=true
+export HINDSIGHT_RETAIN_MISSION="Always keep technical decisions and architectural trade-offs."
+export HINDSIGHT_RETAIN_EXTRACTION_MODE=verbose
+export HINDSIGHT_RECEIPT_URI=receipt://example
 export HINDSIGHT_DEBUG=true
 ```
 
@@ -240,7 +258,12 @@ The first Recall creates `index/recall-index.json`. Runtime writes update an
 existing index incrementally. Direct file edits are detected from source file
 metadata so the next Recall rebuilds it automatically. The index contains
 derived search data and can be deleted safely. Retain strips injected memory
-blocks before writing session JSONL, preventing memory feedback loops.
+blocks before writing session JSONL, then writes `retains/<session-id>.json`
+with deterministic local fact, entity, relationship, temporal, and security
+candidates. It also writes first-class facts to `facts/<session-id>.jsonl`,
+updates `entities/entities.json`, writes graph nodes and edges to
+`graph/nodes.jsonl` and `graph/edges.jsonl`, and writes reviewable observation
+candidates under `observations/candidates/`.
 
 `codex_hook.py` is the installed hook dispatcher. It keeps the hook surface
 small while routing `SessionStart`, `UserPromptSubmit`, `PreToolUse`, and

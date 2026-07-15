@@ -1,6 +1,6 @@
 {
   "name": "hindsight-lite",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Local-first memory runtime for Codex CLI using Markdown, JSONL, and static inspection tools.",
   "author": {
     "name": "hindsight-lite contributors",

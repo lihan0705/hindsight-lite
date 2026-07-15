@@ -6,7 +6,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from hindsight_lite.models import KnowledgePage, ReflectionPacket, ReflectionResult, SessionMemoryEvent
+from hindsight_lite.models import (
+    KnowledgePage,
+    ObservationCandidate,
+    ReflectionPacket,
+    ReflectionResult,
+    RetainedEntity,
+    RetainedFact,
+    RetainGraphEdge,
+    RetainGraphNode,
+    RetainRecord,
+    SessionMemoryEvent,
+)
 from hindsight_lite.paths import MemoryPaths, default_home, unsafe_page_id
 
 
@@ -142,6 +153,62 @@ class LocalMemoryStore:
         )
         return result_path
 
+    def write_retain_record(self, record: RetainRecord) -> Path:
+        record_path = self.paths.retains_dir / f"{record.session_id}.json"
+        record_path.write_text(
+            json.dumps(asdict(record), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        return record_path
+
+    def write_facts(self, session_id: str, facts: list[RetainedFact]) -> Path:
+        facts_path = self.paths.facts_dir / f"{session_id}.jsonl"
+        with facts_path.open("w", encoding="utf-8") as file:
+            for fact in facts:
+                file.write(f"{json.dumps(asdict(fact), ensure_ascii=False, sort_keys=True)}\n")
+        return facts_path
+
+    def write_observation_candidate(self, candidate: ObservationCandidate) -> Path:
+        candidate_path = self.paths.observation_candidates_dir / f"{candidate.id}.json"
+        candidate_path.write_text(
+            json.dumps(asdict(candidate), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        return candidate_path
+
+    def append_graph_nodes(self, nodes: list[RetainGraphNode]) -> Path:
+        node_path = self.paths.graph_dir / "nodes.jsonl"
+        existing_ids = _read_jsonl_ids(node_path)
+        with node_path.open("a", encoding="utf-8") as file:
+            for node in nodes:
+                if node.id in existing_ids:
+                    continue
+                file.write(f"{json.dumps(asdict(node), ensure_ascii=False, sort_keys=True)}\n")
+                existing_ids.add(node.id)
+        return node_path
+
+    def append_graph_edges(self, edges: list[RetainGraphEdge]) -> Path:
+        edge_path = self.paths.graph_dir / "edges.jsonl"
+        with edge_path.open("a", encoding="utf-8") as file:
+            for edge in edges:
+                file.write(f"{json.dumps(asdict(edge), ensure_ascii=False, sort_keys=True)}\n")
+        return edge_path
+
+    def merge_entities(self, entities: list[RetainedEntity]) -> Path:
+        registry_path = self.paths.entities_dir / "entities.json"
+        existing = _read_entity_registry(registry_path)
+        merged = {entity.id: entity for entity in existing}
+        for entity in entities:
+            previous = merged.get(entity.id)
+            merged[entity.id] = entity if previous is None else _merge_entity(previous, entity)
+        registry_path.write_text(
+            json.dumps(
+                [asdict(entity) for entity in sorted(merged.values(), key=lambda item: item.id)],
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        return registry_path
+
     def _page_path(self, page_id: str) -> Path:
         if unsafe_page_id(page_id):
             raise UnsafePageIdError(page_id)
@@ -208,6 +275,55 @@ def _coerce_str_list(value: object) -> list[str]:
     if isinstance(value, list):
         return [item for item in value if isinstance(item, str)]
     return []
+
+
+def _read_entity_registry(path: Path) -> list[RetainedEntity]:
+    if not path.exists():
+        return []
+    raw_items = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(raw_items, list):
+        return []
+    return [
+        RetainedEntity(
+            id=str(item.get("id", "")),
+            name=str(item.get("name", "")),
+            kind=item.get("kind", "concept"),
+            aliases=_coerce_str_list(item.get("aliases")),
+            mentions=_coerce_str_list(item.get("mentions")),
+        )
+        for item in raw_items
+        if isinstance(item, dict) and item.get("id") and item.get("name")
+    ]
+
+
+def _read_jsonl_ids(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    ids: set[str] = set()
+    with path.open(encoding="utf-8") as file:
+        for line in file:
+            raw_line = line.strip()
+            if not raw_line:
+                continue
+            try:
+                data = json.loads(raw_line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict) and isinstance(data.get("id"), str):
+                ids.add(data["id"])
+    return ids
+
+
+def _merge_entity(existing: RetainedEntity, incoming: RetainedEntity) -> RetainedEntity:
+    aliases = sorted({*existing.aliases, *incoming.aliases})
+    mentions = sorted({*existing.mentions, *incoming.mentions})
+    return RetainedEntity(
+        id=existing.id,
+        name=existing.name,
+        kind=existing.kind,
+        aliases=aliases,
+        mentions=mentions,
+    )
 
 
 def _session_event_line(event: SessionMemoryEvent) -> str:

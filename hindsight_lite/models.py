@@ -42,6 +42,107 @@ class RecallResult:
 
 
 @dataclass(frozen=True)
+class RetainedEntity:
+    id: str
+    name: str
+    kind: Literal["person", "organization", "place", "product", "concept", "label"]
+    aliases: list[str] = field(default_factory=list)
+    mentions: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RetainedFact:
+    type: Literal["retained_fact"]
+    id: str
+    kind: Literal["experience", "world"]
+    text: str
+    evidence: str
+    source_role: str
+    entity_ids: list[str] = field(default_factory=list)
+    reasoning: str | None = None
+    emotion: str | None = None
+    significance: str | None = None
+    occurred_at: str | None = None
+    mentioned_at: str | None = None
+    tags: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RetainedRelationship:
+    id: str
+    source_entity_id: str
+    target_entity_id: str
+    kind: Literal["mentions", "co_occurs", "causes", "temporal_near", "semantic_related"]
+    evidence: str
+    fact_ids: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RetainSecurityEvent:
+    detector: Literal["prompt_injection"]
+    severity: Literal["low", "medium", "high"]
+    message: str
+    evidence: str
+    receipt_uri: str | None = None
+
+
+@dataclass(frozen=True)
+class RetainRecord:
+    type: Literal["retain_record"]
+    id: str
+    timestamp: str
+    bank_id: str
+    session_id: str
+    source_event_id: str
+    mention_time: str
+    extraction_mode: Literal["concise", "verbose", "custom"]
+    retain_mission: str | None
+    facts: list[RetainedFact] = field(default_factory=list)
+    entities: list[RetainedEntity] = field(default_factory=list)
+    relationships: list[RetainedRelationship] = field(default_factory=list)
+    security_events: list[RetainSecurityEvent] = field(default_factory=list)
+    receipt_uri: str | None = None
+
+
+@dataclass(frozen=True)
+class RetainGraphEdge:
+    type: Literal["retain_graph_edge"]
+    id: str
+    source_id: str
+    target_id: str
+    kind: Literal["mentions", "co_occurs", "causes", "temporal_near", "semantic_related"]
+    evidence: str
+    retain_id: str
+    fact_ids: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RetainGraphNode:
+    type: Literal["retain_graph_node"]
+    id: str
+    kind: Literal["entity", "fact"]
+    label: str
+    retain_id: str
+    entity_kind: Literal["person", "organization", "place", "product", "concept", "label"] | None = None
+    fact_kind: Literal["experience", "world"] | None = None
+    source_id: str | None = None
+
+
+@dataclass(frozen=True)
+class ObservationCandidate:
+    type: Literal["observation_candidate"]
+    id: str
+    timestamp: str
+    bank_id: str
+    session_id: str
+    source_retain_id: str
+    observation: str
+    evidence_fact_ids: list[str] = field(default_factory=list)
+    proof_count: int = 0
+    confidence: float = 0.0
+
+
+@dataclass(frozen=True)
 class ReflectionResultField:
     name: str
     value_type: Literal["string", "string_list", "number", "object"]
