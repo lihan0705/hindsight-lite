@@ -1,9 +1,17 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
 [project]
 name = "hindsight-lite"
 version = "0.1.0"
 description = "Local-first memory for AI coding agents."
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = []
+
+[project.scripts]
+hindsight-lite = "hindsight_lite.cli:main"
 
 [dependency-groups]
 dev = [

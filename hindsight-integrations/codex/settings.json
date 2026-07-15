@@ -6,6 +6,8 @@
   "autoMemoryUi": true,
   "autoReflect": true,
   "retainMode": "full-session",
+  "retainMission": null,
+  "retainExtractionMode": "concise",
   "recallMaxResults": 5,
   "recallMaxExcerptChars": 160,
   "recallContextTurns": 1,
